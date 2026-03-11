@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bản đồ tri thức nghiên cứu khoa học - Khoa CNTT, Trường Đại học Nha Trang">
+    <title>Knowledge Map - Khoa CNTT | ĐH Nha Trang</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Vis.js Network -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-project-diagram"></i>
+                <span class="logo-text">KnowledgeMap</span>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" data-page="dashboard">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tổng quan</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="explore">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-search"></i>
+                    <span>Tra cứu & Khám phá</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="lecturers">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Giảng viên</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="publications">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Công trình</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="projects">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-flask"></i>
+                    <span>Đề tài</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="statistics">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Thống kê</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="university-badge">
+                <i class="fas fa-university"></i>
+                <span>ĐH Nha Trang</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+
+        <!-- Header -->
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Tổng quan</h1>
+            <div class="header-actions">
+                <div class="search-bar-header">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearch" placeholder="Tìm kiếm giảng viên, công trình...">
+                </div>
+            </div>
+        </header>
+
+        <!-- Page: Dashboard -->
+        <section class="page active" id="page-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card" id="stat-gv">
+                    <div class="stat-icon"><i class="fas fa-user-tie"></i></div>
+                    <div class="stat-info">
+                        <h3 class="stat-number" data-target="0">0</h3>
+                        <p class="stat-label">Giảng viên</p>
+                    </div>
+                </div>
+                <div class="stat-card" id="stat-ct">
+                    <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-info">
+                        <h3 class="stat-number" data-target="0">0</h3>
+                        <p class="stat-label">Công trình</p>
+                    </div>
+                </div>
+                <div class="stat-card" id="stat-dt">
+                    <div class="stat-icon"><i class="fas fa-flask"></i></div>
+                    <div class="stat-info">
+                        <h3 class="stat-number" data-target="0">0</h3>
+                        <p class="stat-label">Đề tài</p>
+                    </div>
+                </div>
+                <div class="stat-card" id="stat-bm">
+                    <div class="stat-icon"><i class="fas fa-building"></i></div>
+                    <div class="stat-info">
+                        <h3 class="stat-number" data-target="0">0</h3>
+                        <p class="stat-label">Bộ môn</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card graph-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-project-diagram"></i> Bản đồ tri thức</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-sm" onclick="resetGraphView()">
+                                <i class="fas fa-expand"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                    <div id="knowledge-graph" class="graph-container"></div>
+                    <div class="graph-legend" id="graphLegend"></div>
+                </div>
+
+                <div class="card top-lecturers-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-trophy"></i> Top Giảng viên</h2>
+                    </div>
+                    <div class="card-body" id="topLecturersList">
+                        <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Explore -->
+        <section class="page" id="page-explore">
+            <div class="explore-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="exploreSearch" placeholder="Nhập tên giảng viên, từ khóa công trình, lĩnh vực...">
+                    <button class="btn btn-primary" onclick="performSearch()">Tìm kiếm</button>
+                </div>
+            </div>
+
+            <div class="explore-content">
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <h2><i class="fas fa-project-diagram"></i> Đồ thị quan hệ</h2>
+                    </div>
+                    <div id="explore-graph" class="graph-container" style="height: 500px;"></div>
+                </div>
+
+                <div id="searchResults" class="search-results" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-list"></i> Kết quả tìm kiếm</h2>
+                        </div>
+                        <div class="card-body" id="searchResultsList"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Lecturers -->
+        <section class="page" id="page-lecturers">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-tie"></i> Danh sách Giảng viên</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="lecturersTable">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ và tên</th>
+                                    <th>Học vị</th>
+                                    <th>Chức danh</th>
+                                    <th>Bộ môn</th>
+                                    <th>Email</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lecturersBody">
+                                <tr><td colspan="7" class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lecturer Detail Modal -->
+            <div class="modal-overlay" id="lecturerModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 id="modalLecturerName"></h2>
+                        <button class="modal-close" onclick="closeLecturerModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="modalLecturerBody"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Publications -->
+        <section class="page" id="page-publications">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-alt"></i> Công trình Nghiên cứu</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="publicationsTable">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên công trình</th>
+                                    <th>Tác giả</th>
+                                    <th>Năm</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publicationsBody">
+                                <tr><td colspan="4" class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Projects -->
+        <section class="page" id="page-projects">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-flask"></i> Đề tài Nghiên cứu</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="projectsTable">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên đề tài</th>
+                                    <th>Chủ nhiệm</th>
+                                    <th>Cấp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectsBody">
+                                <tr><td colspan="4" class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page: Statistics -->
+        <section class="page" id="page-statistics">
+            <div class="stats-detail-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-trophy"></i> Giảng viên có nhiều công trình nhất</h2>
+                    </div>
+                    <div class="card-body" id="statsTopLecturers">
+                        <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-info-circle"></i> Tổng quan hệ thống</h2>
+                    </div>
+                    <div class="card-body" id="statsOverview">
+                        <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Main JS -->
+    <script src="js/app.js"></script>
+</body>
+</html>

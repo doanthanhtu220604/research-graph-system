@@ -1,0 +1,336 @@
+"""
+API Routes cho Knowledge Map.
+Cung cấp endpoints để frontend truy vấn dữ liệu từ Neo4j.
+"""
+
+from flask import Blueprint, jsonify, request
+from backend.services.neo4j_connection import get_neo4j_connection
+
+api_bp = Blueprint("api", __name__, url_prefix="/api")
+
+
+# ============================================================
+# GIẢNG VIÊN
+# ============================================================
+
+@api_bp.route("/giang-vien")
+def get_all_giang_vien():
+    """Lấy danh sách tất cả giảng viên."""
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (gv:GiangVien)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        RETURN gv, bm.ten_bo_mon AS bo_mon
+        ORDER BY gv.ho_va_ten
+    """)
+    giang_vien_list = []
+    for r in results:
+        gv = dict(r["gv"])
+        gv["bo_mon"] = r["bo_mon"]
+        giang_vien_list.append(gv)
+    return jsonify({"status": "ok", "data": giang_vien_list})
+
+
+@api_bp.route("/giang-vien/<int:gv_id>")
+def get_giang_vien_detail(gv_id):
+    """Lấy chi tiết giảng viên và các mối quan hệ."""
+    conn = get_neo4j_connection()
+
+    # Thông tin cơ bản
+    gv = conn.query_single("""
+        MATCH (gv:GiangVien {id: $id})
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        RETURN gv, bm.ten_bo_mon AS bo_mon
+    """, {"id": gv_id})
+
+    if not gv:
+        return jsonify({"status": "error", "message": "Không tìm thấy giảng viên"}), 404
+
+    # Công trình nghiên cứu
+    cong_trinh = conn.query("""
+        MATCH (gv:GiangVien {id: $id})-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        RETURN ct
+        ORDER BY ct.nam_xuat_ban DESC
+    """, {"id": gv_id})
+
+    # Đề tài nghiên cứu
+    de_tai = conn.query("""
+        MATCH (gv:GiangVien {id: $id})-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        RETURN dt, type(r) AS vai_tro
+    """, {"id": gv_id})
+
+    result = dict(gv["gv"])
+    result["bo_mon"] = gv["bo_mon"]
+    result["cong_trinh"] = [dict(r["ct"]) for r in cong_trinh]
+    result["de_tai"] = [{"de_tai": dict(r["dt"]), "vai_tro": r["vai_tro"]} for r in de_tai]
+
+    return jsonify({"status": "ok", "data": result})
+
+
+# ============================================================
+# CÔNG TRÌNH NGHIÊN CỨU
+# ============================================================
+
+@api_bp.route("/cong-trinh")
+def get_all_cong_trinh():
+    """Lấy danh sách công trình nghiên cứu."""
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (ct:CongTrinhNghienCuu)
+        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        RETURN ct, collect(gv.ho_va_ten) AS tac_gia
+        ORDER BY ct.nam_xuat_ban DESC
+    """)
+    cong_trinh_list = []
+    for r in results:
+        ct = dict(r["ct"])
+        ct["tac_gia"] = r["tac_gia"]
+        cong_trinh_list.append(ct)
+    return jsonify({"status": "ok", "data": cong_trinh_list})
+
+
+# ============================================================
+# ĐỀ TÀI NGHIÊN CỨU
+# ============================================================
+
+@api_bp.route("/de-tai")
+def get_all_de_tai():
+    """Lấy danh sách đề tài nghiên cứu."""
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (dt:DeTaiNghienCuu)
+        OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
+        RETURN dt, collect(gv.ho_va_ten) AS chu_nhiem
+    """)
+    de_tai_list = []
+    for r in results:
+        dt = dict(r["dt"])
+        dt["chu_nhiem"] = r["chu_nhiem"]
+        de_tai_list.append(dt)
+    return jsonify({"status": "ok", "data": de_tai_list})
+
+
+# ============================================================
+# TÌM KIẾM
+# ============================================================
+
+@api_bp.route("/search")
+def search():
+    """Tìm kiếm tổng hợp theo từ khóa."""
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"status": "ok", "data": []})
+
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (n)
+        WHERE any(key IN keys(n) WHERE toString(n[key]) CONTAINS $q)
+        RETURN n, labels(n) AS labels
+        LIMIT 20
+    """, {"q": q})
+
+    data = []
+    for r in results:
+        item = dict(r["n"])
+        item["_labels"] = r["labels"]
+        data.append(item)
+    return jsonify({"status": "ok", "data": data, "query": q})
+
+
+# ============================================================
+# GRAPH DATA (cho Vis.js visualization)
+# ============================================================
+
+@api_bp.route("/graph/all")
+def get_full_graph():
+    """Lấy toàn bộ dữ liệu đồ thị cho visualization."""
+    conn = get_neo4j_connection()
+
+    # Lấy tất cả nodes
+    nodes_result = conn.query("""
+        MATCH (n)
+        RETURN id(n) AS id, labels(n) AS labels, properties(n) AS props
+    """)
+
+    # Lấy tất cả relationships
+    edges_result = conn.query("""
+        MATCH (a)-[r]->(b)
+        RETURN id(a) AS source, id(b) AS target, type(r) AS type,
+               properties(r) AS props
+    """)
+
+    # Map label -> color và shape cho Vis.js
+    label_config = {
+        "GiangVien": {"color": "#4F8EF7", "shape": "dot", "size": 25},
+        "CongTrinhNghienCuu": {"color": "#2ECC71", "shape": "diamond", "size": 18},
+        "DeTaiNghienCuu": {"color": "#F39C12", "shape": "triangle", "size": 20},
+        "BoMon": {"color": "#E74C3C", "shape": "square", "size": 22},
+        "Khoa": {"color": "#9B59B6", "shape": "star", "size": 30},
+        "LinhVucNghienCuu": {"color": "#1ABC9C", "shape": "hexagon", "size": 22},
+        "NhomNghienCuu": {"color": "#E67E22", "shape": "triangle", "size": 20},
+    }
+
+    nodes = []
+    for n in nodes_result:
+        label = n["labels"][0] if n["labels"] else "Unknown"
+        config = label_config.get(label, {"color": "#95A5A6", "shape": "dot", "size": 15})
+
+        # Tạo display label
+        props = n["props"]
+        display_label = (
+            props.get("ho_va_ten")
+            or props.get("ten_cong_trinh")
+            or props.get("ten_de_tai")
+            or props.get("ten_bo_mon")
+            or props.get("ten_khoa")
+            or props.get("ten_linh_vuc")
+            or props.get("ten_nhom")
+            or str(props.get("id", ""))
+        )
+
+        nodes.append({
+            "id": n["id"],
+            "label": display_label,
+            "group": label,
+            "color": config["color"],
+            "shape": config["shape"],
+            "size": config["size"],
+            "properties": props,
+        })
+
+    edges = []
+    for e in edges_result:
+        edges.append({
+            "from": e["source"],
+            "to": e["target"],
+            "label": e["type"],
+            "arrows": "to",
+            "properties": e["props"],
+        })
+
+    return jsonify({
+        "status": "ok",
+        "nodes": nodes,
+        "edges": edges,
+        "legend": label_config,
+    })
+
+
+@api_bp.route("/graph/node/<int:node_id>")
+def get_node_graph(node_id):
+    """Lấy đồ thị xung quanh 1 node cụ thể (depth=1)."""
+    conn = get_neo4j_connection()
+
+    results = conn.query("""
+        MATCH (center)-[r]-(neighbor)
+        WHERE id(center) = $node_id
+        RETURN center, r, neighbor,
+               id(center) AS center_id, id(neighbor) AS neighbor_id,
+               labels(center) AS center_labels, labels(neighbor) AS neighbor_labels,
+               type(r) AS rel_type
+    """, {"node_id": node_id})
+
+    label_config = {
+        "GiangVien": {"color": "#4F8EF7", "shape": "dot", "size": 25},
+        "CongTrinhNghienCuu": {"color": "#2ECC71", "shape": "diamond", "size": 18},
+        "DeTaiNghienCuu": {"color": "#F39C12", "shape": "triangle", "size": 20},
+        "BoMon": {"color": "#E74C3C", "shape": "square", "size": 22},
+        "Khoa": {"color": "#9B59B6", "shape": "star", "size": 30},
+        "LinhVucNghienCuu": {"color": "#1ABC9C", "shape": "hexagon", "size": 22},
+        "NhomNghienCuu": {"color": "#E67E22", "shape": "triangle", "size": 20},
+    }
+
+    nodes_map = {}
+    edges = []
+
+    for r in results:
+        # Center node
+        cid = r["center_id"]
+        if cid not in nodes_map:
+            clabel = r["center_labels"][0] if r["center_labels"] else "Unknown"
+            cprops = dict(r["center"])
+            cconfig = label_config.get(clabel, {"color": "#95A5A6", "shape": "dot", "size": 15})
+            nodes_map[cid] = {
+                "id": cid,
+                "label": cprops.get("ho_va_ten") or cprops.get("ten_cong_trinh")
+                         or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
+                         or cprops.get("ten_khoa") or str(cprops.get("id", "")),
+                "group": clabel,
+                "color": cconfig["color"],
+                "shape": cconfig["shape"],
+                "size": cconfig["size"] + 10,
+                "properties": cprops,
+            }
+
+        # Neighbor node
+        nid = r["neighbor_id"]
+        if nid not in nodes_map:
+            nlabel = r["neighbor_labels"][0] if r["neighbor_labels"] else "Unknown"
+            nprops = dict(r["neighbor"])
+            nconfig = label_config.get(nlabel, {"color": "#95A5A6", "shape": "dot", "size": 15})
+            nodes_map[nid] = {
+                "id": nid,
+                "label": nprops.get("ho_va_ten") or nprops.get("ten_cong_trinh")
+                         or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
+                         or nprops.get("ten_khoa") or str(nprops.get("id", "")),
+                "group": nlabel,
+                "color": nconfig["color"],
+                "shape": nconfig["shape"],
+                "size": nconfig["size"],
+                "properties": nprops,
+            }
+
+        edges.append({
+            "from": cid,
+            "to": nid,
+            "label": r["rel_type"],
+            "arrows": "to",
+        })
+
+    return jsonify({
+        "status": "ok",
+        "nodes": list(nodes_map.values()),
+        "edges": edges,
+    })
+
+
+# ============================================================
+# THỐNG KÊ
+# ============================================================
+
+@api_bp.route("/stats/overview")
+def get_overview_stats():
+    """Thống kê tổng quan."""
+    try:
+        conn = get_neo4j_connection()
+
+        gv_count = conn.query_single("MATCH (n:GiangVien) RETURN count(n) AS count")
+        ct_count = conn.query_single("MATCH (n:CongTrinhNghienCuu) RETURN count(n) AS count")
+        dt_count = conn.query_single("MATCH (n:DeTaiNghienCuu) RETURN count(n) AS count")
+        bm_count = conn.query_single("MATCH (n:BoMon) RETURN count(n) AS count")
+
+        # Top giảng viên theo số công trình
+        top_gv = conn.query("""
+            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            RETURN gv.ho_va_ten AS ten, gv.id AS id, count(ct) AS so_cong_trinh
+            ORDER BY so_cong_trinh DESC
+            LIMIT 10
+        """)
+
+        return jsonify({
+            "status": "ok",
+            "stats": {
+                "giang_vien": int(gv_count["count"]) if gv_count else 0,
+                "cong_trinh": int(ct_count["count"]) if ct_count else 0,
+                "de_tai": int(dt_count["count"]) if dt_count else 0,
+                "bo_mon": int(bm_count["count"]) if bm_count else 0,
+            },
+            "top_giang_vien": top_gv,
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "trace": traceback.format_exc()
+        }), 500
