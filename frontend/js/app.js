@@ -30,13 +30,7 @@ function initNavigation() {
         });
     });
 
-    // Menu toggle for mobile
-    const menuToggle = document.getElementById('menuToggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        });
-    }
+    // Removed mobile toggle for top-nav currently
 }
 
 function navigateTo(page) {
@@ -69,8 +63,7 @@ function navigateTo(page) {
         case 'statistics': loadStatistics(); break;
     }
 
-    // Close mobile sidebar
-    document.getElementById('sidebar').classList.remove('open');
+    // Removed mobile sidebar close
 }
 
 // ============================================================
@@ -400,9 +393,15 @@ async function loadLecturers() {
                     <td>${gv.bo_mon || ''}</td>
                     <td>${gv.email || ''}</td>
                     <td>
+                        ${gv.id ? `
                         <button class="btn btn-view" onclick="showLecturerDetail(${gv.id})">
                             <i class="fas fa-eye"></i> Xem
                         </button>
+                        ` : `
+                        <button class="btn btn-view" style="opacity:0.5; cursor:not-allowed;" title="Giảng viên chưa có ID trong hệ thống">
+                            <i class="fas fa-eye-slash"></i> Không có ID
+                        </button>
+                        `}
                     </td>
                 </tr>
             `).join('');
@@ -465,12 +464,15 @@ async function showLecturerDetail(gvId) {
                 html += `
                     <div class="modal-section">
                         <h3><i class="fas fa-flask"></i> Đề tài nghiên cứu (${gv.de_tai.length})</h3>
-                        ${gv.de_tai.map(dt => `
-                            <div class="modal-list-item">
-                                ${dt.de_tai.ten_de_tai || 'N/A'}
-                                <span style="color: var(--accent-orange); font-size: 12px;"> [${dt.vai_tro}]</span>
-                            </div>
-                        `).join('')}
+                        ${gv.de_tai.map(dt => {
+                            const tenDeTai = (dt.de_tai && dt.de_tai.ten_de_tai) ? dt.de_tai.ten_de_tai : 'N/A';
+                            return `
+                                <div class="modal-list-item">
+                                    ${tenDeTai}
+                                    <span style="color: var(--accent-orange); font-size: 12px;"> [${dt.vai_tro || 'Thành viên'}]</span>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
             }
@@ -584,5 +586,33 @@ async function loadStatistics() {
         }
     } catch (err) {
         console.error('Statistics error:', err);
+    }
+}
+
+// ============================================================
+// LOGIN MODAL LOGIC
+// ============================================================
+
+function openLoginModal() {
+    document.getElementById('loginModal').classList.add('active');
+    document.getElementById('username').focus();
+    document.getElementById('loginError').style.display = 'none';
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').classList.remove('active');
+    document.getElementById('loginForm').reset();
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+
+    // Simple mock login since there's no backend login API defined yet
+    if (user === 'admin' && pass === 'admin') {
+        window.location.href = 'admin.html';
+    } else {
+        document.getElementById('loginError').style.display = 'block';
     }
 }

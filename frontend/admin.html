@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quản trị Bản đồ tri thức">
+    <title>Quản trị - Knowledge Map</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-user-shield"></i>
+                <span class="logo-text">KnowledgeMap Admin</span>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" data-page="admin-overview">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tổng quan hệ thống</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="admin-lecturers">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <span>QL Giảng viên</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="admin-projects">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-flask"></i>
+                    <span>QL Đề tài</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="admin-config">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Cấu hình</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/" class="nav-link" style="color: var(--accent-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Admin Dashboard</h1>
+            <div class="header-actions">
+                <span style="font-weight: 500; color: var(--text-secondary); margin-right: 15px;">Xin chào, Admin</span>
+            </div>
+        </header>
+
+        <section class="page active" id="page-admin-overview" style="display: block;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--gradient-primary);"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3 class="stat-number">125</h3>
+                        <p class="stat-label">Lượt truy cập hôm nay</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: var(--gradient-green);"><i class="fas fa-plus-circle"></i></div>
+                    <div class="stat-info">
+                        <h3 class="stat-number">12</h3>
+                        <p class="stat-label">Bản ghi mới</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-bell"></i> Hoạt động gần đây</h2>
+                </div>
+                <div class="card-body">
+                    <div class="modal-list-item">Thêm mới công trình "Nghiên cứu AI Trong Nông nghiệp" - 2 giờ trước</div>
+                    <div class="modal-list-item">Cập nhật thông tin giảng viên Nguyễn Văn A - 5 giờ trước</div>
+                    <div class="modal-list-item">Hệ thống sao lưu dữ liệu thành công - 1 ngày trước</div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
