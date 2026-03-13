@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bản đồ tri thức nghiên cứu khoa học - Khoa CNTT, Trường Đại học Nha Trang">
+    <title>Khám phá - Knowledge Map | ĐH Nha Trang</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="main-content" id="mainContent">
+        <div class="page-header">
+            <h1 class="page-title">Khám phá Bản đồ</h1>
+        </div>
+
+        <section class="page active" id="page-explore" style="display: block;">
+            <div class="explore-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="exploreSearch" placeholder="Nhập tên giảng viên, từ khóa công trình, lĩnh vực...">
+                    <button class="btn btn-primary" onclick="performSearch()">Tìm kiếm</button>
+                </div>
+            </div>
+
+            <div class="explore-content">
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <h2><i class="fas fa-project-diagram"></i> Đồ thị quan hệ</h2>
+                    </div>
+                    <div id="explore-graph" class="graph-container" style="height: 500px;"></div>
+                </div>
+
+                <div id="searchResults" class="search-results" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-list"></i> Kết quả tìm kiếm</h2>
+                        </div>
+                        <div class="card-body" id="searchResultsList"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="modal-placeholder"></div>
+
+    <script src="../js/layout.js"></script>
+    <script src="../js/app.js"></script>
+</body>
+</html>

@@ -36,10 +36,19 @@ def create_app():
 
     @app.route("/")
     def serve_index():
-        return send_from_directory(frontend_dir, "index.html")
+        return send_from_directory(frontend_dir, "user/index.html")
 
     @app.route("/<path:filename>")
     def serve_static(filename):
+        # Nếu url yêu cầu file HTML (như explore.html) thì ngầm định nó nằm trong `user` nếu ko có prefix nào
+        if filename.endswith('.html') and not filename.startswith('user/') and not filename.startswith('admin/') and not filename.startswith('components/'):
+            return send_from_directory(frontend_dir, f"user/{filename}")
+        
+        # Đường dẫn components (vd components/header.html)
+        if filename.startswith('components/'):
+            return send_from_directory(frontend_dir, f"user/{filename}")
+
+        # Static assets (css, js, thô ...)
         return send_from_directory(frontend_dir, filename)
 
     # ============================

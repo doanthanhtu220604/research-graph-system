@@ -7,81 +7,42 @@ let dashboardGraph = null;
 let exploreGraph = null;
 
 // ============================================================
-// INITIALIZATION
+// INITIALIZATION (MPA MODE)
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    initNavigation();
-    initGlobalSearch();
-    loadDashboard();
+    let path = window.location.pathname;
+    let page = path.split('/').pop().split('.')[0];
+    
+    if (!page || page === '' || page === 'index') {
+        setTimeout(loadDashboard, 100);
+    } else if (page === 'explore') {
+        setTimeout(initExploreGraph, 100);
+    } else if (page === 'lecturers') {
+        setTimeout(loadLecturers, 100);
+    } else if (page === 'publications') {
+        setTimeout(loadPublications, 100);
+    } else if (page === 'projects') {
+        setTimeout(loadProjects, 100);
+    } else if (page === 'statistics') {
+        setTimeout(loadStatistics, 100);
+    }
 });
 
-// ============================================================
-// NAVIGATION
-// ============================================================
-
-function initNavigation() {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = item.dataset.page;
-            navigateTo(page);
-        });
-    });
-
-    // Removed mobile toggle for top-nav currently
-}
-
-function navigateTo(page) {
-    // Update nav
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
-
-    // Update pages
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${page}`).classList.add('active');
-
-    // Update title
-    const titles = {
-        dashboard: 'Tổng quan',
-        explore: 'Tra cứu & Khám phá',
-        lecturers: 'Giảng viên',
-        publications: 'Công trình Nghiên cứu',
-        projects: 'Đề tài Nghiên cứu',
-        statistics: 'Thống kê'
-    };
-    document.getElementById('pageTitle').textContent = titles[page] || page;
-
-    // Load page data
-    switch (page) {
-        case 'dashboard': loadDashboard(); break;
-        case 'explore': initExploreGraph(); break;
-        case 'lecturers': loadLecturers(); break;
-        case 'publications': loadPublications(); break;
-        case 'projects': loadProjects(); break;
-        case 'statistics': loadStatistics(); break;
-    }
-
-    // Removed mobile sidebar close
-}
-
-// ============================================================
-// GLOBAL SEARCH
-// ============================================================
-
-function initGlobalSearch() {
-    const input = document.getElementById('globalSearch');
-    let timeout;
-    input.addEventListener('keyup', (e) => {
-        clearTimeout(timeout);
+// Global Event Delegation for dynamically loaded components
+document.addEventListener('keyup', (e) => {
+    if (e.target && e.target.id === 'globalSearch') {
         if (e.key === 'Enter') {
-            navigateTo('explore');
-            document.getElementById('exploreSearch').value = input.value;
-            performSearch();
+            const query = e.target.value;
+            if (window.location.pathname.indexOf('explore.html') === -1) {
+                window.location.href = 'explore.html?q=' + encodeURIComponent(query);
+            } else {
+                document.getElementById('exploreSearch').value = query;
+                performSearch();
+            }
         }
-    });
-}
+    }
+});
 
 // ============================================================
 // DASHBOARD
@@ -299,6 +260,19 @@ function renderLegend(legendConfig) {
 
 function initExploreGraph() {
     loadKnowledgeGraphForExplore();
+    
+    // Auto-search if query parameter exists
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get('q');
+    if (q) {
+        setTimeout(() => {
+            const searchInput = document.getElementById('exploreSearch');
+            if (searchInput) {
+                searchInput.value = q;
+                performSearch();
+            }
+        }, 300);
+    }
 }
 
 async function loadKnowledgeGraphForExplore() {
@@ -611,7 +585,7 @@ function handleLogin(event) {
 
     // Simple mock login since there's no backend login API defined yet
     if (user === 'admin' && pass === 'admin') {
-        window.location.href = 'admin.html';
+        window.location.href = '../admin/index.html';
     } else {
         document.getElementById('loginError').style.display = 'block';
     }
