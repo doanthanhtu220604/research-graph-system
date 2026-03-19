@@ -14,8 +14,8 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-# Thêm thư mục gốc vào path
-sys.path.insert(0, os.path.dirname(__file__))
+# Thêm thư mục gốc vào path (lùi 1 cấp do file đang ở trong thư mục database_scripts)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.services.neo4j_connection import Neo4jConnection
 

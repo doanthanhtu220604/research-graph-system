@@ -440,10 +440,14 @@ async function showLecturerDetail(gvId) {
                         <h3><i class="fas fa-flask"></i> Đề tài nghiên cứu (${gv.de_tai.length})</h3>
                         ${gv.de_tai.map(dt => {
                             const tenDeTai = (dt.de_tai && dt.de_tai.ten_de_tai) ? dt.de_tai.ten_de_tai : 'N/A';
+                            const capDeTai = (dt.de_tai && dt.de_tai.cap_de_tai) ? dt.de_tai.cap_de_tai : 'Chưa xác định';
                             return `
                                 <div class="modal-list-item">
                                     ${tenDeTai}
                                     <span style="color: var(--accent-orange); font-size: 12px;"> [${dt.vai_tro || 'Thành viên'}]</span>
+                                    <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">
+                                        Cấp đề tài: ${capDeTai}
+                                    </div>
                                 </div>
                             `;
                         }).join('')}
