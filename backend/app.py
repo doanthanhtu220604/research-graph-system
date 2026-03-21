@@ -16,6 +16,9 @@ from backend.services.neo4j_connection import (
     close_neo4j_connection,
 )
 from backend.routes.api import api_bp
+from backend.routes.admin_lecturers import admin_lecturers_bp
+from backend.routes.admin_publications import admin_publications_bp
+from backend.routes.admin_projects import admin_projects_bp
 
 
 def create_app():
@@ -28,6 +31,10 @@ def create_app():
 
     # Đăng ký API Blueprint
     app.register_blueprint(api_bp)
+    app.register_blueprint(admin_lecturers_bp, url_prefix='/api/admin')
+    app.register_blueprint(admin_publications_bp, url_prefix='/api/admin')
+    app.register_blueprint(admin_projects_bp, url_prefix='/api/admin')
+
 
     # ============================
     # Serve Frontend (static files)

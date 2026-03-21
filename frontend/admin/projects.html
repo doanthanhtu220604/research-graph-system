@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Quản trị Bản đồ tri thức">
-    <title>Quản trị - Knowledge Map</title>
+    <title>Quản lý Đề tài - Knowledge Map Admin</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
         </div>
 
         <ul class="nav-menu">
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a href="index.html" class="nav-link">
                     <i class="fas fa-th-large"></i>
                     <span>Tổng quan hệ thống</span>
@@ -40,7 +40,7 @@
                     <span>QL Công trình</span>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a href="projects.html" class="nav-link">
                     <i class="fas fa-flask"></i>
                     <span>QL Đề tài</span>
@@ -72,41 +72,67 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title" id="pageTitle">Admin Dashboard</h1>
+            <h1 class="page-title" id="pageTitle">Quản lý Đề tài</h1>
             <div class="header-actions">
                 <span style="font-weight: 500; color: var(--text-secondary); margin-right: 15px;">Xin chào, Admin</span>
             </div>
         </header>
 
-        <section class="page active" id="page-admin-overview" style="display: block;">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: var(--gradient-primary);"><i class="fas fa-users"></i></div>
-                    <div class="stat-info">
-                        <h3 class="stat-number">125</h3>
-                        <p class="stat-label">Lượt truy cập hôm nay</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: var(--gradient-green);"><i class="fas fa-plus-circle"></i></div>
-                    <div class="stat-info">
-                        <h3 class="stat-number">12</h3>
-                        <p class="stat-label">Bản ghi mới</p>
-                    </div>
-                </div>
-            </div>
-            
+        <!-- PROJECTS SECTION -->
+        <section class="page active" id="page-admin-projects" style="display: block;">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-bell"></i> Hoạt động gần đây</h2>
+                    <h2><i class="fas fa-flask"></i> Quản lý Đề tài</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('de-tai')">
+                            <i class="fas fa-plus"></i> Thêm mới
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="modal-list-item">Thêm mới công trình "Nghiên cứu AI Trong Nông nghiệp" - 2 giờ trước</div>
-                    <div class="modal-list-item">Cập nhật thông tin giảng viên Nguyễn Văn A - 5 giờ trước</div>
-                    <div class="modal-list-item">Hệ thống sao lưu dữ liệu thành công - 1 ngày trước</div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="adminProjectsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên đề tài</th>
+                                    <th>Cấp đề tài</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProjectsBody">
+                                <tr><td colspan="4" class="loading-cell">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
+        
+        <!-- ADMIN MODAL FORM -->
+        <div class="modal-overlay" id="adminModalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="adminModalTitle">Thêm mới</h2>
+                    <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" onclick="closeAdminModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="adminForm" class="login-form">
+                        <input type="hidden" id="formEntityType">
+                        <input type="hidden" id="formEntityId">
+                        
+                        <div id="formFieldsContainer">
+                            <!-- Dynamic fields injected here -->
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button type="button" class="btn" onclick="closeAdminModal()">Hủy</button>
+                            <button type="submit" class="btn btn-primary">Lưu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script src="../js/admin_app.js"></script>

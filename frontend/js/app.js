@@ -66,10 +66,8 @@ async function loadDashboard() {
     } catch (err) {
         console.error('Dashboard error:', err);
     }
-
-    // Load knowledge graph
-    loadKnowledgeGraph();
 }
+
 
 function animateCounter(elementId, target) {
     const el = document.querySelector(`#${elementId} .stat-number`);
@@ -387,47 +385,39 @@ async function loadLecturers() {
 
 async function showLecturerDetail(gvId) {
     try {
-        const res = await fetch(`${API_BASE}/giang-vien/${gvId}`);
-        const data = await res.json();
+        // Fetch Lecturer Detail
+        const resDetail = await fetch(`${API_BASE}/giang-vien/${gvId}`);
+        const dataDetail = await resDetail.json();
 
-        if (data.status === 'ok') {
-            const gv = data.data;
-            document.getElementById('modalLecturerName').textContent = gv.ho_va_ten;
+        // Fetch Subgraph for this node
+        const resGraph = await fetch(`${API_BASE}/graph/node/${gvId}`);
+        const dataGraph = await resGraph.json();
 
-            let html = `
-                <div class="modal-section">
-                    <h3><i class="fas fa-id-card"></i> Thông tin cá nhân</h3>
-                    <div class="modal-detail-row">
-                        <span class="modal-detail-label">Học vị:</span>
-                        <span class="modal-detail-value">${gv.hoc_vi || 'N/A'}</span>
-                    </div>
-                    <div class="modal-detail-row">
-                        <span class="modal-detail-label">Chức danh:</span>
-                        <span class="modal-detail-value">${gv.chuc_danh || 'N/A'}</span>
-                    </div>
-                    <div class="modal-detail-row">
-                        <span class="modal-detail-label">Bộ môn:</span>
-                        <span class="modal-detail-value">${gv.bo_mon || 'N/A'}</span>
-                    </div>
-                    <div class="modal-detail-row">
-                        <span class="modal-detail-label">Email:</span>
-                        <span class="modal-detail-value">${gv.email || 'N/A'}</span>
-                    </div>
-                    <div class="modal-detail-row">
-                        <span class="modal-detail-label">Điện thoại:</span>
-                        <span class="modal-detail-value">${gv.dien_thoai || 'N/A'}</span>
-                    </div>
-                </div>
+        if (dataDetail.status === 'ok' && dataGraph.status === 'ok') {
+            const gv = dataDetail.data;
+            
+            // Populate Left Column
+            document.getElementById('detailTitle').textContent = gv.ho_va_ten || 'Giảng viên';
+            document.getElementById('detailSubtitle').textContent = gv.chuc_danh ? `${gv.chuc_danh} - ${gv.hoc_vi || ''}` : (gv.hoc_vi || 'Giảng viên');
+            
+            let fieldsHtml = `
+                <div><span style="color:var(--text-muted);font-size:12px;">Học vị</span><br><b>${gv.hoc_vi || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Chức danh</span><br><b>${gv.chuc_danh || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Bộ môn</span><br><b>${gv.bo_mon || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Email</span><br><b>${gv.email || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Điện thoại</span><br><b>${gv.dien_thoai || 'N/A'}</b></div>
             `;
+            document.getElementById('detailFieldsGrid').innerHTML = fieldsHtml;
 
+            let bodyHtml = '';
             if (gv.cong_trinh && gv.cong_trinh.length > 0) {
-                html += `
-                    <div class="modal-section">
-                        <h3><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${gv.cong_trinh.length})</h3>
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${gv.cong_trinh.length})</h3>
                         ${gv.cong_trinh.map(ct => `
-                            <div class="modal-list-item">
+                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue);">
                                 ${ct.ten_cong_trinh || 'N/A'}
-                                ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted);"> (${ct.nam_xuat_ban})</span>` : ''}
+                                ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted); font-size: 12px;"> (${ct.nam_xuat_ban})</span>` : ''}
                             </div>
                         `).join('')}
                     </div>
@@ -435,18 +425,17 @@ async function showLecturerDetail(gvId) {
             }
 
             if (gv.de_tai && gv.de_tai.length > 0) {
-                html += `
-                    <div class="modal-section">
-                        <h3><i class="fas fa-flask"></i> Đề tài nghiên cứu (${gv.de_tai.length})</h3>
+                bodyHtml += `
+                    <div>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-orange);"><i class="fas fa-flask"></i> Đề tài nghiên cứu (${gv.de_tai.length})</h3>
                         ${gv.de_tai.map(dt => {
                             const tenDeTai = (dt.de_tai && dt.de_tai.ten_de_tai) ? dt.de_tai.ten_de_tai : 'N/A';
                             const capDeTai = (dt.de_tai && dt.de_tai.cap_de_tai) ? dt.de_tai.cap_de_tai : 'Chưa xác định';
                             return `
-                                <div class="modal-list-item">
+                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-orange);">
                                     ${tenDeTai}
-                                    <span style="color: var(--accent-orange); font-size: 12px;"> [${dt.vai_tro || 'Thành viên'}]</span>
                                     <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">
-                                        Cấp đề tài: ${capDeTai}
+                                        Cấp đề tài: ${capDeTai} | Vai trò: <span style="color: var(--text-primary);">${dt.vai_tro || 'Thành viên'}</span>
                                     </div>
                                 </div>
                             `;
@@ -454,17 +443,32 @@ async function showLecturerDetail(gvId) {
                     </div>
                 `;
             }
+            document.getElementById('detailBodyContent').innerHTML = bodyHtml;
 
-            document.getElementById('modalLecturerBody').innerHTML = html;
-            document.getElementById('lecturerModal').classList.add('active');
+            // Show global overlay
+            document.getElementById('globalDetailOverlay').classList.add('active');
+
+            // Render right column Graph
+            // Small delay to ensure container is visible for vis.js to calculate dimensions
+            setTimeout(() => {
+                renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
+                    window.detailGraph = network;
+                });
+            }, 50);
         }
     } catch (err) {
-        console.error('Lecturer detail error:', err);
+        console.error('Detail error:', err);
     }
 }
 
-function closeLecturerModal() {
-    document.getElementById('lecturerModal').classList.remove('active');
+function closeEntityDetail() {
+    document.getElementById('globalDetailOverlay').classList.remove('active');
+}
+
+function resetDetailGraphView() {
+    if (window.detailGraph) {
+        window.detailGraph.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+    }
 }
 
 // Close modal on overlay click
@@ -589,6 +593,7 @@ function handleLogin(event) {
 
     // Simple mock login since there's no backend login API defined yet
     if (user === 'admin' && pass === 'admin') {
+        localStorage.setItem('isAdmin', 'true');
         window.location.href = '../admin/index.html';
     } else {
         document.getElementById('loginError').style.display = 'block';

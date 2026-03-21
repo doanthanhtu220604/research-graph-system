@@ -34,6 +34,31 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // Replace placeholders with real HTML components
-    loadComponent('header-placeholder', 'components/header.html', setActiveMenu);
+    loadComponent('header-placeholder', 'components/header.html', () => {
+        setActiveMenu();
+        const authContainer = document.getElementById('authContainer');
+        if (authContainer && localStorage.getItem('isAdmin') === 'true') {
+            authContainer.innerHTML = `
+                <a href="../admin/index.html" class="btn btn-view" style="margin-right:8px; border-radius: var(--radius-sm); font-weight: 600;">
+                    <i class="fas fa-tools"></i> Trang quản trị
+                </a>
+                <a href="#" class="btn btn-view" onclick="logout()" style="border-radius: var(--radius-sm); border-color: var(--accent-red); color: var(--accent-red); font-weight: 600;" title="Đăng xuất">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            `;
+        }
+    });
+    
+    window.logout = function() {
+        localStorage.removeItem('isAdmin');
+        window.location.reload();
+    };
+
     loadComponent('modal-placeholder', 'components/login_modal.html');
+
+    // Add Detail Overlay Placeholder globally
+    const detailOverlayPlaceholder = document.createElement('div');
+    detailOverlayPlaceholder.id = 'entity-detail-placeholder';
+    document.body.appendChild(detailOverlayPlaceholder);
+    loadComponent('entity-detail-placeholder', 'components/entity_detail.html');
 });
