@@ -1,0 +1,9 @@
+{
+    "include": ["backend", "database_scripts"],
+    "extraPaths": [".", "D:\\python\\Lib\\site-packages"],
+    "pythonVersion": "3.12",
+    "pythonPlatform": "Windows",
+    "reportMissingImports": false,
+    "reportMissingModuleSource": false,
+    "reportGeneralTypeIssues": false
+}

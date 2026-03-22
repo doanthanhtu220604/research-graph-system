@@ -17,7 +17,9 @@ def create_de_tai():
                 ten_de_tai: $ten_de_tai,
                 cap_de_tai: $cap_de_tai,
                 nam_bat_dau: $nam_bat_dau,
-                nam_ket_thuc: $nam_ket_thuc
+                nam_ket_thuc: $nam_ket_thuc,
+                tom_tat: $tom_tat,
+                link: $link
             })
             RETURN id(dt) AS id
         """, data)
@@ -35,7 +37,9 @@ def update_de_tai(id):
             SET dt.ten_de_tai = $ten_de_tai,
                 dt.cap_de_tai = $cap_de_tai,
                 dt.nam_bat_dau = $nam_bat_dau,
-                dt.nam_ket_thuc = $nam_ket_thuc
+                dt.nam_ket_thuc = $nam_ket_thuc,
+                dt.tom_tat = $tom_tat,
+                dt.link = $link
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:

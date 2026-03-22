@@ -70,13 +70,17 @@ def get_giang_vien_detail(gv_id):
     result["cong_trinh"] = []
     for r in cong_trinh:
         if r.get("ct"):
-            result["cong_trinh"].append(dict(r["ct"]))
+            ct_item = dict(r["ct"])
+            ct_item["id"] = r["ct_id"]
+            result["cong_trinh"].append(ct_item)
             
     # Check if de_tai is actually returned a valid node
     result["de_tai"] = []
     for r in de_tai:
         if r.get("dt"):
-            result["de_tai"].append({"de_tai": dict(r["dt"]), "vai_tro": r.get("vai_tro")})
+            dt_item = dict(r["dt"])
+            dt_item["id"] = r["dt_id"]
+            result["de_tai"].append({"de_tai": dt_item, "vai_tro": r.get("vai_tro")})
 
     return jsonify({"status": "ok", "data": result})
 
@@ -92,15 +96,35 @@ def get_all_cong_trinh():
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-        RETURN ct, collect(gv.ho_va_ten) AS tac_gia
+        RETURN ct, id(ct) AS ct_internal_id, collect(gv.ho_va_ten) AS tac_gia
         ORDER BY ct.nam_xuat_ban DESC
     """)
     cong_trinh_list = []
     for r in results:
         ct = dict(r["ct"])
+        ct["id"] = r["ct_internal_id"]
         ct["tac_gia"] = r["tac_gia"]
         cong_trinh_list.append(ct)
     return jsonify({"status": "ok", "data": cong_trinh_list})
+
+
+@api_bp.route("/cong-trinh/<int:ct_id>")
+def get_cong_trinh_detail(ct_id):
+    """Lấy chi tiết công trình nghiên cứu."""
+    conn = get_neo4j_connection()
+    result = conn.query_single("""
+        MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id
+        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        RETURN ct, id(ct) AS ct_internal_id, collect(gv.ho_va_ten) AS tac_gia
+    """, {"id": ct_id})
+    
+    if not result or not result.get("ct"):
+        return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
+        
+    data = dict(result["ct"])
+    data["id"] = result["ct_internal_id"]
+    data["tac_gia"] = result["tac_gia"]
+    return jsonify({"status": "ok", "data": data})
 
 
 # ============================================================
@@ -114,14 +138,34 @@ def get_all_de_tai():
     results = conn.query("""
         MATCH (dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-        RETURN dt, collect(gv.ho_va_ten) AS chu_nhiem
+        RETURN dt, id(dt) AS dt_internal_id, collect(gv.ho_va_ten) AS chu_nhiem
     """)
     de_tai_list = []
     for r in results:
         dt = dict(r["dt"])
+        dt["id"] = r["dt_internal_id"]
         dt["chu_nhiem"] = r["chu_nhiem"]
         de_tai_list.append(dt)
     return jsonify({"status": "ok", "data": de_tai_list})
+
+
+@api_bp.route("/de-tai/<int:dt_id>")
+def get_de_tai_detail(dt_id):
+    """Lấy chi tiết đề tài nghiên cứu."""
+    conn = get_neo4j_connection()
+    result = conn.query_single("""
+        MATCH (dt:DeTaiNghienCuu) WHERE id(dt) = $id
+        OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
+        RETURN dt, id(dt) AS dt_internal_id, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS thanh_vien
+    """, {"id": dt_id})
+    
+    if not result or not result.get("dt"):
+        return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
+        
+    data = dict(result["dt"])
+    data["id"] = result["dt_internal_id"]
+    data["thanh_vien"] = result["thanh_vien"]
+    return jsonify({"status": "ok", "data": data})
 
 
 # ============================================================
@@ -135,20 +179,35 @@ def search():
     if not q:
         return jsonify({"status": "ok", "data": []})
 
-    conn = get_neo4j_connection()
-    results = conn.query("""
-        MATCH (n)
-        WHERE any(key IN keys(n) WHERE toString(n[key]) CONTAINS $q)
-        RETURN n, labels(n) AS labels
-        LIMIT 20
-    """, {"q": q})
+    try:
+        conn = get_neo4j_connection()
+        results = conn.query("""
+            MATCH (n)
+            WHERE NOT (n:TacGiaNgoai AND EXISTS {
+                MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
+            })
+              AND (toLower(coalesce(n.ho_va_ten, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.ten_cong_trinh, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.ten_de_tai, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.ten_bo_mon, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.ten_khoa, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.email, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.hoc_vi, '')) CONTAINS toLower($q)
+               OR toLower(coalesce(n.chuc_danh, '')) CONTAINS toLower($q))
+            RETURN id(n) AS node_id, n, labels(n) AS labels
+            LIMIT 20
+        """, {"q": q})
 
-    data = []
-    for r in results:
-        item = dict(r["n"])
-        item["_labels"] = r["labels"]
-        data.append(item)
-    return jsonify({"status": "ok", "data": data, "query": q})
+        data = []
+        for r in results:
+            item = dict(r["n"])
+            item["id"] = r["node_id"]
+            item["_labels"] = r["labels"]
+            data.append(item)
+        return jsonify({"status": "ok", "data": data, "query": q})
+    except Exception as e:
+        print(f"[SEARCH ERROR] {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 # ============================================================

@@ -385,6 +385,105 @@ body::before {
     font-weight: 500;
 }
 
+/* ---------- Lecturer Marquee ---------- */
+.lecturer-marquee-container {
+    width: 100%;
+    overflow: hidden;
+    padding: 10px 0 25px 0;
+    position: relative;
+    background: transparent;
+}
+
+/* Tạo hiệu ứng mờ dần ở biên trái và phải */
+.lecturer-marquee-container::before,
+.lecturer-marquee-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 100px;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+.lecturer-marquee-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg-primary) 0%, transparent 100%);
+}
+.lecturer-marquee-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg-primary) 0%, transparent 100%);
+}
+
+.lecturer-marquee {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: scrollMarquee 150s linear infinite;
+}
+
+.lecturer-marquee:hover {
+    animation-play-state: paused;
+}
+
+@keyframes scrollMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-50% - 10px)); } /* Trượt đúng một nửa (phần copy) */
+}
+
+.marquee-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 260px;
+    transition: var(--transition);
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.marquee-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-glow);
+    border-color: var(--border-glow);
+}
+
+.marquee-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.marquee-info h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.marquee-info p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
 /* ---------- Cards ---------- */
 .card {
     background: var(--bg-card);

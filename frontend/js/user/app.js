@@ -54,33 +54,46 @@ async function loadDashboard() {
         const data = await res.json();
 
         if (data.status === 'ok') {
-            // Animate stat cards
-            animateCounter('stat-gv', data.stats.giang_vien);
-            animateCounter('stat-ct', data.stats.cong_trinh);
-            animateCounter('stat-dt', data.stats.de_tai);
-            animateCounter('stat-bm', data.stats.bo_mon);
-
             // Top lecturers
             renderTopLecturers(data.top_giang_vien, 'topLecturersList');
         }
     } catch (err) {
         console.error('Dashboard error:', err);
     }
+    
+    // Nạp Carousel (Marquee) gợi ý Giảng viên tự chạyy
+    initLecturerMarquee();
 }
 
+async function initLecturerMarquee() {
+    try {
+        const res = await fetch(`${API_BASE}/giang-vien`);
+        const data = await res.json();
+        const container = document.getElementById('lecturerMarquee');
+        if (!container || data.status !== 'ok') return;
+        
+        let gvList = data.data;
+        if (gvList.length === 0) return;
+        
+        const buildCard = (gv) => `
+            <div class="marquee-card" onclick="showLecturerDetail(${gv.id})">
+                <div class="marquee-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="marquee-info">
+                    <h4>${gv.ho_va_ten}</h4>
+                    <p>${gv.bo_mon || gv.hoc_vi || 'Giảng viên'}</p>
+                </div>
+            </div>
+        `;
 
-function animateCounter(elementId, target) {
-    const el = document.querySelector(`#${elementId} .stat-number`);
-    let current = 0;
-    const increment = Math.ceil(target / 30);
-    const timer = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-            current = target;
-            clearInterval(timer);
-        }
-        el.textContent = current;
-    }, 30);
+        let html = gvList.map(buildCard).join('');
+        // Nhân đôi chuỗi HTML để tạo hiệu ứng lặp trượt không giới hạn
+        html += html; 
+        
+        container.innerHTML = html;
+        
+    } catch (e) {
+        console.error("Marquee load err:", e);
+    }
 }
 
 function renderTopLecturers(lecturers, containerId) {
@@ -144,7 +157,7 @@ function renderGraph(containerId, nodes, edges, callback) {
         },
         shape: n.shape || 'dot',
         size: n.size || 15,
-        font: { color: '#e8eaed', size: 11, face: 'Inter' },
+        font: { color: '#333333', size: 11, face: 'Inter' },
         borderWidth: 2,
         shadow: { enabled: true, color: n.color + '40', size: 10 },
     })));
@@ -154,7 +167,7 @@ function renderGraph(containerId, nodes, edges, callback) {
         to: e.to,
         label: formatRelLabel(e.label),
         arrows: { to: { enabled: true, scaleFactor: 0.7 } },
-        color: { color: 'rgba(255,255,255,0.15)', highlight: '#4F8EF7', hover: '#4F8EF7' },
+        color: { color: 'rgba(0,0,0,0.2)', highlight: '#4F8EF7', hover: '#4F8EF7' },
         font: { color: '#636980', size: 9, face: 'Inter', strokeWidth: 0 },
         smooth: { type: 'continuous', roundness: 0.3 },
         width: 1.2,
@@ -196,8 +209,14 @@ function renderGraph(containerId, nodes, edges, callback) {
         if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             const node = nodes.find(n => n.id === nodeId);
-            if (node && node.group === 'GiangVien' && node.properties.id) {
-                showLecturerDetail(node.properties.id);
+            if (node) {
+                if (node.group === 'GiangVien' && (node.properties.id || node.id)) {
+                    showLecturerDetail(node.properties.id || node.id);
+                } else if (node.group === 'CongTrinhNghienCuu' && node.id) {
+                    showPublicationDetail(node.id);
+                } else if (node.group === 'DeTaiNghienCuu' && node.id) {
+                    showProjectDetail(node.id);
+                }
             }
         }
     });
@@ -218,13 +237,38 @@ function truncateLabel(text, maxLen) {
 
 function buildTooltip(node) {
     const props = node.properties || {};
-    let html = `<div style="font-family:Inter;padding:8px;max-width:300px;">`;
-    html += `<strong style="color:#4F8EF7;">[${node.group}]</strong><br>`;
+    const container = document.createElement('div');
+    container.style.cssText = 'font-family:Inter;padding:8px;max-width:350px;white-space:normal;line-height:1.4;font-size:13px;';
+    
+    const groupNames = {
+        'GiangVien': 'Giảng viên', 'CongTrinhNghienCuu': 'Công trình NC', 
+        'DeTaiNghienCuu': 'Đề tài NC', 'BoMon': 'Bộ môn', 'Khoa': 'Khoa', 
+        'LinhVucNghienCuu': 'Lĩnh vực NC', 'NhomNghienCuu': 'Nhóm NC'
+    };
+    
+    const keyNames = {
+        'ho_va_ten': 'Họ tên', 'hoc_vi': 'Học vị', 'chuc_danh': 'Chức danh',
+        'ten_cong_trinh': 'Tên công trình', 'nam_xuat_ban': 'Năm XB', 'loai_an_pham': 'Loại',
+        'ten_de_tai': 'Tên đề tài', 'cap_de_tai': 'Cấp', 'nam_bat_dau': 'Từ năm', 'nam_thuc_hien': 'Năm TH', 'nam_ket_thuc': 'Đến năm',
+        'ten_bo_mon': 'Bộ môn', 'ten_khoa': 'Khoa', 'email': 'Email', 'dien_thoai': 'SĐT'
+    };
+    
+    const skipKeys = ['id', 'tom_tat', 'link'];
+    const groupLabel = groupNames[node.group] || node.group;
+    
+    let html = `<div style="border-bottom: 1px solid #ddd; margin-bottom: 6px; padding-bottom: 4px;">
+                    <strong style="color:#4F8EF7; font-size:14px;">${groupLabel}</strong>
+                </div>`;
+                
     for (const [key, val] of Object.entries(props)) {
-        if (val) html += `<b>${key}:</b> ${val}<br>`;
+        if (val !== null && val !== '' && !skipKeys.includes(key)) {
+            const displayKey = keyNames[key] || key;
+            html += `<div style="margin-bottom:4px;"><b>${displayKey}:</b> ${val}</div>`;
+        }
     }
-    html += `</div>`;
-    return html;
+    
+    container.innerHTML = html;
+    return container;
 }
 
 function formatRelLabel(label) {
@@ -259,12 +303,22 @@ function renderLegend(legendConfig) {
 function initExploreGraph() {
     loadKnowledgeGraphForExplore();
     
+    // Phím Enter cho ô Search
+    const searchInput = document.getElementById('exploreSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+    }
+    
     // Auto-search if query parameter exists
     const urlParams = new URLSearchParams(window.location.search);
     const q = urlParams.get('q');
     if (q) {
         setTimeout(() => {
-            const searchInput = document.getElementById('exploreSearch');
             if (searchInput) {
                 searchInput.value = q;
                 performSearch();
@@ -289,12 +343,20 @@ async function loadKnowledgeGraphForExplore() {
 }
 
 async function performSearch() {
-    const query = document.getElementById('exploreSearch').value.trim();
+    const searchEl = document.getElementById('exploreSearch');
+    if (!searchEl) { console.error('Search: không tìm thấy #exploreSearch'); return; }
+    const query = searchEl.value.trim();
     if (!query) return;
 
+    console.log('[Search] Searching for:', query);
+
     try {
-        const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`);
+        const url = `${API_BASE}/search?q=${encodeURIComponent(query)}`;
+        console.log('[Search] Fetching:', url);
+        const res = await fetch(url);
+        console.log('[Search] Response status:', res.status);
         const data = await res.json();
+        console.log('[Search] Data:', data);
 
         const resultsContainer = document.getElementById('searchResults');
         const listContainer = document.getElementById('searchResultsList');
@@ -308,6 +370,7 @@ async function performSearch() {
                 'DeTaiNghienCuu': 'fa-flask',
                 'BoMon': 'fa-building',
                 'Khoa': 'fa-university',
+                'TacGiaNgoai': 'fa-user',
             };
 
             const labelNames = {
@@ -316,6 +379,7 @@ async function performSearch() {
                 'DeTaiNghienCuu': 'Đề tài',
                 'BoMon': 'Bộ môn',
                 'Khoa': 'Khoa',
+                'TacGiaNgoai': 'Tác giả ngoài',
             };
 
             listContainer.innerHTML = data.data.map(item => {
@@ -325,9 +389,14 @@ async function performSearch() {
                 const name = item.ho_va_ten || item.ten_cong_trinh || item.ten_de_tai
                           || item.ten_bo_mon || item.ten_khoa || 'N/A';
 
+                let clickAction = '';
+                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail(${item.id})`;
+                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail(${item.id})`;
+                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail(${item.id})`;
+
                 return `
-                    <div class="modal-list-item" style="cursor: pointer; display: flex; align-items: center; gap: 10px;"
-                         onclick="${label === 'GiangVien' && item.id ? `showLecturerDetail(${item.id})` : ''}">
+                    <div class="modal-list-item" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-color);"
+                         onclick="${clickAction}">
                         <i class="fas ${icon}" style="color: var(--accent-blue);"></i>
                         <div>
                             <strong>${name}</strong>
@@ -342,6 +411,7 @@ async function performSearch() {
         }
     } catch (err) {
         console.error('Search error:', err);
+        alert('Lỗi tìm kiếm: ' + err.message);
     }
 }
 
@@ -415,8 +485,8 @@ async function showLecturerDetail(gvId) {
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${gv.cong_trinh.length})</h3>
                         ${gv.cong_trinh.map(ct => `
-                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue);">
-                                ${ct.ten_cong_trinh || 'N/A'}
+                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail(${ct.id})">
+                                <strong>${ct.ten_cong_trinh || 'N/A'}</strong>
                                 ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted); font-size: 12px;"> (${ct.nam_xuat_ban})</span>` : ''}
                             </div>
                         `).join('')}
@@ -431,9 +501,10 @@ async function showLecturerDetail(gvId) {
                         ${gv.de_tai.map(dt => {
                             const tenDeTai = (dt.de_tai && dt.de_tai.ten_de_tai) ? dt.de_tai.ten_de_tai : 'N/A';
                             const capDeTai = (dt.de_tai && dt.de_tai.cap_de_tai) ? dt.de_tai.cap_de_tai : 'Chưa xác định';
+                            const dtId = dt.de_tai ? dt.de_tai.id : null;
                             return `
-                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-orange);">
-                                    ${tenDeTai}
+                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-orange); cursor: pointer;" ${dtId ? `onclick="showProjectDetail(${dtId})"` : ''}>
+                                    <strong>${tenDeTai}</strong>
                                     <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">
                                         Cấp đề tài: ${capDeTai} | Vai trò: <span style="color: var(--text-primary);">${dt.vai_tro || 'Thành viên'}</span>
                                     </div>
@@ -478,6 +549,121 @@ document.addEventListener('click', (e) => {
     }
 });
 
+async function showPublicationDetail(ctId) {
+    try {
+        const resDetail = await fetch(`${API_BASE}/cong-trinh/${ctId}`);
+        const dataDetail = await resDetail.json();
+        const resGraph = await fetch(`${API_BASE}/graph/node/${ctId}`);
+        const dataGraph = await resGraph.json();
+
+        if (dataDetail.status === 'ok' && dataGraph.status === 'ok') {
+            const ct = dataDetail.data;
+            document.getElementById('detailTitle').textContent = ct.ten_cong_trinh || 'Công trình nghiên cứu';
+            document.getElementById('detailSubtitle').textContent = ct.loai_an_pham || 'Công trình';
+            
+            let fieldsHtml = `
+                <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Loại ấn phẩm</span><br><b>${ct.loai_an_pham || 'N/A'}</b></div>
+            `;
+            if (ct.link) {
+                fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${ct.link}" target="_blank" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem bài viết</a></div>`;
+            }
+            document.getElementById('detailFieldsGrid').innerHTML = fieldsHtml;
+
+            let bodyHtml = '';
+            if (ct.tom_tat) {
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-green);"><i class="fas fa-align-left"></i> Tóm tắt nội dung</h3>
+                        <div style="padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; line-height: 1.6; color: var(--text-primary); text-align: justify; white-space: pre-line;">
+                            ${ct.tom_tat}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (ct.tac_gia && ct.tac_gia.length > 0) {
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Nhóm tác giả</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            ${ct.tac_gia.map(tg => `<span style="padding:5px 10px; background:rgba(79, 142, 247, 0.1); color:var(--accent-blue); border-radius:15px; font-size:13px;">${tg}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailBodyContent').innerHTML = bodyHtml;
+            document.getElementById('globalDetailOverlay').classList.add('active');
+
+            setTimeout(() => {
+                renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
+                    window.detailGraph = network;
+                });
+            }, 50);
+        }
+    } catch (err) { console.error(err); }
+}
+
+async function showProjectDetail(dtId) {
+    try {
+        const resDetail = await fetch(`${API_BASE}/de-tai/${dtId}`);
+        const dataDetail = await resDetail.json();
+        const resGraph = await fetch(`${API_BASE}/graph/node/${dtId}`);
+        const dataGraph = await resGraph.json();
+
+        if (dataDetail.status === 'ok' && dataGraph.status === 'ok') {
+            const dt = dataDetail.data;
+            document.getElementById('detailTitle').textContent = dt.ten_de_tai || 'Đề tài nghiên cứu';
+            document.getElementById('detailSubtitle').textContent = dt.cap_de_tai ? `Cấp ${dt.cap_de_tai}` : 'Đề tài';
+            
+            let fieldsHtml = `
+                <div><span style="color:var(--text-muted);font-size:12px;">Cấp đề tài</span><br><b>${dt.cap_de_tai || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Thời gian thực hiện</span><br><b>${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'}</b></div>
+            `;
+            if (dt.link) {
+                fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${dt.link}" target="_blank" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-orange); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem chi tiết</a></div>`;
+            }
+            document.getElementById('detailFieldsGrid').innerHTML = fieldsHtml;
+
+            let bodyHtml = '';
+            if (dt.tom_tat) {
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-orange);"><i class="fas fa-align-left"></i> Tóm tắt nội dung</h3>
+                        <div style="padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; line-height: 1.6; color: var(--text-primary); text-align: justify; white-space: pre-line;">
+                            ${dt.tom_tat}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (dt.thanh_vien && dt.thanh_vien.length > 0) {
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Thành viên tham gia</h3>
+                        ${dt.thanh_vien.map(tv => `
+                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid ${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--border-color)'};">
+                                <strong>${tv.ten}</strong>
+                                <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Vai trò: ${tv.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm đề tài' : 'Thành viên'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailBodyContent').innerHTML = bodyHtml;
+            document.getElementById('globalDetailOverlay').classList.add('active');
+
+            setTimeout(() => {
+                renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
+                    window.detailGraph = network;
+                });
+            }, 50);
+        }
+    } catch (err) { console.error(err); }
+}
+
 // ============================================================
 // PUBLICATIONS PAGE
 // ============================================================
@@ -495,6 +681,17 @@ async function loadPublications() {
                     <td>${ct.ten_cong_trinh || 'N/A'}</td>
                     <td>${(ct.tac_gia || []).join(', ') || 'N/A'}</td>
                     <td>${ct.nam_xuat_ban || ''}</td>
+                    <td>
+                        ${ct.id ? `
+                        <button class="btn btn-view" onclick="showPublicationDetail(${ct.id})">
+                            <i class="fas fa-eye"></i> Xem
+                        </button>
+                        ` : `
+                        <button class="btn btn-view" style="opacity:0.5; cursor:not-allowed;" title="Chưa có ID">
+                            <i class="fas fa-eye-slash"></i> Không có ID
+                        </button>
+                        `}
+                    </td>
                 </tr>
             `).join('');
         }
@@ -520,6 +717,17 @@ async function loadProjects() {
                     <td>${dt.ten_de_tai || 'N/A'}</td>
                     <td>${(dt.chu_nhiem || []).join(', ') || 'N/A'}</td>
                     <td>${dt.cap_de_tai || ''}</td>
+                    <td>
+                        ${dt.id ? `
+                        <button class="btn btn-view" onclick="showProjectDetail(${dt.id})">
+                            <i class="fas fa-eye"></i> Xem
+                        </button>
+                        ` : `
+                        <button class="btn btn-view" style="opacity:0.5; cursor:not-allowed;" title="Chưa có ID">
+                            <i class="fas fa-eye-slash"></i> Không có ID
+                        </button>
+                        `}
+                    </td>
                 </tr>
             `).join('');
         }
