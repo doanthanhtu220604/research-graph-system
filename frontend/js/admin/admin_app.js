@@ -45,6 +45,14 @@ const ENTITY_CONFIG = {
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
             { name: 'link', label: 'Link đề tài', type: 'url' }
         ]
+    },
+    'linh-vuc': {
+        title: 'Lĩnh vực nghiên cứu',
+        apiUrl: `${API_BASE}/linh-vuc`,
+        adminApiUrl: `${ADMIN_API_BASE}/linh-vuc`,
+        fields: [
+            { name: 'ten_linh_vuc', label: 'Tên Lĩnh vực', type: 'text', required: true }
+        ]
     }
 };
 
@@ -60,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPublications();
     } else if (document.getElementById('page-admin-projects')) {
         loadProjects();
+    } else if (document.getElementById('page-admin-research-fields')) {
+        loadResearchFields();
     }
     
     // Gắn sự kiện submit cho form nếu form tồn tại trong file HTML này
@@ -143,6 +153,30 @@ async function loadProjects() {
                         <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', ${dt.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
                         ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', ${dt.id}, \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
                         <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', ${dt.id || i+1})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function loadResearchFields() {
+    try {
+        const res = await fetch(ENTITY_CONFIG['linh-vuc'].apiUrl);
+        const data = await res.json();
+        const tbody = document.getElementById('adminResearchFieldsBody');
+        
+        if (data.status === 'ok') {
+            currentEntitiesData['linh-vuc'] = data.data;
+            tbody.innerHTML = data.data.map((lv, i) => `
+                <tr>
+                    <td>${lv.id || i+1}</td>
+                    <td><strong>${lv.ten_linh_vuc || 'N/A'}</strong></td>
+                    <td>
+                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('linh-vuc', ${lv.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('linh-vuc', ${lv.id || i+1})"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -249,6 +283,7 @@ async function handleFormSubmit(e) {
             if (type === 'giang-vien') loadLecturers();
             else if (type === 'cong-trinh') loadPublications();
             else if (type === 'de-tai') loadProjects();
+            else if (type === 'linh-vuc') loadResearchFields();
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -279,6 +314,7 @@ async function deleteEntity(type, id) {
             if (type === 'giang-vien') loadLecturers();
             else if (type === 'cong-trinh') loadPublications();
             else if (type === 'de-tai') loadProjects();
+            else if (type === 'linh-vuc') loadResearchFields();
         } else {
             alert('Lỗi: ' + data.message);
         }

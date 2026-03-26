@@ -20,6 +20,7 @@ from backend.routes.admin_lecturers import admin_lecturers_bp
 from backend.routes.admin_publications import admin_publications_bp
 from backend.routes.admin_projects import admin_projects_bp
 from backend.routes.admin_relations import admin_relations_bp
+from backend.routes.admin_research_fields import admin_research_fields_bp
 
 
 def create_app():
@@ -36,6 +37,7 @@ def create_app():
     app.register_blueprint(admin_publications_bp, url_prefix='/api/admin')
     app.register_blueprint(admin_projects_bp, url_prefix='/api/admin')
     app.register_blueprint(admin_relations_bp)
+    app.register_blueprint(admin_research_fields_bp, url_prefix='/api/admin')
 
 
     # ============================

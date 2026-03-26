@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Quản trị Bản đồ tri thức">
-    <title>Quản lý Công trình - Knowledge Map Admin</title>
+    <title>Quản lý Lĩnh vực nghiên cứu - Knowledge Map Admin</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
                     <span>QL Giảng viên</span>
                 </a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a href="publications.html" class="nav-link">
                     <i class="fas fa-file-alt"></i>
                     <span>QL Công trình</span>
@@ -46,7 +46,7 @@
                     <span>QL Đề tài</span>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a href="research_fields.html" class="nav-link">
                     <i class="fas fa-layer-group"></i>
                     <span>QL Lĩnh vực NG</span>
@@ -78,36 +78,35 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title" id="pageTitle">Quản lý Công trình</h1>
+            <h1 class="page-title" id="pageTitle">Quản lý Lĩnh vực nghiên cứu</h1>
             <div class="header-actions">
                 <span style="font-weight: 500; color: var(--text-secondary); margin-right: 15px;">Xin chào, Admin</span>
             </div>
         </header>
 
-        <!-- PUBLICATIONS SECTION -->
-        <section class="page active" id="page-admin-publications" style="display: block;">
+        <!-- RESEARCH FIELDS SECTION -->
+        <section class="page active" id="page-admin-research-fields" style="display: block;">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-file-alt"></i> Quản lý Công trình</h2>
+                    <h2><i class="fas fa-layer-group"></i> Danh sách Lĩnh vực</h2>
                     <div class="card-actions">
-                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('cong-trinh')">
+                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('linh-vuc')">
                             <i class="fas fa-plus"></i> Thêm mới
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="data-table" id="adminPublicationsTable">
+                        <table class="data-table" id="adminResearchFieldsTable">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Tên công trình</th>
-                                    <th>Năm XB</th>
-                                    <th>Hành động</th>
+                                    <th style="width: 10%;">ID</th>
+                                    <th>Tên Lĩnh vực</th>
+                                    <th style="width: 15%;">Hành động</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminPublicationsBody">
-                                <tr><td colspan="4" class="loading-cell">Đang tải...</td></tr>
+                            <tbody id="adminResearchFieldsBody">
+                                <tr><td colspan="3" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>

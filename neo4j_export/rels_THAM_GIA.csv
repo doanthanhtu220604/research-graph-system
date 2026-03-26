@@ -1,3 +1,3 @@
-﻿end_labels,end_id,start_id,start_labels,rel_type
-DeTaiNghienCuu,149,22,GiangVien,THAM_GIA
-DeTaiNghienCuu,150,22,GiangVien,THAM_GIA
+﻿rel_type,start_labels,end_id,start_id,end_labels
+THAM_GIA,GiangVien,149,22,DeTaiNghienCuu
+THAM_GIA,GiangVien,150,22,DeTaiNghienCuu

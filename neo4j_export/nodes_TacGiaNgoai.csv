@@ -1,59 +1,54 @@
-﻿neo4j_id,ho_va_ten
-157,Vũ Đình Hòa
-158,Nguyễn Hữu Xuân Trường
-159,Young-Koo Lee
-160,Sungyoung Lee
-161,Byeong-Soo Jeong
-162,Guanghu Shen
-163,Ho-Youl Jung
-164,Hyun-Yeol Chung
-165,Bùi Đức Dương
-166,Brian J. d'Auriol
-167,Tuyen Nguyen
-168,Guangho Shen
-169,Jae-Won Cho
-170,Ju Hyun Park
-171,Nguyen Xuan Huy
-172,Ju H. Park
-173,Nguyễn Xuân Đạt
-174,Hàng Nguyên Huy
-175,Hoa V. Dinh
-176,Đỗ Minh Tuấn
-177,Vu Anh
-178,The Hien Pham
-179,Hyun Yeol Chung
-180,Suk Nam Choi
-181,Nguyễn Hoài Nam
-182,Văn Thế Thành
-183,Nguyễn Đình Ái
-184,Nguyen Hung Quoc
-185,Bui Van Dinh
-186,Phạm Gia Hưng
-187,Le Dung Muu
-188,Thanh Le Hoang
-189,Huynh Minh Tri
-190,Đặng Thúy Bình
-191,Ly T. H. Nguyen
-192,Cuong Q. Nguyen
-193,Le Huu Binh
-194,Tu T. Vo
-195,Nguyễn Thị Hương Lý
-196,Nguyễn Quốc Cường
-197,Lê Hữu Bình
-198,Võ Thanh Tú
-199,Vu Viet VU
-200,Byeongnam Yoon
-201,Đỗ Văn Tuấn
-202,Bùi Chí Thành
-203,Lê Văn Hảo
-204,"Hossain, M.D."
-205,"Lee, G.-W."
-206,"Huh, E.-N."
-207,T. D. T. Nguyen
-208,V. Nguyen
-209,L. N. T. Huynh
-210,M. D. Hossain
-211,E. -N. Huh
-212,"Nguyen, V."
-213,"Nguyen, T.D.T."
-214,"Huh, EN."
+﻿ho_va_ten,neo4j_id
+Young-Koo Lee,159
+Sungyoung Lee,160
+Byeong-Soo Jeong,161
+Guanghu Shen,162
+Ho-Youl Jung,163
+Hyun-Yeol Chung,164
+Bùi Đức Dương,165
+Brian J. d'Auriol,166
+Tuyen Nguyen,167
+Guangho Shen,168
+Jae-Won Cho,169
+Ju Hyun Park,170
+Nguyen Xuan Huy,171
+Ju H. Park,172
+Nguyễn Xuân Đạt,173
+Hàng Nguyên Huy,174
+Hoa V. Dinh,175
+Đỗ Minh Tuấn,176
+Vu Anh,177
+The Hien Pham,178
+Hyun Yeol Chung,179
+Suk Nam Choi,180
+Nguyễn Hoài Nam,181
+Văn Thế Thành,182
+Nguyễn Đình Ái,183
+Nguyen Hung Quoc,184
+Bui Van Dinh,185
+Le Dung Muu,187
+Thanh Le Hoang,188
+Huynh Minh Tri,189
+Đặng Thúy Bình,190
+Ly T. H. Nguyen,191
+Cuong Q. Nguyen,192
+Le Huu Binh,193
+Tu T. Vo,194
+Nguyễn Quốc Cường,196
+Lê Hữu Bình,197
+Võ Thanh Tú,198
+Vu Viet VU,199
+Byeongnam Yoon,200
+Đỗ Văn Tuấn,201
+Lê Văn Hảo,203
+"Hossain, M.D.",204
+"Lee, G.-W.",205
+"Huh, E.-N.",206
+T. D. T. Nguyen,207
+V. Nguyen,208
+L. N. T. Huynh,209
+M. D. Hossain,210
+E. -N. Huh,211
+"Nguyen, V.",212
+"Nguyen, T.D.T.",213
+"Huh, EN.",214

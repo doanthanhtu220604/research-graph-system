@@ -172,6 +172,26 @@ def get_de_tai_detail(dt_id):
 # TÌM KIẾM
 # ============================================================
 
+# ============================================================
+# LĨNH VỰC NGHIÊN CỨU
+# ============================================================
+
+@api_bp.route("/linh-vuc")
+def get_all_linh_vuc():
+    """Lấy danh sách lĩnh vực nghiên cứu."""
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (lv:LinhVucNghienCuu)
+        RETURN lv, id(lv) AS lv_internal_id
+        ORDER BY lv.ten_linh_vuc
+    """)
+    linh_vuc_list = []
+    for r in results:
+        lv = dict(r["lv"])
+        lv["id"] = r["lv_internal_id"]
+        linh_vuc_list.append(lv)
+    return jsonify({"status": "ok", "data": linh_vuc_list})
+
 @api_bp.route("/search")
 def search():
     """Tìm kiếm tổng hợp theo từ khóa."""
