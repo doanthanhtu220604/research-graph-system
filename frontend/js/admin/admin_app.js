@@ -124,6 +124,7 @@ async function loadPublications() {
                     <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
                     <td>${ct.nam_xuat_ban || ''}</td>
                     <td>
+                        <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats(${ct.id || i+1})"><i class="fas fa-eye"></i></button>
                         <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', ${ct.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
                         ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', ${ct.id}, \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
                         <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', ${ct.id || i+1})"><i class="fas fa-trash"></i></button>
@@ -150,6 +151,7 @@ async function loadProjects() {
                     <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
                     <td>${dt.cap_de_tai || ''}</td>
                     <td>
+                        <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats(${dt.id || i+1})"><i class="fas fa-eye"></i></button>
                         <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', ${dt.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
                         ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', ${dt.id}, \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
                         <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', ${dt.id || i+1})"><i class="fas fa-trash"></i></button>
@@ -537,6 +539,103 @@ async function viewLecturerStats(gvId) {
     }
 }
 
+// ============================================================
+// PUBLICATION STATS VIEW IN ADMIN
+// ============================================================
+async function viewPublicationStats(ctId) {
+    if (!document.getElementById('adminStatsModalOverlay')) {
+        createStatsModalHtml();
+    }
+    document.getElementById('adminStatsModalOverlay').classList.add('active');
+    const body = document.getElementById('statsFormBody');
+    body.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+    
+    try {
+        const res = await fetch(`${API_BASE}/cong-trinh/${ctId}`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+            const ct = data.data;
+            document.getElementById('adminStatsModalTitle').textContent = `Chi tiết Công trình`;
+            
+            let html = `
+                <div style="margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
+                    <p style="margin-bottom: 8px; font-size: 16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
+                    <p style="margin-bottom: 5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Loại ấn phẩm:</b> ${ct.loai_an_pham || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
+                    <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>
+                </div>
+            `;
+            
+            html += `<h4 style="margin-top:20px; color:var(--accent-blue); padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-users"></i> Tác giả (${ct.tac_gia ? ct.tac_gia.length : 0})</h4>`;
+            if (ct.tac_gia && ct.tac_gia.length > 0) {
+                html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
+                ct.tac_gia.forEach(tg => {
+                    html += `<li><b>${tg}</b></li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có tác giả nào được gán.</p>`;
+            }
+            
+            body.innerHTML = html;
+        } else {
+            body.innerHTML = `<p style="color:red">Lỗi tải dữ liệu: ${data.message}</p>`;
+        }
+    } catch (e) {
+        body.innerHTML = `<p style="color:red">Lỗi mạng: ${e.message}</p>`;
+    }
+}
+
+// ============================================================
+// PROJECT STATS VIEW IN ADMIN
+// ============================================================
+async function viewProjectStats(dtId) {
+    if (!document.getElementById('adminStatsModalOverlay')) {
+        createStatsModalHtml();
+    }
+    document.getElementById('adminStatsModalOverlay').classList.add('active');
+    const body = document.getElementById('statsFormBody');
+    body.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+    
+    try {
+        const res = await fetch(`${API_BASE}/de-tai/${dtId}`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+            const dt = data.data;
+            document.getElementById('adminStatsModalTitle').textContent = `Chi tiết Đề tài`;
+            
+            let html = `
+                <div style="margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
+                    <p style="margin-bottom: 8px; font-size: 16px;"><b>${dt.ten_de_tai || 'N/A'}</b></p>
+                    <p style="margin-bottom: 5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Thời gian:</b> ${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'}</p>
+                    <p style="margin-bottom: 5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" style="color:var(--accent-blue);">${dt.link}</a>` : 'N/A'}</p>
+                    <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${dt.tom_tat || 'Đang cập nhật...'}</p>
+                </div>
+            `;
+            
+            html += `<h4 style="margin-top:20px; color:var(--accent-orange); padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-users"></i> Thành viên tham gia (${dt.thanh_vien ? dt.thanh_vien.length : 0})</h4>`;
+            if (dt.thanh_vien && dt.thanh_vien.length > 0) {
+                html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
+                dt.thanh_vien.forEach(tv => {
+                    const vaiTroText = tv.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên';
+                    html += `<li><b>${tv.ten}</b> <span style="color:var(--text-muted); font-size:12px;">(Vai trò: <b>${vaiTroText}</b>)</span></li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có thành viên nào được gán.</p>`;
+            }
+            
+            body.innerHTML = html;
+        } else {
+            body.innerHTML = `<p style="color:red">Lỗi tải dữ liệu: ${data.message}</p>`;
+        }
+    } catch (e) {
+        body.innerHTML = `<p style="color:red">Lỗi mạng: ${e.message}</p>`;
+    }
+}
+
 function closeStatsModal() {
     if(document.getElementById('adminStatsModalOverlay')) {
         document.getElementById('adminStatsModalOverlay').classList.remove('active');
@@ -550,7 +649,7 @@ function createStatsModalHtml() {
     div.innerHTML = `
         <div class="modal" style="max-width: 650px;">
             <div class="modal-header">
-                <h2 id="adminStatsModalTitle" style="font-size:18px;">Thông tin Giảng viên</h2>
+                <h2 id="adminStatsModalTitle" style="font-size:18px;">Thông tin Chi tiết</h2>
                 <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeStatsModal()">&times;</button>
             </div>
             <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
