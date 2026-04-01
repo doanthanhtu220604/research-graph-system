@@ -18,7 +18,8 @@ const ENTITY_CONFIG = {
             { name: 'bo_mon', label: 'Tên Bộ môn', type: 'text' },
             { name: 'email', label: 'Email', type: 'email' },
             { name: 'dien_thoai', label: 'Điện thoại', type: 'text' },
-            { name: 'chuyen_mon', label: 'Chuyên môn', type: 'text' }
+            { name: 'chuyen_mon', label: 'Chuyên môn', type: 'text' },
+            { name: 'anh_dai_dien', label: 'Link ảnh đại diện', type: 'url' }
         ]
     },
     'cong-trinh': {
@@ -94,7 +95,13 @@ async function loadLecturers() {
             tbody.innerHTML = data.data.map(gv => `
                 <tr>
                     <td>${gv.id || 'N/A'}</td>
-                    <td><strong>${gv.ho_va_ten || 'N/A'}</strong></td>
+                    <td>
+                        ${gv.anh_dai_dien
+                            ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
+                            : `<i class="fas fa-user-circle" style="font-size:32px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
+                        }
+                        <strong>${gv.ho_va_ten || 'N/A'}</strong>
+                    </td>
                     <td>${gv.hoc_vi || ''}</td>
                     <td>${gv.bo_mon || ''}</td>
                     <td>

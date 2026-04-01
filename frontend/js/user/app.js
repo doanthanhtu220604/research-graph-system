@@ -77,7 +77,7 @@ async function initLecturerMarquee() {
         
         const buildCard = (gv) => `
             <div class="marquee-card" onclick="showLecturerDetail(${gv.id})">
-                <div class="marquee-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="marquee-icon">${gv.anh_dai_dien ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<i class="fas fa-user-tie"></i>`}</div>
                 <div class="marquee-info">
                     <h4>${gv.ho_va_ten}</h4>
                     <p>${gv.bo_mon || gv.hoc_vi || 'Giảng viên'}</p>
@@ -429,7 +429,13 @@ async function loadLecturers() {
             tbody.innerHTML = data.data.map((gv, i) => `
                 <tr>
                     <td>${i + 1}</td>
-                    <td><strong>${gv.ho_va_ten || 'N/A'}</strong></td>
+                    <td>
+                        ${gv.anh_dai_dien
+                            ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
+                            : `<i class="fas fa-user-circle" style="font-size:36px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
+                        }
+                        <strong>${gv.ho_va_ten || 'N/A'}</strong>
+                    </td>
                     <td>${gv.hoc_vi || ''}</td>
                     <td>${gv.chuc_danh || ''}</td>
                     <td>${gv.bo_mon || ''}</td>
@@ -469,6 +475,16 @@ async function showLecturerDetail(gvId) {
             // Populate Left Column
             document.getElementById('detailTitle').textContent = gv.ho_va_ten || 'Giảng viên';
             document.getElementById('detailSubtitle').textContent = gv.chuc_danh ? `${gv.chuc_danh} - ${gv.hoc_vi || ''}` : (gv.hoc_vi || 'Giảng viên');
+            
+            // Set avatar or fallback icon
+            const iconEl = document.getElementById('detailIcon');
+            if (gv.anh_dai_dien) {
+                iconEl.innerHTML = `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:100%;height:100%;object-fit:cover;">`;
+                iconEl.style.background = 'transparent';
+            } else {
+                iconEl.innerHTML = '<i class="fas fa-user-tie"></i>';
+                iconEl.style.background = 'rgba(79, 142, 247, 0.1)';
+            }
             
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Học vị</span><br><b>${gv.hoc_vi || 'N/A'}</b></div>
