@@ -31,7 +31,7 @@
         </div>
 
         <!-- Right Column: Graph -->
-        <div class="detail-graph-card card">
+        <div class="detail-graph-card card" style="position: relative;">
             <div class="card-header">
                 <h2><i class="fas fa-project-diagram"></i> Knowledge Graph - Đồ thị</h2>
                 <div class="card-actions">
@@ -40,6 +40,7 @@
                     </button>
                 </div>
             </div>
+            <div id="detailGraphLegend" class="graph-legend" style="position: absolute; top: 75px; left: 15px; z-index: 10; background: rgba(255, 255, 255, 0.95); border: 1px solid var(--border-color) !important; border-radius: var(--radius-sm); padding: 10px 15px; gap: 6px; flex-direction: column; max-height: 80%; overflow-y: auto; box-shadow: var(--shadow);"></div>
             <div id="detail-graph-container" class="detail-graph-container">
                 <!-- Vis.js network will be rendered here -->
             </div>

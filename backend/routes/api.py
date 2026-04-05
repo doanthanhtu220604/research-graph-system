@@ -62,6 +62,13 @@ def get_giang_vien_detail(gv_id):
         RETURN dt, id(dt) AS dt_id, type(r) AS vai_tro
     """, {"id": gv_id})
 
+    # Lĩnh vực nghiên cứu
+    linh_vuc = conn.query("""
+        MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+        WHERE id(gv) = $id
+        RETURN lv.ten_linh_vuc AS ten_linh_vuc, id(lv) AS lv_id
+    """, {"id": gv_id})
+
     result = dict(gv["gv"]) if gv and "gv" in gv else {}
     result["bo_mon"] = gv["bo_mon"] if gv and "bo_mon" in gv else None
     result["id"] = gv["gv_internal_id"] if gv and "gv_internal_id" in gv else gv_id
@@ -81,6 +88,9 @@ def get_giang_vien_detail(gv_id):
             dt_item = dict(r["dt"])
             dt_item["id"] = r["dt_id"]
             result["de_tai"].append({"de_tai": dt_item, "vai_tro": r.get("vai_tro")})
+
+    # Lĩnh vực nghiên cứu
+    result["linh_vuc"] = [r["ten_linh_vuc"] for r in linh_vuc if r.get("ten_linh_vuc")]
 
     return jsonify({"status": "ok", "data": result})
 
@@ -194,18 +204,32 @@ def get_all_linh_vuc():
 
 @api_bp.route("/search")
 def search():
-    """Tìm kiếm tổng hợp theo từ khóa."""
+    """Tìm kiếm tổng hợp theo từ khóa với bộ lọc loại thực thể."""
     q = request.args.get("q", "").strip()
+    search_type = request.args.get("type", "all").strip().lower()
+    
     if not q:
         return jsonify({"status": "ok", "data": []})
 
+    # Bản đồ mapping giữa search_type và label trong Neo4j
+    type_to_label = {
+        "giang_vien": "GiangVien",
+        "cong_trinh": "CongTrinhNghienCuu",
+        "de_tai": "DeTaiNghienCuu"
+    }
+    
+    label_filter = ""
+    if search_type in type_to_label:
+        label_filter = f":{type_to_label[search_type]}"
+
     try:
         conn = get_neo4j_connection()
-        results = conn.query("""
-            MATCH (n)
-            WHERE NOT (n:TacGiaNgoai AND EXISTS {
+        # Xây dựng câu truy vấn động dựa trên label_filter
+        query = f"""
+            MATCH (n{label_filter})
+            WHERE NOT (n:TacGiaNgoai AND EXISTS {{
                 MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
-            })
+            }})
               AND (toLower(coalesce(n.ho_va_ten, '')) CONTAINS toLower($q)
                OR toLower(coalesce(n.ten_cong_trinh, '')) CONTAINS toLower($q)
                OR toLower(coalesce(n.ten_de_tai, '')) CONTAINS toLower($q)
@@ -215,8 +239,18 @@ def search():
                OR toLower(coalesce(n.hoc_vi, '')) CONTAINS toLower($q)
                OR toLower(coalesce(n.chuc_danh, '')) CONTAINS toLower($q))
             RETURN id(n) AS node_id, n, labels(n) AS labels
-            LIMIT 20
-        """, {"q": q})
+            LIMIT 30
+        """
+        
+        results = conn.query(query, {"q": q})
+
+        data = []
+        for r in results:
+            item = dict(r["n"])
+            item["id"] = r["node_id"]
+            item["_labels"] = r["labels"]
+            data.append(item)
+        return jsonify({"status": "ok", "data": data, "query": q, "type": search_type})
 
         data = []
         for r in results:
@@ -384,6 +418,7 @@ def get_node_graph(node_id):
         "status": "ok",
         "nodes": list(nodes_map.values()),
         "edges": edges,
+        "legend": label_config,
     })
 
 
@@ -405,7 +440,7 @@ def get_overview_stats():
         # Top giảng viên theo số công trình
         top_gv = conn.query("""
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-            RETURN gv.ho_va_ten AS ten, gv.id AS id, count(ct) AS so_cong_trinh
+            RETURN gv.ho_va_ten AS ten, id(gv) AS id, count(ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC
             LIMIT 10
         """)

@@ -54,68 +54,126 @@ async function loadDashboard() {
         const data = await res.json();
 
         if (data.status === 'ok') {
+            // Update Stats Cards with animation
+            if (data.stats) {
+                animateValue("count-gv", data.stats.giang_vien);
+                animateValue("count-ct", data.stats.cong_trinh);
+                animateValue("count-dt", data.stats.de_tai);
+                animateValue("count-bm", data.stats.bo_mon);
+            }
+            
             // Top lecturers
             renderTopLecturers(data.top_giang_vien, 'topLecturersList');
         }
     } catch (err) {
         console.error('Dashboard error:', err);
     }
-    
-    // Nạp Carousel (Marquee) gợi ý Giảng viên tự chạyy
-    initLecturerMarquee();
+
+    // Load simple lecturer grid
+    initSimpleLecturerGrid();
 }
 
-async function initLecturerMarquee() {
+function animateValue(id, endValue, duration = 1000) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * endValue);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+function handleHeroSearch(e) {
+    if (e.key === 'Enter') {
+        const query = e.target.value.trim();
+        if (query) {
+            window.location.href = `explore.html?q=${encodeURIComponent(query)}`;
+        }
+    }
+}
+
+async function initSimpleLecturerGrid() {
     try {
         const res = await fetch(`${API_BASE}/giang-vien`);
         const data = await res.json();
-        const container = document.getElementById('lecturerMarquee');
+        const container = document.getElementById('simpleLecturerGrid');
         if (!container || data.status !== 'ok') return;
         
         let gvList = data.data;
-        if (gvList.length === 0) return;
+        if (!gvList || gvList.length === 0) {
+            container.innerHTML = '<div style="grid-column: span 5; text-align: center; color: var(--text-muted);">Không có dữ liệu giảng viên.</div>';
+            return;
+        }
         
-        const buildCard = (gv) => `
-            <div class="marquee-card" onclick="showLecturerDetail(${gv.id})">
-                <div class="marquee-icon">${gv.anh_dai_dien ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<i class="fas fa-user-tie"></i>`}</div>
-                <div class="marquee-info">
-                    <h4>${gv.ho_va_ten}</h4>
-                    <p>${gv.bo_mon || gv.hoc_vi || 'Giảng viên'}</p>
+        // Lấy 10 giảng viên ngẫu nhiên hoặc 10 người đầu tiên cho lưới
+        const displayList = gvList.slice(0, 10);
+        
+        const html = displayList.map(gv => {
+            const name = String(gv.ho_va_ten || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            // Thiết kế avatar có viền mỏng và đổ bóng nhẹ (như ảnh thiết kế)
+            const img = gv.anh_dai_dien 
+                ? `<img src="${String(gv.anh_dai_dien).replace(/"/g, '')}" alt="${name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">` 
+                : `<div class="no-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); color: white; font-size: 30px;"><i class="fas fa-user-tie"></i></div>`;
+            
+            // Chỉ hiển thị ảnh ở trên và Tên ở dưới, bỏ chức vụ (theo yêu cầu bao đóng giống thiết kế)
+            return `
+                <div class="simple-lecturer-card" onclick="showLecturerDetail(${Number(gv.id) || 0})" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+                    ${img}
+                    <div style="font-size: 14px; font-weight: 700; color: #334155; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;" title="${name}">${name}</div>
                 </div>
-            </div>
-        `;
-
-        let html = gvList.map(buildCard).join('');
-        // Nhân đôi chuỗi HTML để tạo hiệu ứng lặp trượt không giới hạn
-        html += html; 
+            `;
+        }).join('');
         
         container.innerHTML = html;
         
     } catch (e) {
-        console.error("Marquee load err:", e);
+        console.error("Lecturer grid load err:", e);
     }
 }
 
 function renderTopLecturers(lecturers, containerId) {
     const container = document.getElementById(containerId);
+    if (!container) return;
     if (!lecturers || lecturers.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted);">Chưa có dữ liệu</p>';
+        container.innerHTML = '<p style="color: var(--text-muted); padding: 20px; text-align: center;">Chưa có dữ liệu thống kê.</p>';
         return;
     }
 
-    const maxCount = lecturers[0].so_cong_trinh;
+    const maxCount = Math.max(...lecturers.map(gv => gv.so_cong_trinh || 0)) || 1;
+
     container.innerHTML = lecturers.map((gv, i) => {
-        const rankClass = i < 3 ? `top-${i + 1}` : '';
-        const barWidth = Math.round((gv.so_cong_trinh / maxCount) * 100);
+        let rankBadge = `<div style="width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.05); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:var(--text-secondary); flex-shrink:0;">${i + 1}</div>`;
+        
+        if (i === 0) rankBadge = `<div class="medal-icon medal-1" style="font-size: 22px; width:28px; text-align:center; flex-shrink:0;"><i class="fas fa-crown" style="filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.4));"></i></div>`;
+        else if (i === 1) rankBadge = `<div class="medal-icon medal-2" style="font-size: 22px; width:28px; text-align:center; flex-shrink:0;"><i class="fas fa-medal" style="filter: drop-shadow(0 2px 4px rgba(192, 192, 192, 0.4));"></i></div>`;
+        else if (i === 2) rankBadge = `<div class="medal-icon medal-3" style="font-size: 22px; width:28px; text-align:center; flex-shrink:0;"><i class="fas fa-medal" style="filter: drop-shadow(0 2px 4px rgba(205, 127, 50, 0.4));"></i></div>`;
+
+        const currentCount = Number(gv.so_cong_trinh) || 0;
+        const percent = Math.min(100, Math.max(5, Math.round((currentCount / maxCount) * 100)));
+
         return `
-            <div class="lecturer-rank-item">
-                <div class="rank-number ${rankClass}">${i + 1}</div>
-                <div class="rank-info">
-                    <div class="rank-name">${gv.ten}</div>
-                    <div class="rank-count">${gv.so_cong_trinh} công trình</div>
+            <div style="cursor: pointer; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseover="this.style.backgroundColor='rgba(59, 130, 246, 0.04)'; this.style.transform='translateX(4px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';" onclick="showLecturerDetail(${Number(gv.id) || 0})">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px; width: 100%;">
+                    ${rankBadge}
+                    
+                    <div class="rank-info" style="flex: 1; min-width: 0;">
+                        <div class="rank-name" style="font-weight: 600; color: var(--text-primary); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${String(gv.ten || '').replace(/"/g, '&quot;')}">${String(gv.ten || 'Chưa rõ').replace(/</g, '&lt;')}</div>
+                        <div class="rank-count" style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                            <span style="font-weight:700; color:var(--accent-blue);">${currentCount}</span> công trình
+                        </div>
+                    </div>
                 </div>
-                <div class="rank-bar">
-                    <div class="rank-bar-fill" style="width: ${barWidth}%"></div>
+                
+                <div style="padding-left: 43px;">
+                    <div class="rank-progress-bar" style="height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden;">
+                        <div class="rank-progress-fill" style="height: 100%; width: ${percent}%; background: ${i === 0 ? 'var(--gradient-primary)' : (i === 1 ? 'linear-gradient(135deg, #9ca3af, #d1d5db)' : (i === 2 ? '#f59e0b' : 'var(--gradient-primary)'))}; border-radius: 3px; transition: width 1s ease-in-out;"></div>
+                    </div>
                 </div>
             </div>
         `;
@@ -210,11 +268,11 @@ function renderGraph(containerId, nodes, edges, callback) {
             const nodeId = params.nodes[0];
             const node = nodes.find(n => n.id === nodeId);
             if (node) {
-                if (node.group === 'GiangVien' && (node.properties.id || node.id)) {
-                    showLecturerDetail(node.properties.id || node.id);
-                } else if (node.group === 'CongTrinhNghienCuu' && node.id) {
+                if (node.group === 'GiangVien' && node.id !== undefined) {
+                    showLecturerDetail(node.id);
+                } else if (node.group === 'CongTrinhNghienCuu' && node.id !== undefined) {
                     showPublicationDetail(node.id);
-                } else if (node.group === 'DeTaiNghienCuu' && node.id) {
+                } else if (node.group === 'DeTaiNghienCuu' && node.id !== undefined) {
                     showProjectDetail(node.id);
                 }
             }
@@ -276,8 +334,9 @@ function formatRelLabel(label) {
     return label.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c);
 }
 
-function renderLegend(legendConfig) {
-    const container = document.getElementById('graphLegend');
+function renderLegend(legendConfig, containerId = 'graphLegend') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
     const labels = {
         'GiangVien': 'Giảng viên',
         'CongTrinhNghienCuu': 'Công trình',
@@ -299,6 +358,7 @@ function renderLegend(legendConfig) {
 // ============================================================
 // EXPLORE & SEARCH
 // ============================================================
+let currentSearchType = 'all';
 
 function initExploreGraph() {
     loadKnowledgeGraphForExplore();
@@ -310,6 +370,20 @@ function initExploreGraph() {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 performSearch();
+                hideSuggestions();
+            }
+        });
+
+        // Real-time suggestions
+        searchInput.addEventListener('input', debounce((e) => {
+            const query = e.target.value.trim();
+            performLiveSearch(query);
+        }, 300));
+
+        // Close search results on click outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                hideSuggestions();
             }
         });
     }
@@ -325,6 +399,31 @@ function initExploreGraph() {
             }
         }, 300);
     }
+    
+    // Khởi tạo các gợi ý tìm kiếm ngẫu nhiên
+    renderRandomSuggestions();
+}
+
+const searchSuggestionPool = [
+    { type: 'giang_vien', text: 'Giảng viên', icon: 'fa-user-tie', queries: ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Trưởng khoa', 'Tiến sĩ', 'Phó Giáo sư', 'Khoa CNTT'] },
+    { type: 'linh_vuc', text: 'Lĩnh vực', icon: 'fa-microscope', queries: ['Trí tuệ nhân tạo', 'Học máy', 'Khai phá dữ liệu', 'Thị giác máy tính', 'Mạng máy tính', 'Phần mềm', 'IoT'] },
+    { type: 'cong_trinh', text: 'Công trình', icon: 'fa-file-alt', queries: ['Hệ thống', 'Mô hình', 'Ứng dụng', 'Nghiên cứu', 'Phân tích', 'Xây dựng', 'Giải pháp'] },
+    { type: 'de_tai', text: 'Đề tài', icon: 'fa-flask', queries: ['Cấp Bộ', 'Cấp Cơ sở', 'Nafosted', 'Cấp Nhà nước', 'Tỉnh', 'Nghiên cứu khoa học'] }
+];
+
+function renderRandomSuggestions() {
+    const container = document.getElementById('dynamicSuggestions');
+    if (!container) return;
+    
+    let html = '';
+    searchSuggestionPool.forEach(category => {
+        const randomQuery = category.queries[Math.floor(Math.random() * category.queries.length)];
+        html += `<button class="suggestion-tag" onclick="setSearchQuery('${randomQuery}')">
+                    <i class="fas ${category.icon}"></i> ${category.text}: ${randomQuery}
+                 </button>`;
+    });
+    
+    container.innerHTML = html;
 }
 
 async function loadKnowledgeGraphForExplore() {
@@ -348,10 +447,10 @@ async function performSearch() {
     const query = searchEl.value.trim();
     if (!query) return;
 
-    console.log('[Search] Searching for:', query);
+    console.log('[Search] Searching for:', query, 'with type:', currentSearchType);
 
     try {
-        const url = `${API_BASE}/search?q=${encodeURIComponent(query)}`;
+        const url = `${API_BASE}/search?q=${encodeURIComponent(query)}&type=${currentSearchType}`;
         console.log('[Search] Fetching:', url);
         const res = await fetch(url);
         console.log('[Search] Response status:', res.status);
@@ -413,6 +512,108 @@ async function performSearch() {
         console.error('Search error:', err);
         alert('Lỗi tìm kiếm: ' + err.message);
     }
+}
+
+function setSearchQuery(query) {
+    const searchEl = document.getElementById('exploreSearch');
+    if (searchEl) {
+        searchEl.value = query;
+        performSearch();
+        hideSuggestions();
+    }
+}
+
+function setSearchFilter(type, el) {
+    currentSearchType = type;
+    
+    // Cập nhật UI: highlight nút active
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    if (el) el.classList.add('active');
+    
+    // Nếu đang có từ khóa tìm kiếm, thực hiện tìm lại ngay lập tức
+    const query = document.getElementById('exploreSearch').value.trim();
+    if (query) {
+        performSearch();
+    }
+}
+
+// --- Real-time Search Logic ---
+
+function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
+async function performLiveSearch(query) {
+    const suggestionsEl = document.getElementById('exploreSuggestions');
+    if (!suggestionsEl) return;
+
+    if (!query || query.length < 2) {
+        hideSuggestions();
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&type=${currentSearchType}`);
+        const data = await res.json();
+
+        if (data.status === 'ok' && data.data.length > 0) {
+            const labelIcons = {
+                'GiangVien': 'fa-user-tie',
+                'CongTrinhNghienCuu': 'fa-file-alt',
+                'DeTaiNghienCuu': 'fa-flask',
+                'BoMon': 'fa-building',
+                'Khoa': 'fa-university',
+                'TacGiaNgoai': 'fa-user',
+            };
+
+            const labelNames = {
+                'GiangVien': 'Giảng viên',
+                'CongTrinhNghienCuu': 'Công trình',
+                'DeTaiNghienCuu': 'Đề tài',
+                'BoMon': 'Bộ môn',
+                'Khoa': 'Khoa',
+                'TacGiaNgoai': 'Tác giả ngoài',
+            };
+
+            suggestionsEl.innerHTML = data.data.slice(0, 8).map(item => {
+                const label = item._labels[0];
+                const icon = labelIcons[label] || 'fa-circle';
+                const typeName = labelNames[label] || label;
+                const name = item.ho_va_ten || item.ten_cong_trinh || item.ten_de_tai
+                          || item.ten_bo_mon || item.ten_khoa || 'N/A';
+
+                let clickAction = '';
+                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail(${item.id})`;
+                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail(${item.id})`;
+                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail(${item.id})`;
+
+                return `
+                    <div class="suggestion-item" onclick="${clickAction}; hideSuggestions();">
+                        <i class="fas ${icon}"></i>
+                        <div class="suggestion-info">
+                            <span class="suggestion-name">${name}</span>
+                            <span class="suggestion-type">${typeName}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            suggestionsEl.style.display = 'block';
+        } else {
+            suggestionsEl.innerHTML = '<div class="suggestion-empty">Không tìm thấy kết quả phù hợp.</div>';
+            suggestionsEl.style.display = 'block';
+        }
+    } catch (err) {
+        console.error('Live search error:', err);
+    }
+}
+
+function hideSuggestions() {
+    const suggestionsEl = document.getElementById('exploreSuggestions');
+    if (suggestionsEl) suggestionsEl.style.display = 'none';
 }
 
 // ============================================================
@@ -486,12 +687,17 @@ async function showLecturerDetail(gvId) {
                 iconEl.style.background = 'rgba(79, 142, 247, 0.1)';
             }
             
+            const linhVucHtml = (gv.linh_vuc && gv.linh_vuc.length > 0)
+                ? gv.linh_vuc.map(lv => `<span style="display:inline-block;padding:3px 10px;background:rgba(26,188,156,0.12);color:#1ABC9C;border-radius:12px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${lv}</span>`).join('')
+                : '<b style="color:var(--text-muted);">N/A</b>';
+
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Học vị</span><br><b>${gv.hoc_vi || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Chức danh</span><br><b>${gv.chuc_danh || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Bộ môn</span><br><b>${gv.bo_mon || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Email</span><br><b>${gv.email || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Điện thoại</span><br><b>${gv.dien_thoai || 'N/A'}</b></div>
+                <div style="grid-column: 1 / -1;"><span style="color:var(--text-muted);font-size:12px;">Lĩnh vực nghiên cứu</span><br>${linhVucHtml}</div>
             `;
             document.getElementById('detailFieldsGrid').innerHTML = fieldsHtml;
 
@@ -541,6 +747,7 @@ async function showLecturerDetail(gvId) {
                 renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
                     window.detailGraph = network;
                 });
+                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
             }, 50);
         }
     } catch (err) {
@@ -616,6 +823,7 @@ async function showPublicationDetail(ctId) {
                 renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
                     window.detailGraph = network;
                 });
+                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
             }, 50);
         }
     } catch (err) { console.error(err); }
@@ -675,6 +883,7 @@ async function showProjectDetail(dtId) {
                 renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
                     window.detailGraph = network;
                 });
+                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
             }, 50);
         }
     } catch (err) { console.error(err); }

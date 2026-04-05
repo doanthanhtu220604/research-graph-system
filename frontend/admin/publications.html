@@ -96,6 +96,24 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="filter-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="width: 250px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="filterPubTitle" placeholder="Tìm tên công trình..." style="font-size: 14px;" onkeyup="filterPublications()">
+                        </div>
+                        <div class="search-box" style="width: 150px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="number" id="filterPubYear" placeholder="Năm XB..." style="font-size: 14px;" onkeyup="filterPublications()" onchange="filterPublications()">
+                        </div>
+                        <select id="filterPubType" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterPublications()">
+                            <option value="">-- Loại ấn phẩm --</option>
+                            <option value="Bài báo khoa học">Bài báo khoa học</option>
+                            <option value="Sách và chương sách">Sách và chương sách</option>
+                            <option value="Hội nghị / Hội thảo quốc tế">Hội nghị quốc tế</option>
+                            <option value="Hội nghị / Hội thảo trong nước">Hội nghị trong nước</option>
+                            <option value="Báo cáo khoa học">Báo cáo khoa học</option>
+                        </select>
+                    </div>
                     <div class="table-responsive">
                         <table class="data-table" id="adminPublicationsTable">
                             <thead>

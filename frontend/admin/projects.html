@@ -96,6 +96,20 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="filter-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="width: 250px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="filterProjName" placeholder="Tìm tên đề tài..." style="font-size: 14px;" onkeyup="filterProjects()">
+                        </div>
+                        <select id="filterProjLevel" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterProjects()">
+                            <option value="">-- Cấp đề tài --</option>
+                            <option value="Cấp Nhà nước">Cấp Nhà nước</option>
+                            <option value="Cấp Bộ">Cấp Bộ</option>
+                            <option value="Cấp Tỉnh/Thành phố">Cấp Tỉnh/Thành phố</option>
+                            <option value="Cấp Trường">Cấp Trường / Cơ sở</option>
+                            <option value="Đề tài Doanh nghiệp">Đề tài Doanh nghiệp</option>
+                        </select>
+                    </div>
                     <div class="table-responsive">
                         <table class="data-table" id="adminProjectsTable">
                             <thead>

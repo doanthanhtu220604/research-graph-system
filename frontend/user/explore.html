@@ -23,10 +23,36 @@
 
         <section class="page active" id="page-explore" style="display: block;">
             <div class="explore-header">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="exploreSearch" placeholder="Nhập tên giảng viên, từ khóa công trình, lĩnh vực...">
-                    <button class="btn btn-primary" onclick="performSearch()">Tìm kiếm</button>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="exploreSearch" placeholder="Nhập tên giảng viên, từ khóa công trình, lĩnh vực..." autocomplete="off">
+                        <button class="btn btn-primary" onclick="performSearch()">Tìm kiếm</button>
+                    </div>
+                    <div id="exploreSuggestions" class="suggestions-dropdown"></div>
+                </div>
+
+                <div class="search-filters">
+                    <button class="filter-btn active" onclick="setSearchFilter('all', this)">
+                        <i class="fas fa-th-large"></i> Tất cả
+                    </button>
+                    <button class="filter-btn" onclick="setSearchFilter('giang_vien', this)">
+                        <i class="fas fa-user-tie"></i> Giảng viên
+                    </button>
+                    <button class="filter-btn" onclick="setSearchFilter('cong_trinh', this)">
+                        <i class="fas fa-file-alt"></i> Công trình
+                    </button>
+                    <button class="filter-btn" onclick="setSearchFilter('de_tai', this)">
+                        <i class="fas fa-flask"></i> Đề tài
+                    </button>
+                </div>
+
+                <div class="search-suggestions" id="searchSuggestionsContainer">
+                    <span class="suggestion-label">Gợi ý:</span>
+                    <span id="dynamicSuggestions" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;"></span>
+                    <button onclick="renderRandomSuggestions()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; margin-left:5px; transition:var(--transition);" onmouseover="this.style.color='var(--accent-blue)'; this.style.transform='rotate(180deg)';" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='rotate(0deg)';" title="Đổi gợi ý khác">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
             </div>
 

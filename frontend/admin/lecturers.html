@@ -96,6 +96,27 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="filter-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="width: 250px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="filterName" placeholder="Tìm tên giảng viên..." style="font-size: 14px;" onkeyup="filterLecturers()">
+                        </div>
+                        <select id="filterDepartment" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterLecturers()">
+                            <option value="">-- Chọn Bộ môn --</option>
+                            <option value="Bộ môn Công nghệ phần mềm">Công nghệ phần mềm</option>
+                            <option value="Bộ môn Hệ thống thông tin">Hệ thống thông tin</option>
+                            <option value="Bộ môn Mạng máy tính và truyền thông">Mạng máy tính và truyền thông</option>
+                        </select>
+                        <select id="filterDegree" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterLecturers()">
+                            <option value="">-- Chọn Học vị --</option>
+                            <option value="Tiến sĩ">Tiến sĩ</option>
+                            <option value="Thạc sĩ">Thạc sĩ</option>
+                            <option value="Phó Giáo sư">Phó Giáo sư</option>
+                            <option value="Giáo sư">Giáo sư</option>
+                            <option value="Cử nhân">Cử nhân</option>
+                            <option value="Kỹ sư">Kỹ sư</option>
+                        </select>
+                    </div>
                     <div class="table-responsive">
                         <table class="data-table" id="adminLecturersTable">
                             <thead>
@@ -158,6 +179,6 @@
         </div>
     </main>
 
-    <script src="../js/admin/admin_app.js"></script>
+    <script src="../js/admin/admin_app.js?v=1.1"></script>
 </body>
 </html>

@@ -35,6 +35,15 @@ def create_giang_vien():
                 MERGE (gv)-[:THUOC_BO_MON]->(bm)
             """, {"gv_id": gv_id, "bo_mon": data.get("bo_mon")})
 
+        # Thiết lập quan hệ Lĩnh vực nghiên cứu (nếu có)
+        if data.get("linh_vuc_ids"):
+            for lv_id in data["linh_vuc_ids"]:
+                conn.write("""
+                    MATCH (gv:GiangVien) WHERE id(gv) = $gv_id
+                    MATCH (lv:LinhVucNghienCuu) WHERE id(lv) = $lv_id
+                    MERGE (gv)-[:NGHIEN_CUU]->(lv)
+                """, {"gv_id": gv_id, "lv_id": lv_id})
+
         return jsonify({"status": "ok", "message": "Thêm giảng viên thành công", "id": gv_id})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -70,6 +79,23 @@ def update_giang_vien(id):
                     MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
                     MERGE (gv)-[:THUOC_BO_MON]->(bm)
                 """, {"id": id, "bo_mon": data.get("bo_mon")})
+
+        # Cập nhật quan hệ Lĩnh vực nghiên cứu
+        if "linh_vuc_ids" in data:
+            # Xóa quan hệ lĩnh vực cũ
+            conn.write("""
+                MATCH (gv:GiangVien)-[r:NGHIEN_CUU]->(:LinhVucNghienCuu)
+                WHERE id(gv) = $id
+                DELETE r
+            """, {"id": id})
+
+            # Tạo quan hệ lĩnh vực mới
+            for lv_id in data["linh_vuc_ids"]:
+                conn.write("""
+                    MATCH (gv:GiangVien) WHERE id(gv) = $id
+                    MATCH (lv:LinhVucNghienCuu) WHERE id(lv) = $lv_id
+                    MERGE (gv)-[:NGHIEN_CUU]->(lv)
+                """, {"id": id, "lv_id": lv_id})
 
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:

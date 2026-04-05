@@ -15,7 +15,12 @@ const ENTITY_CONFIG = {
             { name: 'ho_va_ten', label: 'Họ và tên', type: 'text', required: true },
             { name: 'hoc_vi', label: 'Học vị', type: 'text' },
             { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
-            { name: 'bo_mon', label: 'Tên Bộ môn', type: 'text' },
+            { name: 'bo_mon', label: 'Tên Bộ môn', type: 'select', options: [
+                { value: '', label: '-- Chọn Bộ môn --' },
+                { value: 'Bộ môn Công nghệ phần mềm', label: 'Bộ môn Công nghệ phần mềm' },
+                { value: 'Bộ môn Hệ thống thông tin', label: 'Bộ môn Hệ thống thông tin' },
+                { value: 'Bộ môn Mạng máy tính và truyền thông', label: 'Bộ môn Mạng máy tính và truyền thông' }
+            ]},
             { name: 'email', label: 'Email', type: 'email' },
             { name: 'dien_thoai', label: 'Điện thoại', type: 'text' },
             { name: 'chuyen_mon', label: 'Chuyên môn', type: 'text' },
@@ -88,87 +93,170 @@ async function loadLecturers() {
     try {
         const res = await fetch(ENTITY_CONFIG['giang-vien'].apiUrl);
         const data = await res.json();
-        const tbody = document.getElementById('adminLecturersBody');
         
         if (data.status === 'ok') {
             currentEntitiesData['giang-vien'] = data.data;
-            tbody.innerHTML = data.data.map(gv => `
-                <tr>
-                    <td>${gv.id || 'N/A'}</td>
-                    <td>
-                        ${gv.anh_dai_dien
-                            ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
-                            : `<i class="fas fa-user-circle" style="font-size:32px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
-                        }
-                        <strong>${gv.ho_va_ten || 'N/A'}</strong>
-                    </td>
-                    <td>${gv.hoc_vi || ''}</td>
-                    <td>${gv.bo_mon || ''}</td>
-                    <td>
-                        <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewLecturerStats(${gv.id})"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('giang-vien', ${gv.id})"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('giang-vien', ${gv.id})"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            renderLecturersTable(data.data);
         }
     } catch (err) {
         console.error(err);
     }
+}
+
+function renderLecturersTable(dataList) {
+    const tbody = document.getElementById('adminLecturersBody');
+    if (!tbody) return;
+    
+    if (dataList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy giảng viên phù hợp.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataList.map((gv) => `
+        <tr>
+            <td>${gv.id || 'N/A'}</td>
+            <td>
+                ${gv.anh_dai_dien
+                    ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
+                    : `<i class="fas fa-user-circle" style="font-size:32px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
+                }
+                <strong>${gv.ho_va_ten || 'N/A'}</strong>
+            </td>
+            <td>${gv.hoc_vi || ''}</td>
+            <td>${gv.bo_mon || ''}</td>
+            <td>
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewLecturerStats(${gv.id})"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('giang-vien', ${gv.id}, null)"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('giang-vien', ${gv.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterLecturers() {
+    const list = currentEntitiesData['giang-vien'] || [];
+    const nameFilter = (document.getElementById('filterName')?.value || '').toLowerCase();
+    const deptFilter = document.getElementById('filterDepartment')?.value || '';
+    const degreeFilter = document.getElementById('filterDegree')?.value || '';
+    
+    const filtered = list.filter(gv => {
+        const matchName = (gv.ho_va_ten || '').toLowerCase().includes(nameFilter);
+        const matchDept = deptFilter === '' || (gv.bo_mon === deptFilter);
+        const matchDegree = degreeFilter === '' || (gv.hoc_vi && gv.hoc_vi.includes(degreeFilter));
+        return matchName && matchDept && matchDegree;
+    });
+    
+    renderLecturersTable(filtered);
 }
 
 async function loadPublications() {
     try {
         const res = await fetch(ENTITY_CONFIG['cong-trinh'].apiUrl);
         const data = await res.json();
-        const tbody = document.getElementById('adminPublicationsBody');
         
         if (data.status === 'ok') {
             currentEntitiesData['cong-trinh'] = data.data;
-            tbody.innerHTML = data.data.map((ct, i) => `
-                <tr>
-                    <td>${ct.id || i+1}</td>
-                    <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
-                    <td>${ct.nam_xuat_ban || ''}</td>
-                    <td>
-                        <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats(${ct.id || i+1})"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', ${ct.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
-                        ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', ${ct.id}, \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', ${ct.id || i+1})"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            renderPublicationsTable(data.data);
         }
     } catch (err) {
         console.error(err);
     }
 }
 
+function renderPublicationsTable(dataList) {
+    const tbody = document.getElementById('adminPublicationsBody');
+    if (!tbody) return;
+    
+    if (dataList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy công trình phù hợp.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataList.map((ct) => {
+        const originalIndex = currentEntitiesData['cong-trinh'].indexOf(ct);
+        return `
+        <tr>
+            <td>${ct.id || 'N/A'}</td>
+            <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
+            <td>${ct.nam_xuat_ban || ''}</td>
+            <td>
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats(${ct.id})"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', ${ct.id}, ${originalIndex})"><i class="fas fa-edit"></i></button>
+                ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', ${ct.id}, \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', ${ct.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `}).join('');
+}
+
+function filterPublications() {
+    const list = currentEntitiesData['cong-trinh'] || [];
+    const titleFilter = (document.getElementById('filterPubTitle')?.value || '').toLowerCase();
+    const yearFilter = document.getElementById('filterPubYear')?.value || '';
+    const typeFilter = document.getElementById('filterPubType')?.value || '';
+    
+    const filtered = list.filter(ct => {
+        const matchTitle = (ct.ten_cong_trinh || '').toLowerCase().includes(titleFilter);
+        const matchYear = yearFilter === '' || (ct.nam_xuat_ban == yearFilter);
+        const matchType = typeFilter === '' || (ct.loai_an_pham === typeFilter);
+        return matchTitle && matchYear && matchType;
+    });
+    
+    renderPublicationsTable(filtered);
+}
+
 async function loadProjects() {
     try {
         const res = await fetch(ENTITY_CONFIG['de-tai'].apiUrl);
         const data = await res.json();
-        const tbody = document.getElementById('adminProjectsBody');
         
         if (data.status === 'ok') {
             currentEntitiesData['de-tai'] = data.data;
-            tbody.innerHTML = data.data.map((dt, i) => `
-                <tr>
-                    <td>${dt.id || i+1}</td>
-                    <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
-                    <td>${dt.cap_de_tai || ''}</td>
-                    <td>
-                        <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats(${dt.id || i+1})"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', ${dt.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
-                        ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', ${dt.id}, \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', ${dt.id || i+1})"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            renderProjectsTable(data.data);
         }
     } catch (err) {
         console.error(err);
     }
+}
+
+function renderProjectsTable(dataList) {
+    const tbody = document.getElementById('adminProjectsBody');
+    if (!tbody) return;
+    
+    if (dataList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy đề tài phù hợp.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataList.map((dt) => {
+        const originalIndex = currentEntitiesData['de-tai'].indexOf(dt);
+        return `
+        <tr>
+            <td>${dt.id || 'N/A'}</td>
+            <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
+            <td>${dt.cap_de_tai || ''}</td>
+            <td>
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats(${dt.id})"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', ${dt.id}, ${originalIndex})"><i class="fas fa-edit"></i></button>
+                ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', ${dt.id}, \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', ${dt.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `}).join('');
+}
+
+function filterProjects() {
+    const list = currentEntitiesData['de-tai'] || [];
+    const nameFilter = (document.getElementById('filterProjName')?.value || '').toLowerCase();
+    const levelFilter = document.getElementById('filterProjLevel')?.value || '';
+    
+    const filtered = list.filter(dt => {
+        const matchName = (dt.ten_de_tai || '').toLowerCase().includes(nameFilter);
+        const matchLevel = levelFilter === '' || (dt.cap_de_tai === levelFilter);
+        return matchName && matchLevel;
+    });
+    
+    renderProjectsTable(filtered);
 }
 
 async function loadResearchFields() {
@@ -199,7 +287,7 @@ async function loadResearchFields() {
 // MODAL FORMS
 // ============================================================
 
-function openAdminModal(type, id = null, index = null) {
+async function openAdminModal(type, id = null, index = null) {
     const config = ENTITY_CONFIG[type];
     if (!config) return;
 
@@ -213,6 +301,9 @@ function openAdminModal(type, id = null, index = null) {
         let inputHtml = '';
         if (f.type === 'textarea') {
             inputHtml = `<textarea id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''} style="min-height: 100px; width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);"></textarea>`;
+        } else if (f.type === 'select') {
+            const optionsHtml = f.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('');
+            inputHtml = `<select id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>${optionsHtml}</select>`;
         } else {
             inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>`;
         }
@@ -233,7 +324,7 @@ function openAdminModal(type, id = null, index = null) {
         if (index !== null && currentEntitiesData[type][index]) {
             item = currentEntitiesData[type][index];
         } else if (currentEntitiesData[type]) {
-            item = currentEntitiesData[type].find(x => x.id === id);
+            item = currentEntitiesData[type].find(x => x.id == id);
         }
 
         if (item) {
@@ -244,6 +335,28 @@ function openAdminModal(type, id = null, index = null) {
                 }
             });
         }
+    }
+
+    // Thêm phần nhập Lĩnh vực nghiên cứu cho Giảng viên (dạng text tự do)
+    if (type === 'giang-vien') {
+        let currentLVText = '';
+        if (id) {
+            try {
+                const gvRes = await fetch(`${API_BASE}/giang-vien/${id}`);
+                const gvData = await gvRes.json();
+                if (gvData.status === 'ok' && gvData.data.linh_vuc) {
+                    currentLVText = gvData.data.linh_vuc.join(', ');
+                }
+            } catch (e) {
+                console.error('Lỗi tải lĩnh vực:', e);
+            }
+        }
+        const lvHtml = `
+        <div class="form-group">
+            <label for="field_linh_vuc_text">Lĩnh vực nghiên cứu <span style="color:var(--text-muted); font-size:12px; font-weight:normal;">(phân tách bằng dấu phẩy)</span></label>
+            <input type="text" id="field_linh_vuc_text" name="linh_vuc_text" value="${currentLVText}" placeholder="VD: Trí tuệ nhân tạo, Học máy, Xử lý ngôn ngữ tự nhiên">
+        </div>`;
+        container.insertAdjacentHTML('beforeend', lvHtml);
     }
 
     document.getElementById('adminModalOverlay').classList.add('active');
@@ -274,6 +387,16 @@ async function handleFormSubmit(e) {
             formData[f.name] = val;
         }
     });
+
+    // Thu thập lĩnh vực nghiên cứu từ text input (cho giảng viên)
+    if (type === 'giang-vien') {
+        const lvInput = document.getElementById('field_linh_vuc_text');
+        if (lvInput && lvInput.value.trim()) {
+            formData.linh_vuc_names = lvInput.value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        } else {
+            formData.linh_vuc_names = [];
+        }
+    }
 
     try {
         const method = id ? 'PUT' : 'POST';
@@ -511,6 +634,11 @@ async function viewLecturerStats(gvId) {
                     <p style="margin-bottom: 5px;"><b>Chức danh:</b> ${gv.chuc_danh || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Bộ môn:</b> ${gv.bo_mon || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Email:</b> ${gv.email || 'N/A'}</p>
+                    <p style="margin-bottom: 0;"><b>Lĩnh vực nghiên cứu:</b> ${
+                        (gv.linh_vuc && gv.linh_vuc.length > 0)
+                            ? gv.linh_vuc.map(lv => `<span style="display:inline-block;padding:2px 10px;background:rgba(26,188,156,0.12);color:#1ABC9C;border-radius:12px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${lv}</span>`).join('')
+                            : '<span style="color:var(--text-muted);">Chưa có</span>'
+                    }</p>
                 </div>
             `;
             
