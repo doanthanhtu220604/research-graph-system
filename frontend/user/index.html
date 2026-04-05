@@ -57,18 +57,55 @@
                         </div>
                     </div>
                     
-                    <!-- Chỗ trống dành cho khối Công trình / Đề tài trong tương lai -->
+                    <!-- Khối: Công trình nghiên cứu -->
+                    <div class="dashboard-section card" style="background: var(--bg-card); overflow: hidden;">
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                            <h3 style="margin: 0; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--text-primary);">
+                                <i class="fas fa-file-alt" style="color: var(--accent-green);"></i> Công trình nghiên cứu
+                            </h3>
+                            <a href="publications.html" class="btn btn-sm btn-outline-primary" style="font-size: 13px; border-radius: 20px; padding: 6px 16px; border: 1px solid var(--accent-blue); color: var(--accent-blue); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; transition: all 0.2s;" onmouseover="this.style.background='var(--accent-blue)'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='var(--accent-blue)';">
+                                Xem tất cả <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
+                            </a>
+                        </div>
+                        <div class="section-body" style="padding: 24px;">
+                            <div id="simplePublicationGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;">
+                                <div class="loading-spinner" style="grid-column: span 5; text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Khối: Đề tài nghiên cứu -->
+                    <div class="dashboard-section card" style="background: var(--bg-card); overflow: hidden;">
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid rgba(0,0,0,0.06);">
+                            <h3 style="margin: 0; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--text-primary);">
+                                <i class="fas fa-flask" style="color: var(--accent-orange);"></i> Đề tài nghiên cứu
+                            </h3>
+                            <a href="projects.html" class="btn btn-sm btn-outline-primary" style="font-size: 13px; border-radius: 20px; padding: 6px 16px; border: 1px solid var(--accent-blue); color: var(--accent-blue); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; transition: all 0.2s;" onmouseover="this.style.background='var(--accent-blue)'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='var(--accent-blue)';">
+                                Xem tất cả <i class="fas fa-arrow-right" style="margin-left: 6px;"></i>
+                            </a>
+                        </div>
+                        <div class="section-body" style="padding: 24px;">
+                            <div id="simpleProjectGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;">
+                                <div class="loading-spinner" style="grid-column: span 5; text-align: center; padding: 30px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 
-                <!-- Khung bảng xếp hạng bên phải -->
-                <div class="card top-lecturers-card" style="width: 350px;">
-                    <div class="card-header">
-                        <h2><i class="fas fa-trophy"></i> Top Giảng viên</h2>
+                <!-- Cột phải chứa bảng xếp hạng và các nội dung phụ khác -->
+                <div class="dashboard-sidebar-column" style="display: flex; flex-direction: column; gap: 24px; width: 350px; align-self: start;">
+                    
+                    <!-- Khung bảng xếp hạng -->
+                    <div class="card top-lecturers-card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-trophy"></i> Top Giảng viên</h2>
+                        </div>
+                        <div class="card-body" id="topLecturersList">
+                            <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                        </div>
                     </div>
-                    <div class="card-body" id="topLecturersList">
-                        <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
-                    </div>
+
                 </div>
             </div>
         </section>

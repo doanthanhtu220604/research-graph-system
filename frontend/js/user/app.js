@@ -69,8 +69,10 @@ async function loadDashboard() {
         console.error('Dashboard error:', err);
     }
 
-    // Load simple lecturer grid
+    // Load grids
     initSimpleLecturerGrid();
+    initSimplePublicationGrid();
+    initSimpleProjectGrid();
 }
 
 function animateValue(id, endValue, duration = 1000) {
@@ -134,6 +136,78 @@ async function initSimpleLecturerGrid() {
         
     } catch (e) {
         console.error("Lecturer grid load err:", e);
+    }
+}
+
+async function initSimplePublicationGrid() {
+    try {
+        const res = await fetch(`${API_BASE}/cong-trinh`);
+        const data = await res.json();
+        const container = document.getElementById('simplePublicationGrid');
+        if (!container || data.status !== 'ok') return;
+        
+        const list = data.data;
+        if (!list || list.length === 0) {
+            container.innerHTML = '<div style="grid-column: span 5; text-align: center; color: var(--text-muted);">Không có dữ liệu công trình.</div>';
+            return;
+        }
+        
+        const displayList = list.slice(0, 10);
+        
+        const html = displayList.map(item => {
+            const title = String(item.ten_cong_trinh || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            const icon = `<div class="no-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); color: white; font-size: 30px;"><i class="fas fa-file-alt"></i></div>`;
+            
+            return `
+                <div class="simple-lecturer-card" onclick="showPublicationDetail(${Number(item.id) || 0})" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+                    ${icon}
+                    <div style="font-size: 13px; font-weight: 700; color: #334155; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;" title="${title}">${title}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${item.nam_xuat_ban || ''}</div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+        
+    } catch (e) {
+        console.error("Publication grid load err:", e);
+    }
+}
+
+async function initSimpleProjectGrid() {
+    try {
+        const res = await fetch(`${API_BASE}/de-tai`);
+        const data = await res.json();
+        const container = document.getElementById('simpleProjectGrid');
+        if (!container || data.status !== 'ok') return;
+        
+        const list = data.data;
+        if (!list || list.length === 0) {
+            container.innerHTML = '<div style="grid-column: span 5; text-align: center; color: var(--text-muted);">Không có dữ liệu đề tài.</div>';
+            return;
+        }
+        
+        const displayList = list.slice(0, 10);
+        
+        const html = displayList.map(item => {
+            const title = String(item.ten_de_tai || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            const icon = `<div class="no-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); color: white; font-size: 30px;"><i class="fas fa-flask"></i></div>`;
+            
+            return `
+                <div class="simple-lecturer-card" onclick="showProjectDetail(${Number(item.id) || 0})" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+                    ${icon}
+                    <div style="font-size: 13px; font-weight: 700; color: #334155; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;" title="${title}">${title}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${item.cap_de_tai || 'Đề tài'}</div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+        
+    } catch (e) {
+        console.error("Project grid load err:", e);
     }
 }
 
