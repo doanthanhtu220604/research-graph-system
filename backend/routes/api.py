@@ -20,28 +20,27 @@ def get_all_giang_vien():
     results = conn.query("""
         MATCH (gv:GiangVien)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv, id(gv) AS gv_internal_id, bm.ten_bo_mon AS bo_mon
+        RETURN gv, bm.ten_bo_mon AS bo_mon
         ORDER BY gv.ho_va_ten
     """)
     giang_vien_list = []
     for r in results:
         gv = dict(r["gv"])
-        gv["id"] = r["gv_internal_id"]
         gv["bo_mon"] = r["bo_mon"]
         giang_vien_list.append(gv)
     return jsonify({"status": "ok", "data": giang_vien_list})
 
 
-@api_bp.route("/giang-vien/<int:gv_id>")
+@api_bp.route("/giang-vien/<gv_id>")
 def get_giang_vien_detail(gv_id):
     """Lấy chi tiết giảng viên và các mối quan hệ."""
     conn = get_neo4j_connection()
 
     # Thông tin cơ bản
     gv = conn.query_single("""
-        MATCH (gv:GiangVien) WHERE id(gv) = $id
+        MATCH (gv:GiangVien) WHERE gv.id = $id
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv, id(gv) AS gv_internal_id, bm.ten_bo_mon AS bo_mon
+        RETURN gv, bm.ten_bo_mon AS bo_mon
     """, {"id": gv_id})
 
     if not gv:
@@ -50,35 +49,33 @@ def get_giang_vien_detail(gv_id):
     # Công trình nghiên cứu
     cong_trinh = conn.query("""
         MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-        WHERE id(gv) = $id
-        RETURN ct, id(ct) AS ct_id
+        WHERE gv.id = $id
+        RETURN ct
         ORDER BY ct.nam_xuat_ban DESC
     """, {"id": gv_id})
 
     # Đề tài nghiên cứu
     de_tai = conn.query("""
         MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-        WHERE id(gv) = $id
-        RETURN dt, id(dt) AS dt_id, type(r) AS vai_tro
+        WHERE gv.id = $id
+        RETURN dt, type(r) AS vai_tro
     """, {"id": gv_id})
 
     # Lĩnh vực nghiên cứu
     linh_vuc = conn.query("""
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        WHERE id(gv) = $id
-        RETURN lv.ten_linh_vuc AS ten_linh_vuc, id(lv) AS lv_id
+        WHERE gv.id = $id
+        RETURN lv.ten_linh_vuc AS ten_linh_vuc
     """, {"id": gv_id})
 
     result = dict(gv["gv"]) if gv and "gv" in gv else {}
     result["bo_mon"] = gv["bo_mon"] if gv and "bo_mon" in gv else None
-    result["id"] = gv["gv_internal_id"] if gv and "gv_internal_id" in gv else gv_id
 
     # Check if cong_trinh is actually returned a valid node
     result["cong_trinh"] = []
     for r in cong_trinh:
         if r.get("ct"):
             ct_item = dict(r["ct"])
-            ct_item["id"] = r["ct_id"]
             result["cong_trinh"].append(ct_item)
             
     # Check if de_tai is actually returned a valid node
@@ -86,7 +83,6 @@ def get_giang_vien_detail(gv_id):
     for r in de_tai:
         if r.get("dt"):
             dt_item = dict(r["dt"])
-            dt_item["id"] = r["dt_id"]
             result["de_tai"].append({"de_tai": dt_item, "vai_tro": r.get("vai_tro")})
 
     # Lĩnh vực nghiên cứu
@@ -106,33 +102,31 @@ def get_all_cong_trinh():
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-        RETURN ct, id(ct) AS ct_internal_id, collect(gv.ho_va_ten) AS tac_gia
+        RETURN ct, collect(gv.ho_va_ten) AS tac_gia
         ORDER BY ct.nam_xuat_ban DESC
     """)
     cong_trinh_list = []
     for r in results:
         ct = dict(r["ct"])
-        ct["id"] = r["ct_internal_id"]
         ct["tac_gia"] = r["tac_gia"]
         cong_trinh_list.append(ct)
     return jsonify({"status": "ok", "data": cong_trinh_list})
 
 
-@api_bp.route("/cong-trinh/<int:ct_id>")
+@api_bp.route("/cong-trinh/<ct_id>")
 def get_cong_trinh_detail(ct_id):
     """Lấy chi tiết công trình nghiên cứu."""
     conn = get_neo4j_connection()
     result = conn.query_single("""
-        MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id
+        MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-        RETURN ct, id(ct) AS ct_internal_id, collect(gv.ho_va_ten) AS tac_gia
+        RETURN ct, collect(gv.ho_va_ten) AS tac_gia
     """, {"id": ct_id})
     
     if not result or not result.get("ct"):
         return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
         
     data = dict(result["ct"])
-    data["id"] = result["ct_internal_id"]
     data["tac_gia"] = result["tac_gia"]
     return jsonify({"status": "ok", "data": data})
 
@@ -148,32 +142,30 @@ def get_all_de_tai():
     results = conn.query("""
         MATCH (dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-        RETURN dt, id(dt) AS dt_internal_id, collect(gv.ho_va_ten) AS chu_nhiem
+        RETURN dt, collect(gv.ho_va_ten) AS chu_nhiem
     """)
     de_tai_list = []
     for r in results:
         dt = dict(r["dt"])
-        dt["id"] = r["dt_internal_id"]
         dt["chu_nhiem"] = r["chu_nhiem"]
         de_tai_list.append(dt)
     return jsonify({"status": "ok", "data": de_tai_list})
 
 
-@api_bp.route("/de-tai/<int:dt_id>")
+@api_bp.route("/de-tai/<dt_id>")
 def get_de_tai_detail(dt_id):
     """Lấy chi tiết đề tài nghiên cứu."""
     conn = get_neo4j_connection()
     result = conn.query_single("""
-        MATCH (dt:DeTaiNghienCuu) WHERE id(dt) = $id
+        MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
         OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
-        RETURN dt, id(dt) AS dt_internal_id, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS thanh_vien
+        RETURN dt, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS thanh_vien
     """, {"id": dt_id})
     
     if not result or not result.get("dt"):
         return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
         
     data = dict(result["dt"])
-    data["id"] = result["dt_internal_id"]
     data["thanh_vien"] = result["thanh_vien"]
     return jsonify({"status": "ok", "data": data})
 
@@ -192,13 +184,12 @@ def get_all_linh_vuc():
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (lv:LinhVucNghienCuu)
-        RETURN lv, id(lv) AS lv_internal_id
+        RETURN lv
         ORDER BY lv.ten_linh_vuc
     """)
     linh_vuc_list = []
     for r in results:
         lv = dict(r["lv"])
-        lv["id"] = r["lv_internal_id"]
         linh_vuc_list.append(lv)
     return jsonify({"status": "ok", "data": linh_vuc_list})
 
@@ -238,7 +229,7 @@ def search():
                OR toLower(coalesce(n.email, '')) CONTAINS toLower($q)
                OR toLower(coalesce(n.hoc_vi, '')) CONTAINS toLower($q)
                OR toLower(coalesce(n.chuc_danh, '')) CONTAINS toLower($q))
-            RETURN id(n) AS node_id, n, labels(n) AS labels
+            RETURN n, labels(n) AS labels
             LIMIT 30
         """
         
@@ -247,7 +238,6 @@ def search():
         data = []
         for r in results:
             item = dict(r["n"])
-            item["id"] = r["node_id"]
             item["_labels"] = r["labels"]
             data.append(item)
         return jsonify({"status": "ok", "data": data, "query": q, "type": search_type})

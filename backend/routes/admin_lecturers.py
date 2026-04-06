@@ -23,14 +23,15 @@ def create_giang_vien():
                 chuyen_mon: $chuyen_mon,
                 anh_dai_dien: $anh_dai_dien
             })
-            RETURN id(gv) AS id
+            SET gv.id = 'gv_' + toString(id(gv))
+            RETURN gv.id AS id
         """, data)
         gv_id = result[0]["id"] if result else None
 
         # Thiết lập quan hệ Bộ môn (nếu có)
         if data.get("bo_mon"):
             conn.write("""
-                MATCH (gv:GiangVien) WHERE id(gv) = $gv_id
+                MATCH (gv:GiangVien) WHERE gv.id = $gv_id
                 MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
                 MERGE (gv)-[:THUOC_BO_MON]->(bm)
             """, {"gv_id": gv_id, "bo_mon": data.get("bo_mon")})
@@ -39,8 +40,8 @@ def create_giang_vien():
         if data.get("linh_vuc_ids"):
             for lv_id in data["linh_vuc_ids"]:
                 conn.write("""
-                    MATCH (gv:GiangVien) WHERE id(gv) = $gv_id
-                    MATCH (lv:LinhVucNghienCuu) WHERE id(lv) = $lv_id
+                    MATCH (gv:GiangVien) WHERE gv.id = $gv_id
+                    MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $lv_id
                     MERGE (gv)-[:NGHIEN_CUU]->(lv)
                 """, {"gv_id": gv_id, "lv_id": lv_id})
 
@@ -48,13 +49,13 @@ def create_giang_vien():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_lecturers_bp.route("/giang-vien/<int:id>", methods=["PUT"])
+@admin_lecturers_bp.route("/giang-vien/<id>", methods=["PUT"])
 def update_giang_vien(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
         conn.write("""
-            MATCH (gv:GiangVien) WHERE id(gv) = $id
+            MATCH (gv:GiangVien) WHERE gv.id = $id
             SET gv.ho_va_ten = $ho_va_ten,
                 gv.hoc_vi = $hoc_vi,
                 gv.chuc_danh = $chuc_danh,
@@ -68,14 +69,14 @@ def update_giang_vien(id):
             # Xóa quan hệ bộ môn cũ
             conn.write("""
                 MATCH (gv:GiangVien)-[r:THUOC_BO_MON]->(:BoMon)
-                WHERE id(gv) = $id
+                WHERE gv.id = $id
                 DELETE r
             """, {"id": id})
 
             # Tạo quan hệ bộ môn mới (nếu có dữ liệu)
             if data["bo_mon"]:
                 conn.write("""
-                    MATCH (gv:GiangVien) WHERE id(gv) = $id
+                    MATCH (gv:GiangVien) WHERE gv.id = $id
                     MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
                     MERGE (gv)-[:THUOC_BO_MON]->(bm)
                 """, {"id": id, "bo_mon": data.get("bo_mon")})
@@ -85,15 +86,15 @@ def update_giang_vien(id):
             # Xóa quan hệ lĩnh vực cũ
             conn.write("""
                 MATCH (gv:GiangVien)-[r:NGHIEN_CUU]->(:LinhVucNghienCuu)
-                WHERE id(gv) = $id
+                WHERE gv.id = $id
                 DELETE r
             """, {"id": id})
 
             # Tạo quan hệ lĩnh vực mới
             for lv_id in data["linh_vuc_ids"]:
                 conn.write("""
-                    MATCH (gv:GiangVien) WHERE id(gv) = $id
-                    MATCH (lv:LinhVucNghienCuu) WHERE id(lv) = $lv_id
+                    MATCH (gv:GiangVien) WHERE gv.id = $id
+                    MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $lv_id
                     MERGE (gv)-[:NGHIEN_CUU]->(lv)
                 """, {"id": id, "lv_id": lv_id})
 
@@ -101,12 +102,12 @@ def update_giang_vien(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_lecturers_bp.route("/giang-vien/<int:id>", methods=["DELETE"])
+@admin_lecturers_bp.route("/giang-vien/<id>", methods=["DELETE"])
 def delete_giang_vien(id):
     conn = get_neo4j_connection()
     try:
         conn.write("""
-            MATCH (gv:GiangVien) WHERE id(gv) = $id
+            MATCH (gv:GiangVien) WHERE gv.id = $id
             DETACH DELETE gv
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Xóa thành công"})

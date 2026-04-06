@@ -14,15 +14,15 @@ def get_me():
     try:
         conn = get_neo4j_connection()
         query = """
-        MATCH (g:GiangVien) WHERE (g.id IS NOT NULL AND toString(g.id) = toString($id)) OR (g.id IS NULL AND toString(id(g)) = toString($id))
+        MATCH (g:GiangVien) WHERE g.id = $id
         OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         OPTIONAL MATCH (g)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (g)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         RETURN 
-            g {.*, id: coalesce(g.id, id(g))} as info,
+            g {.*} as info,
             collect(DISTINCT lv.ten_linh_vuc) as linh_vuc,
-            collect(DISTINCT ct {.*, id: coalesce(ct.id, id(ct))}) as cong_trinh,
-            collect(DISTINCT dt {.*, id: coalesce(dt.id, id(dt)), vai_tro: type(r)}) as de_tai
+            collect(DISTINCT ct {.*}) as cong_trinh,
+            collect(DISTINCT dt {.*, vai_tro: type(r)}) as de_tai
         """
         result = conn.query_single(query, parameters={'id': gv_id})
         
@@ -51,8 +51,8 @@ def get_my_publications():
         conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-        WHERE (g.id IS NOT NULL AND toString(g.id) = toString($id)) OR (g.id IS NULL AND toString(id(g)) = toString($id))
-        RETURN ct {.*, id: coalesce(ct.id, id(ct))} as cong_trinh
+        WHERE g.id = $id
+        RETURN ct {.*} as cong_trinh
         ORDER BY ct.nam_xuat_ban DESC
         """
         results = conn.query(query, parameters={'id': gv_id})
@@ -71,26 +71,18 @@ def add_my_publication():
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
         thanh_vien_ids = []
-    
-    # thanh_vien_ids từ checkbox là Neo4j internal IDs nên cần parse sang chuỗi số nguyên
-    thanh_vien_internal_ids = []
-    for x in thanh_vien_ids:
-        try:
-            thanh_vien_internal_ids.append(int(x))
-        except (ValueError, TypeError):
-            pass
         
     try:
         conn = get_neo4j_connection()
         query = """
-        // 1. Tìm người tạo dựa trên gv_id (chuỗi định danh chuẩn)
+        // 1. Tìm người tạo dựa trên gv_id
         MATCH (creator:GiangVien) 
-        WHERE (creator.id IS NOT NULL AND toString(creator.id) = toString($gv_id)) OR (creator.id IS NULL AND toString(id(creator)) = toString($gv_id))
+        WHERE creator.id = $gv_id
         WITH creator
         
-        // 2. Tìm các thành viên đi kèm theo Internal ID
+        // 2. Tìm các thành viên đi kèm theo standardized ID
         OPTIONAL MATCH (member:GiangVien)
-        WHERE id(member) IN $thanh_vien_ids
+        WHERE member.id IN $thanh_vien_ids
         WITH creator, collect(member) AS members
         
         CREATE (ct:CongTrinhNghienCuu {
@@ -103,20 +95,20 @@ def add_my_publication():
             nguoi_tao: creator.ho_va_ten
         })
         WITH creator, members, ct
-        SET ct.id = toString(id(ct))
+        SET ct.id = 'ct_' + toString(id(ct))
         
         CREATE (creator)-[:LA_TAC_GIA_CUA]->(ct)
         
         FOREACH (m IN members |
-            FOREACH (_ IN CASE WHEN id(m) <> id(creator) THEN [1] ELSE [] END |
+            FOREACH (_ IN CASE WHEN m.id <> creator.id THEN [1] ELSE [] END |
                 CREATE (m)-[:LA_TAC_GIA_CUA]->(ct)
             )
         )
-        RETURN ct {.*, id: id(ct)} as new_ct
+        RETURN ct {.*} as new_ct
         """
         result = conn.write(query, parameters={
             'gv_id': gv_id,
-            'thanh_vien_ids': thanh_vien_internal_ids,
+            'thanh_vien_ids': thanh_vien_ids,
             'ten_ct': data.get('ten_cong_trinh', ''),
             'nam_xb': data.get('nam_xuat_ban'),
             'loai': data.get('loai_an_pham', ''),
@@ -127,7 +119,7 @@ def add_my_publication():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@lecturer_api_bp.route('/cong-trinh/<int:ct_id>', methods=['PUT', 'DELETE'])
+@lecturer_api_bp.route('/cong-trinh/<ct_id>', methods=['PUT', 'DELETE'])
 def update_my_publication(ct_id):
     # Kiểm tra xem GV hiện tại có phải là tác giả công trình đó ko, tránh edit bậy
     gv_id = request.args.get('gv_id') or (request.get_json() or {}).get('giang_vien_id')
@@ -136,7 +128,7 @@ def update_my_publication(ct_id):
         
     conn = get_neo4j_connection()
     check_query = """MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) 
-                     WHERE ((g.id IS NOT NULL AND toString(g.id) = toString($gv_id)) OR (g.id IS NULL AND toString(id(g)) = toString($gv_id))) AND ((ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id)))
+                     WHERE g.id = $gv_id AND ct.id = $ct_id
                      RETURN ct"""
     allow = conn.query(check_query, parameters={'gv_id': gv_id, 'ct_id': ct_id})
     if not allow:
@@ -145,7 +137,7 @@ def update_my_publication(ct_id):
     try:
         if request.method == 'DELETE':
             query = """
-            MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
+            MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id
             DETACH DELETE ct
             """
             conn.write(query, parameters={'ct_id': ct_id})

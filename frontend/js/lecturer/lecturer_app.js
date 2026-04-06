@@ -161,8 +161,8 @@ async function loadPublications() {
                     <td>${ct.nam_xuat_ban || ''}</td>
                     <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${ct.trang_thai || 'Đã duyệt'}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('cong-trinh', ${ct.id})"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/công trình" onclick="deleteLecturerEntity('cong-trinh', ${ct.id})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('cong-trinh', '${ct.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/công trình" onclick="deleteLecturerEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -191,8 +191,8 @@ async function loadProjects() {
                     <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
                     <td>${dt.cap_de_tai || 'N/A'}</td>
                     <td>
-                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('de-tai', ${dt.id})"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/đề tài" onclick="deleteLecturerEntity('de-tai', ${dt.id})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('de-tai', '${dt.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/đề tài" onclick="deleteLecturerEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');

@@ -20,19 +20,20 @@ def create_cong_trinh():
                 tom_tat: $tom_tat,
                 link: $link
             })
-            RETURN id(ct) AS id
+            SET ct.id = 'ct_' + toString(id(ct))
+            RETURN ct.id AS id
         """, data)
         return jsonify({"status": "ok", "message": "Thêm công trình thành công", "id": result[0]["id"]})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_publications_bp.route("/cong-trinh/<int:id>", methods=["PUT"])
+@admin_publications_bp.route("/cong-trinh/<id>", methods=["PUT"])
 def update_cong_trinh(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
         conn.write("""
-            MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id
+            MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.ten_cong_trinh = $ten_cong_trinh,
                 ct.nam_xuat_ban = $nam_xuat_ban,
                 ct.loai_an_pham = $loai_an_pham,
@@ -43,23 +44,23 @@ def update_cong_trinh(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_publications_bp.route("/cong-trinh/<int:id>/approve", methods=["PUT"])
+@admin_publications_bp.route("/cong-trinh/<id>/approve", methods=["PUT"])
 def approve_cong_trinh(id):
     conn = get_neo4j_connection()
     try:
         conn.write("""
-            MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id
+            MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.trang_thai = 'Đang làm'
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Duyệt công trình thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_publications_bp.route("/cong-trinh/<int:id>", methods=["DELETE"])
+@admin_publications_bp.route("/cong-trinh/<id>", methods=["DELETE"])
 def delete_cong_trinh(id):
     conn = get_neo4j_connection()
     try:
-        conn.write("MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id DETACH DELETE ct", {"id": id})
+        conn.write("MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id DETACH DELETE ct", {"id": id})
         return jsonify({"status": "ok", "message": "Xóa thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

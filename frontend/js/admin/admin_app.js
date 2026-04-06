@@ -125,9 +125,9 @@ function renderLecturersTable(dataList) {
             <td>${gv.hoc_vi || ''}</td>
             <td>${gv.bo_mon || ''}</td>
             <td>
-                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewLecturerStats(${gv.id})"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('giang-vien', ${gv.id}, null)"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('giang-vien', ${gv.id})"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewLecturerStats('${gv.id}')"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('giang-vien', '${gv.id}', null)"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('giang-vien', '${gv.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
@@ -181,11 +181,11 @@ function renderPublicationsTable(dataList) {
             <td>${ct.nam_xuat_ban || ''}</td>
             <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${ct.trang_thai || 'Đã duyệt'}</span></td>
             <td>
-                ${ct.trang_thai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication(${ct.id})"><i class="fas fa-check"></i></button>` : ''}
-                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats(${ct.id})"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', ${ct.id}, ${originalIndex})"><i class="fas fa-edit"></i></button>
-                ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', ${ct.id}, \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
-                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', ${ct.id})"><i class="fas fa-trash"></i></button>
+                ${ct.trang_thai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication('${ct.id}')"><i class="fas fa-check"></i></button>` : ''}
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats('${ct.id}')"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', '${ct.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
+                ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', '${ct.id}', \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `}).join('');
@@ -256,10 +256,10 @@ function renderProjectsTable(dataList) {
             <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
             <td>${dt.cap_de_tai || ''}</td>
             <td>
-                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats(${dt.id})"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', ${dt.id}, ${originalIndex})"><i class="fas fa-edit"></i></button>
-                ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', ${dt.id}, \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
-                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', ${dt.id})"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
+                ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}', \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
     `}).join('');
@@ -292,8 +292,8 @@ async function loadResearchFields() {
                     <td>${lv.id || i+1}</td>
                     <td><strong>${lv.ten_linh_vuc || 'N/A'}</strong></td>
                     <td>
-                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('linh-vuc', ${lv.id || i+1}, ${i})"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('linh-vuc', ${lv.id || i+1})"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('linh-vuc', '${lv.id}', ${i})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('linh-vuc', '${lv.id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -569,7 +569,7 @@ async function saveRelations(e) {
     try {
         if (type === 'cong-trinh') {
             const checkedBoxes = document.querySelectorAll('input[name="gv_tac_gia"]:checked');
-            const gv_ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+            const gv_ids = Array.from(checkedBoxes).map(cb => cb.value);
             
             const res = await fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/giang-vien`, {
                 method: 'PUT',
@@ -585,8 +585,8 @@ async function saveRelations(e) {
             const cnBoxes = document.querySelectorAll('input[name="gv_chu_nhiem"]:checked');
             const tgBoxes = document.querySelectorAll('input[name="gv_tham_gia"]:checked');
             
-            const chuNhiemIds = Array.from(cnBoxes).map(cb => parseInt(cb.value));
-            const thamGiaIds = Array.from(tgBoxes).map(cb => parseInt(cb.value));
+            const chuNhiemIds = Array.from(cnBoxes).map(cb => cb.value);
+            const thamGiaIds = Array.from(tgBoxes).map(cb => cb.value);
             
             const res = await fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/giang-vien`, {
                 method: 'PUT',

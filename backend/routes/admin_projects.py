@@ -21,19 +21,20 @@ def create_de_tai():
                 tom_tat: $tom_tat,
                 link: $link
             })
-            RETURN id(dt) AS id
+            SET dt.id = 'dt_' + toString(id(dt))
+            RETURN dt.id AS id
         """, data)
         return jsonify({"status": "ok", "message": "Thêm đề tài thành công", "id": result[0]["id"]})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_projects_bp.route("/de-tai/<int:id>", methods=["PUT"])
+@admin_projects_bp.route("/de-tai/<id>", methods=["PUT"])
 def update_de_tai(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
         conn.write("""
-            MATCH (dt:DeTaiNghienCuu) WHERE id(dt) = $id
+            MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
             SET dt.ten_de_tai = $ten_de_tai,
                 dt.cap_de_tai = $cap_de_tai,
                 dt.nam_bat_dau = $nam_bat_dau,
@@ -45,11 +46,11 @@ def update_de_tai(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@admin_projects_bp.route("/de-tai/<int:id>", methods=["DELETE"])
+@admin_projects_bp.route("/de-tai/<id>", methods=["DELETE"])
 def delete_de_tai(id):
     conn = get_neo4j_connection()
     try:
-        conn.write("MATCH (dt:DeTaiNghienCuu) WHERE id(dt) = $id DETACH DELETE dt", {"id": id})
+        conn.write("MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id DETACH DELETE dt", {"id": id})
         return jsonify({"status": "ok", "message": "Xóa thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
