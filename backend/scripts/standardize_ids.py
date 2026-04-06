@@ -17,7 +17,9 @@ def migrate():
             "GiangVien": "gv",
             "CongTrinhNghienCuu": "ct",
             "DeTaiNghienCuu": "dt",
-            "LinhVucNghienCuu": "lv"
+            "LinhVucNghienCuu": "lv",
+            "BoMon": "bm",
+            "Khoa": "kh"
         }
 
         total_updated = 0

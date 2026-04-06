@@ -266,13 +266,15 @@ def get_full_graph():
     # Lấy tất cả nodes
     nodes_result = conn.query("""
         MATCH (n)
-        RETURN id(n) AS id, labels(n) AS labels, properties(n) AS props
+        WHERE n.id IS NOT NULL
+        RETURN n.id AS id, labels(n) AS labels, properties(n) AS props
     """)
 
     # Lấy tất cả relationships
     edges_result = conn.query("""
         MATCH (a)-[r]->(b)
-        RETURN id(a) AS source, id(b) AS target, type(r) AS type,
+        WHERE a.id IS NOT NULL AND b.id IS NOT NULL
+        RETURN a.id AS source, b.id AS target, type(r) AS type,
                properties(r) AS props
     """)
 
@@ -306,7 +308,7 @@ def get_full_graph():
         )
 
         nodes.append({
-            "id": n["id"],
+            "id": n["id"],  # Standardized string ID (gv_5, ct_10...)
             "label": display_label,
             "group": label,
             "color": config["color"],
@@ -344,7 +346,7 @@ def get_node_graph(node_id):
         WITH center
         MATCH (center)-[r]-(neighbor)
         RETURN center, r, neighbor,
-               id(center) AS center_id, id(neighbor) AS neighbor_id,
+               center.id AS center_id, neighbor.id AS neighbor_id,
                labels(center) AS center_labels, labels(neighbor) AS neighbor_labels,
                type(r) AS rel_type
     """, {"node_id": node_id})
