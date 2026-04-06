@@ -5,6 +5,7 @@
 const API_LECTURER_BASE = '/api/lecturer';
 let userInfo = null;
 let currentEntitiesData = {};
+let allLecturers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     // Check Auth
@@ -42,7 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
+    
+    // Load all lecturers for select fields
+    loadAllLecturers();
 });
+
+async function loadAllLecturers() {
+    try {
+        const res = await fetch('/api/giang-vien');
+        const data = await res.json();
+        if (data.status === 'ok') {
+            allLecturers = data.data;
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
 
 function logoutUser() {
     localStorage.removeItem('userRole');
@@ -99,7 +115,8 @@ const ENTITY_CONFIG = {
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
             { name: 'loai_an_pham', label: 'Loại ấn phẩm', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
-            { name: 'link', label: 'Link bài viết', type: 'url' }
+            { name: 'link', label: 'Link bài viết', type: 'url' },
+            { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' }
         ]
     },
     'de-tai': {
@@ -142,6 +159,7 @@ async function loadPublications() {
                     <td>${ct.id}</td>
                     <td><strong>${ct.ten_cong_trinh}</strong></td>
                     <td>${ct.nam_xuat_ban || ''}</td>
+                    <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${ct.trang_thai || 'Đã duyệt'}</span></td>
                     <td>
                         <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('cong-trinh', ${ct.id})"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/công trình" onclick="deleteLecturerEntity('cong-trinh', ${ct.id})"><i class="fas fa-trash"></i></button>
@@ -204,6 +222,16 @@ function openLecturerModal(type, id = null) {
         } else if (f.type === 'select') {
             const optionsHtml = f.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('');
             inputHtml = `<select id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>${optionsHtml}</select>`;
+        } else if (f.type === 'lecturers-select') {
+            if (id) {
+                inputHtml = `<div style="color:var(--text-muted); font-size: 13px; font-style: italic;">Tính năng sửa thành viên hiện chưa hỗ trợ. Vui lòng liên hệ Admin.</div>`;
+            } else {
+                const optionsHtml = allLecturers
+                    .filter(gv => gv.id != userInfo.id)
+                    .map(gv => `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" name="${f.name}" value="${gv.id}"> ${gv.ho_va_ten} ${gv.bo_mon ? '('+gv.bo_mon+')' : ''}</label></div>`)
+                    .join('');
+                inputHtml = `<div id="field_${f.name}" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white;">${optionsHtml}</div>`;
+            }
         } else {
             inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>`;
         }
@@ -249,11 +277,18 @@ async function handleFormSubmit(e) {
     };
     
     config.fields.forEach(f => {
-        const val = document.getElementById(`field_${f.name}`).value;
-        if (f.type === 'number') {
-            formData[f.name] = val ? parseInt(val, 10) : null;
+        if (f.type === 'lecturers-select') {
+            if (!id) {
+                const checkboxes = document.querySelectorAll(`input[name="${f.name}"]:checked`);
+                formData[f.name] = Array.from(checkboxes).map(cb => cb.value);
+            }
         } else {
-            formData[f.name] = val;
+            const val = document.getElementById(`field_${f.name}`).value;
+            if (f.type === 'number') {
+                formData[f.name] = val ? parseInt(val, 10) : null;
+            } else {
+                formData[f.name] = val;
+            }
         }
     });
 

@@ -179,7 +179,9 @@ function renderPublicationsTable(dataList) {
             <td>${ct.id || 'N/A'}</td>
             <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
             <td>${ct.nam_xuat_ban || ''}</td>
+            <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${ct.trang_thai || 'Đã duyệt'}</span></td>
             <td>
+                ${ct.trang_thai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication(${ct.id})"><i class="fas fa-check"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats(${ct.id})"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', ${ct.id}, ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', ${ct.id}, \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
@@ -203,6 +205,24 @@ function filterPublications() {
     });
     
     renderPublicationsTable(filtered);
+}
+
+async function approvePublication(id) {
+    if (!confirm('Bạn có chắc muốn duyệt công trình này thành "Đang làm"?')) return;
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/cong-trinh/${id}/approve`, {
+            method: 'PUT'
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            loadPublications();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi duyệt công trình.');
+    }
 }
 
 async function loadProjects() {
@@ -696,6 +716,7 @@ async function viewPublicationStats(ctId) {
                 <div style="margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
                     <p style="margin-bottom: 8px; font-size: 16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
                     <p style="margin-bottom: 5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Người tạo:</b> ${ct.nguoi_tao || 'Hệ thống / Admin'}</p>
                     <p style="margin-bottom: 5px;"><b>Loại ấn phẩm:</b> ${ct.loai_an_pham || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
                     <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>

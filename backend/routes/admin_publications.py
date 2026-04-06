@@ -43,6 +43,18 @@ def update_cong_trinh(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@admin_publications_bp.route("/cong-trinh/<int:id>/approve", methods=["PUT"])
+def approve_cong_trinh(id):
+    conn = get_neo4j_connection()
+    try:
+        conn.write("""
+            MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id
+            SET ct.trang_thai = 'Đang làm'
+        """, {"id": id})
+        return jsonify({"status": "ok", "message": "Duyệt công trình thành công"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @admin_publications_bp.route("/cong-trinh/<int:id>", methods=["DELETE"])
 def delete_cong_trinh(id):
     conn = get_neo4j_connection()

@@ -68,26 +68,55 @@ def add_my_publication():
     if not gv_id:
         return jsonify({'status': 'error', 'message': 'Thiếu giang_vien_id'}), 400
         
+    thanh_vien_ids = data.get('thanh_vien_ids', [])
+    if not isinstance(thanh_vien_ids, list):
+        thanh_vien_ids = []
+    
+    # thanh_vien_ids từ checkbox là Neo4j internal IDs nên cần parse sang chuỗi số nguyên
+    thanh_vien_internal_ids = []
+    for x in thanh_vien_ids:
+        try:
+            thanh_vien_internal_ids.append(int(x))
+        except (ValueError, TypeError):
+            pass
+        
     try:
         conn = get_neo4j_connection()
-        # Tạo công trình và tự động link
         query = """
-        MATCH (g:GiangVien) WHERE (g.id IS NOT NULL AND toString(g.id) = toString($gv_id)) OR (g.id IS NULL AND toString(id(g)) = toString($gv_id))
+        // 1. Tìm người tạo dựa trên gv_id (chuỗi định danh chuẩn)
+        MATCH (creator:GiangVien) 
+        WHERE (creator.id IS NOT NULL AND toString(creator.id) = toString($gv_id)) OR (creator.id IS NULL AND toString(id(creator)) = toString($gv_id))
+        WITH creator
+        
+        // 2. Tìm các thành viên đi kèm theo Internal ID
+        OPTIONAL MATCH (member:GiangVien)
+        WHERE id(member) IN $thanh_vien_ids
+        WITH creator, collect(member) AS members
+        
         CREATE (ct:CongTrinhNghienCuu {
             ten_cong_trinh: $ten_ct,
             nam_xuat_ban: toInteger($nam_xb),
             loai_an_pham: $loai,
             tom_tat: $tom_tat,
-            link: $link
+            link: $link,
+            trang_thai: 'Chờ duyệt',
+            nguoi_tao: creator.ho_va_ten
         })
-        WITH g, ct
-        // Fix ID tu sinh nếu hệ thống cần
+        WITH creator, members, ct
         SET ct.id = toString(id(ct))
-        CREATE (g)-[:LA_TAC_GIA_CUA]->(ct)
+        
+        CREATE (creator)-[:LA_TAC_GIA_CUA]->(ct)
+        
+        FOREACH (m IN members |
+            FOREACH (_ IN CASE WHEN id(m) <> id(creator) THEN [1] ELSE [] END |
+                CREATE (m)-[:LA_TAC_GIA_CUA]->(ct)
+            )
+        )
         RETURN ct {.*, id: id(ct)} as new_ct
         """
         result = conn.write(query, parameters={
             'gv_id': gv_id,
+            'thanh_vien_ids': thanh_vien_internal_ids,
             'ten_ct': data.get('ten_cong_trinh', ''),
             'nam_xb': data.get('nam_xuat_ban'),
             'loai': data.get('loai_an_pham', ''),
