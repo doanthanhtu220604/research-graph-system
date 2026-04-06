@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề tài của tôi - Knowledge Map</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span class="logo-text">Giảng viên</span>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Tài khoản của tôi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="publications.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Công trình của tôi</span>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="projects.html" class="nav-link">
+                    <i class="fas fa-flask"></i>
+                    <span>Đề tài của tôi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Về trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" onclick="logoutUser()" class="nav-link" style="color: var(--accent-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <header class="top-header">
+            <h1 class="page-title">Đề tài của tôi</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openLecturerModal('de-tai')">
+                    <i class="fas fa-plus"></i> Thêm mới
+                </button>
+            </div>
+        </header>
+
+        <section class="page active" id="page-lecturer-projects">
+            <div class="card">
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên đề tài</th>
+                                    <th>Vai trò</th>
+                                    <th>Cấp / Năm</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lecturerProjectsBody">
+                                <tr><td colspan="5" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal thêm/sửa -->
+    <div class="modal-overlay" id="lecturerModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="lecturerModalTitle">Thêm mới Đề tài</h2>
+                <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeLecturerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="lecturerForm">
+                    <input type="hidden" id="formEntityType">
+                    <input type="hidden" id="formEntityId">
+                    
+                    <div id="formFieldsContainer"></div>
+                    
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn" onclick="closeLecturerModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary" style="background: var(--accent-blue);">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chi tiết -->
+    <div class="modal-overlay" id="lecturerStatsModalOverlay">
+        <div class="modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <h2 id="lecturerStatsModalTitle">Thông tin Chi tiết</h2>
+                <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeStatsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+                <div id="statsFormBody" style="min-height: 100px; padding: 10px 0; color: var(--text-primary);"></div>
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top:15px;">
+                    <button type="button" class="btn" onclick="closeStatsModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/lecturer/lecturer_app.js"></script>
+</body>
+</html>

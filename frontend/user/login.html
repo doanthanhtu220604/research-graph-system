@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Knowledge Map</title>
+    
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            background-color: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle at 10% 20%, rgba(52, 152, 219, 0.05) 0%, transparent 20%),
+                              radial-gradient(circle at 90% 80%, rgba(46, 204, 113, 0.05) 0%, transparent 20%);
+        }
+        
+        .login-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow-md);
+            animation: slideUpFade 0.5s ease;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header i {
+            font-size: 48px;
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--accent-blue), #2980b9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-login:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-blue);
+        }
+
+        .error-message {
+            color: var(--accent-red);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 15px;
+            min-height: 20px;
+            display: none;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-header">
+            <i class="fas fa-network-wired"></i>
+            <h1>Đăng nhập hệ thống</h1>
+            <p>Bản đồ tri thức Khoa CNTT</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Tài khoản / Email</label>
+                <input type="text" id="username" placeholder="Nhập tài khoản admin hoặc email giảng viên" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" placeholder="Nhập mật khẩu" required>
+            </div>
+
+            <button type="submit" class="btn-login" id="submitBtn">
+                <span>Đăng nhập</span>
+                <i class="fas fa-sign-in-alt"></i>
+            </button>
+        </form>
+
+        <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const usernameInput = document.getElementById('username').value.trim();
+            const passwordInput = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+            const btn = document.getElementById('submitBtn');
+            
+            if (!usernameInput || !passwordInput) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: usernameInput,
+                        password: passwordInput
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    // Lưu thông tin vào localStorage thay vì cookie (cho đơn giản)
+                    localStorage.setItem('userRole', data.data.role);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+
+                    // Redirect
+                    if (data.data.role === 'admin') {
+                        window.location.href = '/admin/index.html';
+                    } else if (data.data.role === 'lecturer') {
+                        window.location.href = '/lecturer/index.html';
+                    }
+                } else {
+                    errorDiv.textContent = data.message || 'Đăng nhập thất bại!';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Lỗi kết nối máy chủ!';
+                errorDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Đăng nhập</span><i class="fas fa-sign-in-alt"></i>';
+            }
+        });
+    </script>
+</body>
+</html>

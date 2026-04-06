@@ -36,21 +36,32 @@ document.addEventListener("DOMContentLoaded", function() {
     // Replace placeholders with real HTML components
     loadComponent('header-placeholder', 'components/header.html', () => {
         setActiveMenu();
+        const role = localStorage.getItem('userRole');
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
         const authContainer = document.getElementById('authContainer');
-        if (authContainer && localStorage.getItem('isAdmin') === 'true') {
+
+        if (authContainer && role) {
+            let dashboardUrl = '/admin/index.html';
+            if (role === 'lecturer') dashboardUrl = '/lecturer/index.html';
+            
             authContainer.innerHTML = `
-                <a href="../admin/index.html" class="btn btn-view" style="margin-right:8px; border-radius: var(--radius-sm); font-weight: 600;">
-                    <i class="fas fa-tools"></i> Trang quản trị
-                </a>
-                <a href="#" class="btn btn-view" onclick="logout()" style="border-radius: var(--radius-sm); border-color: var(--accent-red); color: var(--accent-red); font-weight: 600;" title="Đăng xuất">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="font-size: 14px; font-weight: 500; white-space: nowrap;">Xin chào, ${userInfo.name || role}</span>
+                    <a href="${dashboardUrl}" class="btn btn-sm btn-primary" style="background-color: var(--accent-blue); padding: 5px 10px; line-height: 1.5; white-space: nowrap;">
+                        <i class="fas fa-tachometer-alt"></i> Quản lý
+                    </a>
+                    <button onclick="logout()" class="btn btn-sm" style="color: var(--accent-red); border: 1px solid var(--accent-red); padding: 5px 10px; background: transparent; line-height: 1.5;" title="Đăng xuất">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
             `;
         }
     });
     
     window.logout = function() {
-        localStorage.removeItem('isAdmin');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('isAdmin'); // For backward compatibility if any
         window.location.reload();
     };
 

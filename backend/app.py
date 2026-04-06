@@ -21,6 +21,8 @@ from backend.routes.admin_publications import admin_publications_bp
 from backend.routes.admin_projects import admin_projects_bp
 from backend.routes.admin_relations import admin_relations_bp
 from backend.routes.admin_research_fields import admin_research_fields_bp
+from backend.routes.auth import auth_bp
+from backend.routes.lecturer_api import lecturer_api_bp
 
 
 def create_app():
@@ -38,6 +40,8 @@ def create_app():
     app.register_blueprint(admin_projects_bp, url_prefix='/api/admin')
     app.register_blueprint(admin_relations_bp)
     app.register_blueprint(admin_research_fields_bp, url_prefix='/api/admin')
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(lecturer_api_bp, url_prefix='/api/lecturer')
 
 
     # ============================
@@ -52,8 +56,9 @@ def create_app():
     @app.route("/<path:filename>")
     def serve_static(filename):
         # Nếu url yêu cầu file HTML (như explore.html) thì ngầm định nó nằm trong `user` nếu ko có prefix nào
-        if filename.endswith('.html') and not filename.startswith('user/') and not filename.startswith('admin/') and not filename.startswith('components/'):
+        if filename.endswith('.html') and not filename.startswith('user/') and not filename.startswith('admin/') and not filename.startswith('lecturer/') and not filename.startswith('components/'):
             return send_from_directory(frontend_dir, f"user/{filename}")
+
         
         # Đường dẫn components (vd components/header.html)
         if filename.startswith('components/'):
