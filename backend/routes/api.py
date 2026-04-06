@@ -333,14 +333,16 @@ def get_full_graph():
     })
 
 
-@api_bp.route("/graph/node/<int:node_id>")
+@api_bp.route("/graph/node/<node_id>")
 def get_node_graph(node_id):
     """Lấy đồ thị xung quanh 1 node cụ thể (depth=1)."""
     conn = get_neo4j_connection()
 
     results = conn.query("""
+        MATCH (center)
+        WHERE center.id = $node_id
+        WITH center
         MATCH (center)-[r]-(neighbor)
-        WHERE id(center) = $node_id
         RETURN center, r, neighbor,
                id(center) AS center_id, id(neighbor) AS neighbor_id,
                labels(center) AS center_labels, labels(neighbor) AS neighbor_labels,

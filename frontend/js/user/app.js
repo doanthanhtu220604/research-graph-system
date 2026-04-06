@@ -125,7 +125,7 @@ async function initSimpleLecturerGrid() {
             
             // Chỉ hiển thị ảnh ở trên và Tên ở dưới, bỏ chức vụ (theo yêu cầu bao đóng giống thiết kế)
             return `
-                <div class="simple-lecturer-card" onclick="showLecturerDetail(${Number(gv.id) || 0})" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+                <div class="simple-lecturer-card" onclick="showLecturerDetail('${gv.id}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
                     ${img}
                     <div style="font-size: 14px; font-weight: 700; color: #334155; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;" title="${name}">${name}</div>
                 </div>
@@ -160,7 +160,7 @@ async function initSimplePublicationGrid() {
             const icon = `<div class="no-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); color: white; font-size: 30px;"><i class="fas fa-file-alt"></i></div>`;
             
             return `
-                <div class="simple-lecturer-card" onclick="showPublicationDetail(${Number(item.id) || 0})" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+                <div class="simple-lecturer-card" onclick="showPublicationDetail('${item.id}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
                     ${icon}
                     <div style="font-size: 13px; font-weight: 700; color: #334155; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;" title="${title}">${title}</div>
                     <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${item.nam_xuat_ban || ''}</div>
@@ -196,7 +196,7 @@ async function initSimpleProjectGrid() {
             const icon = `<div class="no-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.08); color: white; font-size: 30px;"><i class="fas fa-flask"></i></div>`;
             
             return `
-                <div class="simple-lecturer-card" onclick="showProjectDetail(${Number(item.id) || 0})" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
+                <div class="simple-lecturer-card" onclick="showProjectDetail('${item.id}')" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px 15px; background: rgba(0,0,0,0.015); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;">
                     ${icon}
                     <div style="font-size: 13px; font-weight: 700; color: #334155; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%;" title="${title}">${title}</div>
                     <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${item.cap_de_tai || 'Đề tài'}</div>
@@ -232,7 +232,7 @@ function renderTopLecturers(lecturers, containerId) {
         const percent = Math.min(100, Math.max(5, Math.round((currentCount / maxCount) * 100)));
 
         return `
-            <div style="cursor: pointer; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseover="this.style.backgroundColor='rgba(59, 130, 246, 0.04)'; this.style.transform='translateX(4px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';" onclick="showLecturerDetail(${Number(gv.id) || 0})">
+            <div style="cursor: pointer; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseover="this.style.backgroundColor='rgba(59, 130, 246, 0.04)'; this.style.transform='translateX(4px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';" onclick="showLecturerDetail('${gv.id || 0}')">
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px; width: 100%;">
                     ${rankBadge}
                     
@@ -563,9 +563,9 @@ async function performSearch() {
                           || item.ten_bo_mon || item.ten_khoa || 'N/A';
 
                 let clickAction = '';
-                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail(${item.id})`;
-                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail(${item.id})`;
-                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail(${item.id})`;
+                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail('${item.id}')`;
+                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail('${item.id}')`;
+                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail('${item.id}')`;
 
                 return `
                     <div class="modal-list-item" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-color);"
@@ -661,9 +661,9 @@ async function performLiveSearch(query) {
                           || item.ten_bo_mon || item.ten_khoa || 'N/A';
 
                 let clickAction = '';
-                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail(${item.id})`;
-                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail(${item.id})`;
-                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail(${item.id})`;
+                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail('${item.id}')`;
+                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail('${item.id}')`;
+                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail('${item.id}')`;
 
                 return `
                     <div class="suggestion-item" onclick="${clickAction}; hideSuggestions();">
@@ -717,7 +717,7 @@ async function loadLecturers() {
                     <td>${gv.email || ''}</td>
                     <td>
                         ${gv.id ? `
-                        <button class="btn btn-view" onclick="showLecturerDetail(${gv.id})">
+                        <button class="btn btn-view" onclick="showLecturerDetail('${gv.id}')">
                             <i class="fas fa-eye"></i> Xem
                         </button>
                         ` : `
@@ -781,7 +781,7 @@ async function showLecturerDetail(gvId) {
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${gv.cong_trinh.length})</h3>
                         ${gv.cong_trinh.map(ct => `
-                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail(${ct.id})">
+                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail('${ct.id}')">
                                 <strong>${ct.ten_cong_trinh || 'N/A'}</strong>
                                 ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted); font-size: 12px;"> (${ct.nam_xuat_ban})</span>` : ''}
                             </div>
@@ -799,7 +799,7 @@ async function showLecturerDetail(gvId) {
                             const capDeTai = (dt.de_tai && dt.de_tai.cap_de_tai) ? dt.de_tai.cap_de_tai : 'Chưa xác định';
                             const dtId = dt.de_tai ? dt.de_tai.id : null;
                             return `
-                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-orange); cursor: pointer;" ${dtId ? `onclick="showProjectDetail(${dtId})"` : ''}>
+                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-orange); cursor: pointer;" ${dtId ? `onclick="showProjectDetail('${dtId}')"` : ''}>
                                     <strong>${tenDeTai}</strong>
                                     <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">
                                         Cấp đề tài: ${capDeTai} | Vai trò: <span style="color: var(--text-primary);">${dt.vai_tro || 'Thành viên'}</span>
@@ -982,7 +982,7 @@ async function loadPublications() {
                     <td>${ct.nam_xuat_ban || ''}</td>
                     <td>
                         ${ct.id ? `
-                        <button class="btn btn-view" onclick="showPublicationDetail(${ct.id})">
+                        <button class="btn btn-view" onclick="showPublicationDetail('${ct.id}')">
                             <i class="fas fa-eye"></i> Xem
                         </button>
                         ` : `
@@ -1018,7 +1018,7 @@ async function loadProjects() {
                     <td>${dt.cap_de_tai || ''}</td>
                     <td>
                         ${dt.id ? `
-                        <button class="btn btn-view" onclick="showProjectDetail(${dt.id})">
+                        <button class="btn btn-view" onclick="showProjectDetail('${dt.id}')">
                             <i class="fas fa-eye"></i> Xem
                         </button>
                         ` : `
