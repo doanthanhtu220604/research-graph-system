@@ -1,9 +1,17 @@
 """
-Chat API - Hỏi Đáp Nghiên cứu
+Chat API - Hỏi Đáp Nghiên cứu (v2)
 Xử lý câu hỏi bằng ngôn ngữ tự nhiên (tiếng Việt), phân tích intent
 và truy vấn Neo4j để trả về câu trả lời dạng text thân thiện.
+
+Cải tiến v2:
+- Thêm intents: bộ môn, cấp đề tài, tạp chí, top GV, chủ nhiệm, thông tin GV
+- Keyword matching đa dạng hơn với nhiều biến thể từ
+- extract_name() linh hoạt hơn, có fallback dựa vào cụm từ viết hoa
+- Smart fallback: tự tìm kiếm tổng quát trước khi báo không hiểu
+- Hợp tác qua cả công trình lẫn đề tài
 """
 
+import re
 from flask import Blueprint, jsonify, request
 from backend.services.neo4j_connection import get_neo4j_connection
 
@@ -11,112 +19,225 @@ chat_api_bp = Blueprint("chat_api", __name__)
 
 
 # ============================================================
-# INTENT DETECTION
+# INTENT DETECTION (v2 - mở rộng)
 # ============================================================
 
 def detect_intent(question: str) -> str:
     """
     Phân tích câu hỏi và trả về intent.
-    Sử dụng keyword-matching đơn giản trên tiếng Việt.
+    Sử dụng keyword-matching đa lớp trên tiếng Việt.
     """
     q = question.lower()
 
-    # Thống kê / đếm số lượng
+    # --- Thống kê / đếm số lượng ---
     if any(kw in q for kw in ["bao nhiêu", "tổng số", "thống kê", "tổng cộng", "đếm", "số lượng"]):
         return "statistics"
 
-    # Hợp tác / cùng nghiên cứu
-    if any(kw in q for kw in ["hợp tác", "cùng nghiên cứu", "cộng tác", "cùng tác giả"]):
+    # --- Hợp tác / cùng nghiên cứu ---
+    if any(kw in q for kw in ["hợp tác", "cùng nghiên cứu", "cộng tác", "cùng tác giả", "cùng làm việc", "làm việc cùng"]):
         return "collaboration"
 
-    # Tìm theo lĩnh vực nghiên cứu
-    if any(kw in q for kw in ["nghiên cứu về", "chuyên về", "lĩnh vực", "chuyên ngành", "mảng"]):
+    # --- Bộ môn (phải trước search_by_field) ---
+    if any(kw in q for kw in ["bộ môn", "thuộc bộ môn", "trong bộ môn", "danh sách bộ môn", "các bộ môn"]):
+        return "department"
+
+    # --- Cấp độ đề tài ---
+    if any(kw in q for kw in ["cấp bộ", "cấp tỉnh", "cấp trường", "cấp cơ sở", "cấp nhà nước", "cấp đề tài"]):
+        return "project_by_level"
+
+    # --- Top / xếp hạng ---
+    if any(kw in q for kw in ["top", "nhiều nhất", "hàng đầu", "nổi bật", "xuất sắc", "dẫn đầu", "cao nhất", "xếp hạng"]):
+        if any(kw in q for kw in ["đề tài", "dự án", "nckh", "project"]):
+            return "top_by_projects"
+        return "top_lecturers"
+
+    # --- Tạp chí / hội thảo ---
+    if any(kw in q for kw in ["tạp chí", "hội thảo", "hội nghị", "journal", "conference", "đăng trên", "xuất bản trên", "ieee", "scopus", "isi", "springer"]):
+        return "search_by_journal"
+
+    # --- Chủ nhiệm / người phụ trách ---
+    if any(kw in q for kw in ["chủ nhiệm", "người phụ trách", "phụ trách", "người đứng đầu", "ai phụ trách", "ai chủ nhiệm"]):
+        return "who_leads"
+
+    # --- Thông tin chi tiết giảng viên ---
+    if any(kw in q for kw in ["thông tin", "email", "liên hệ", "liên lạc", "giới thiệu về", "profile", "số điện thoại"]):
+        return "lecturer_info"
+
+    # --- Tìm theo lĩnh vực nghiên cứu ---
+    if any(kw in q for kw in ["nghiên cứu về", "chuyên về", "lĩnh vực", "chuyên ngành", "mảng", "thuộc lĩnh vực"]):
         return "search_by_field"
 
-    # Tìm giảng viên theo tên
-    if any(kw in q for kw in ["giảng viên", "thầy", "cô", "gv", "giáo viên", "giảng sư", "tiến sĩ", "phó giáo sư", "giáo sư"]):
+    # --- Tìm giảng viên theo tên / học vị ---
+    if any(kw in q for kw in ["giảng viên", "thầy", "cô", "gv", "giáo viên", "giảng sư",
+                               "tiến sĩ", "ts.", "ts ", "phó giáo sư", "pgs.", "pgs ",
+                               "giáo sư", "gs.", "gs ", "thạc sĩ", "ths.", "ths "]):
         return "search_lecturer"
 
-    # Tìm công trình / bài báo
-    if any(kw in q for kw in ["công trình", "bài báo", "xuất bản", "publication", "tạp chí", "hội thảo", "bài viết"]):
+    # --- Tìm công trình / bài báo ---
+    if any(kw in q for kw in ["công trình", "bài báo", "xuất bản", "publication",
+                               "bài viết", "bài nghiên cứu", "paper"]):
         return "search_publication"
 
-    # Tìm đề tài / dự án
-    if any(kw in q for kw in ["đề tài", "dự án", "project", "nghiên cứu khoa học", "nckh", "đề tài khoa học"]):
+    # --- Tìm đề tài / dự án ---
+    if any(kw in q for kw in ["đề tài", "dự án", "project", "nghiên cứu khoa học", "nckh",
+                               "đề tài khoa học", "đề án"]):
         return "search_project"
 
     return "unknown"
 
 
+# ============================================================
+# ENTITY EXTRACTORS
+# ============================================================
+
 def extract_name(question: str) -> str:
     """
-    Cố gắng trích xuất tên người từ câu hỏi.
-    Tìm cụm từ viết hoa liên tiếp sau các từ khoá về người.
+    Trích xuất tên người từ câu hỏi.
+    Hỗ trợ nhiều trigger hơn và fallback bằng cụm từ viết hoa liên tiếp.
     """
-    import re
     q = question.strip()
-
-    # Bỏ các từ cuối như "có bao nhiêu..." sau tên
-    # Tìm pattern: (thầy|cô|gv|giảng viên) + tên
-    triggers = ["thầy", "cô", "gv", "giảng viên", "giáo viên", "tiến sĩ", "ts.", "pgs", "gs"]
     q_lower = q.lower()
+
+    triggers = [
+        "thầy", "cô", "gv", "giảng viên", "giáo viên",
+        "tiến sĩ", "ts.", "ts ", "pgs.", "pgs ", "gs.", "gs ",
+        "phó giáo sư", "giáo sư", "thạc sĩ", "ths.", "ths ",
+        "giới thiệu về", "thông tin về", "của thầy", "của cô",
+        "hợp tác với", "làm việc với", "cùng với",
+        "chủ nhiệm là", "phụ trách bởi",
+    ]
 
     for trigger in triggers:
         idx = q_lower.find(trigger)
         if idx != -1:
             after = q[idx + len(trigger):].strip()
-            # Lấy các từ tiếp theo (tên người thường viết hoa)
             words = after.split()
             name_parts = []
             for w in words:
-                clean = re.sub(r"[^a-zA-ZÀ-ỹ\s]", "", w)
-                if clean and (clean[0].isupper() or len(name_parts) > 0):
+                clean = re.sub(r"[^a-zA-ZÀ-ỹ]", "", w)
+                if clean and (clean[0].isupper() or (name_parts and len(clean) > 1)):
                     name_parts.append(clean)
                 else:
                     if name_parts:
                         break
-            if name_parts:
+            if name_parts and len(" ".join(name_parts)) > 1:
                 return " ".join(name_parts)
+
+    # Fallback: cụm từ viết hoa liên tiếp (có thể là tên người) bỏ qua từ đầu câu
+    skip_words = {"ai", "có", "là", "tìm", "cho", "biết", "được", "các",
+                  "những", "hãy", "liệt", "kê", "danh", "sách", "hỏi",
+                  "xem", "cho", "tôi", "bạn"}
+    words = q.split()
+    cap_run = []
+    for i, w in enumerate(words):
+        clean = re.sub(r"[^a-zA-ZÀ-ỹ]", "", w)
+        if clean and clean[0].isupper() and clean.lower() not in skip_words and i > 0:
+            cap_run.append(clean)
+        else:
+            if len(cap_run) >= 2:
+                return " ".join(cap_run)
+            cap_run = []
+    if len(cap_run) >= 2:
+        return " ".join(cap_run)
+
     return ""
 
 
 def extract_year(question: str) -> str:
     """Trích xuất năm từ câu hỏi."""
-    import re
     match = re.search(r"\b(20\d{2}|19\d{2})\b", question)
     return match.group(1) if match else ""
 
 
 def extract_field(question: str) -> str:
-    """
-    Trích xuất từ khóa lĩnh vực từ câu hỏi.
-    Lấy phần sau 'về', 'chuyên', 'lĩnh vực', v.v.
-    """
-    triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực"]
+    """Trích xuất từ khóa lĩnh vực từ câu hỏi."""
+    triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực", "mảng"]
     q = question.lower()
     for t in triggers:
         idx = q.find(t)
         if idx != -1:
             after = question[idx + len(t):].strip()
-            # Lấy tối đa 3 từ đầu tiên sau trigger
             words = after.split()
             return " ".join(words[:3]).strip("?.,!").strip()
-    # Fallback: tất cả nội dung sau keyword quan trọng
-    for kw in ["ai", "machine learning", "deep learning", "nlp", "xử lý ngôn ngữ", "mạng nơ-ron", "bảo mật", "iot", "blockchain", "cloud"]:
+
+    tech_kws = [
+        "trí tuệ nhân tạo", "machine learning", "deep learning", "xử lý ngôn ngữ",
+        "thị giác máy tính", "computer vision", "khai phá dữ liệu", "data mining",
+        "mạng nơ-ron", "bảo mật", "an ninh mạng", "iot", "blockchain", "cloud",
+        "big data", "mạng máy tính", "hệ thống thông tin", "cơ sở dữ liệu",
+        "phần mềm", "hệ điều hành", "lập trình", "ai", "nlp",
+    ]
+    for kw in tech_kws:
+        if kw in q:
+            return kw
+    return ""
+
+
+def extract_department(question: str) -> str:
+    """Trích xuất tên bộ môn từ câu hỏi."""
+    q = question.lower()
+    triggers = ["bộ môn", "thuộc bộ môn", "trong bộ môn", "của bộ môn"]
+    for t in triggers:
+        idx = q.find(t)
+        if idx != -1:
+            after = question[idx + len(t):].strip()
+            words = after.split()
+            result = []
+            for w in words[:5]:
+                clean = w.strip("?.,!")
+                if clean.lower() in ["có", "là", "gồm", "nào", "thì", "không", "ai"]:
+                    break
+                result.append(clean)
+            return " ".join(result).strip()
+    return ""
+
+
+def extract_project_level(question: str) -> str:
+    """Trích xuất cấp đề tài."""
+    level_map = {
+        "cấp nhà nước": "nhà nước",
+        "cấp bộ": "bộ",
+        "cấp tỉnh": "tỉnh",
+        "cấp trường": "trường",
+        "cấp cơ sở": "cơ sở",
+    }
+    q = question.lower()
+    for key, val in level_map.items():
+        if key in q:
+            return val
+    return ""
+
+
+def extract_journal(question: str) -> str:
+    """Trích xuất tên tạp chí/hội thảo từ câu hỏi."""
+    q = question.lower()
+    triggers = ["tạp chí", "hội thảo", "hội nghị", "đăng trên", "xuất bản trên"]
+    for t in triggers:
+        idx = q.find(t)
+        if idx != -1:
+            after = question[idx + len(t):].strip()
+            words = after.split()
+            result = []
+            for w in words[:5]:
+                clean = w.strip("?.,!")
+                if clean.lower() in ["có", "là", "nào", "không"]:
+                    break
+                result.append(clean)
+            return " ".join(result).strip()
+    for kw in ["ieee", "scopus", "isi", "springer", "elsevier"]:
         if kw in q:
             return kw
     return ""
 
 
 # ============================================================
-# NEO4J QUERY HANDLERS
+# HANDLERS (v2)
 # ============================================================
 
 def handle_statistics(question: str):
     """Xử lý câu hỏi thống kê."""
     conn = get_neo4j_connection()
     q = question.lower()
-
     year = extract_year(question)
 
     if "giảng viên" in q or "gv" in q or "giáo viên" in q:
@@ -165,12 +286,14 @@ def handle_statistics(question: str):
     ct = conn.query_single("MATCH (n:CongTrinhNghienCuu) RETURN count(n) AS count")
     dt = conn.query_single("MATCH (n:DeTaiNghienCuu) RETURN count(n) AS count")
     bm = conn.query_single("MATCH (n:BoMon) RETURN count(n) AS count")
+    lv = conn.query_single("MATCH (n:LinhVucNghienCuu) RETURN count(n) AS count")
     return (
-        f"📊 **Thống kê tổng quan:**\n"
+        f"📊 **Thống kê tổng quan Khoa CNTT:**\n"
         f"- 👨‍🏫 Giảng viên: **{int(gv['count']) if gv else 0}**\n"
         f"- 📄 Công trình: **{int(ct['count']) if ct else 0}**\n"
         f"- 🔬 Đề tài: **{int(dt['count']) if dt else 0}**\n"
-        f"- 🏢 Bộ môn: **{int(bm['count']) if bm else 0}**"
+        f"- 🏢 Bộ môn: **{int(bm['count']) if bm else 0}**\n"
+        f"- 🌐 Lĩnh vực nghiên cứu: **{int(lv['count']) if lv else 0}**"
     )
 
 
@@ -187,8 +310,10 @@ def handle_search_lecturer(question: str):
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
-                   bm.ten_bo_mon AS bo_mon, count(ct) AS so_cong_trinh
+                   bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh,
+                   count(DISTINCT dt) AS so_de_tai
             ORDER BY gv.ho_va_ten
             LIMIT 5
             """,
@@ -199,36 +324,41 @@ def handle_search_lecturer(question: str):
             for r in results:
                 info = f"**{r['ten']}**"
                 if r.get("hoc_vi"): info += f" ({r['hoc_vi']})"
-                if r.get("bo_mon"): info += f" — {r['bo_mon']}"
-                if r.get("so_cong_trinh"): info += f" — {r['so_cong_trinh']} công trình"
+                if r.get("chuc_danh") and r["chuc_danh"] != r.get("hoc_vi"):
+                    info += f", {r['chuc_danh']}"
+                if r.get("bo_mon"): info += f"\n  🏢 {r['bo_mon']}"
+                extras = []
+                if r.get("so_cong_trinh"): extras.append(f"📄 {r['so_cong_trinh']} công trình")
+                if r.get("so_de_tai"): extras.append(f"🔬 {r['so_de_tai']} đề tài")
+                if extras: info += f"\n  {' | '.join(extras)}"
                 parts.append(info)
-            names_str = "\n".join(f"- {p}" for p in parts)
-            return f"Tìm thấy giảng viên với tên **\"{name}\"**:\n{names_str}"
-        else:
-            return f"Không tìm thấy giảng viên nào với tên **\"{name}\"**. Bạn có thể thử tìm với tên khác."
+            return f"Tìm thấy giảng viên với từ khóa **\"{name}\"**:\n" + "\n".join(f"- {p}" for p in parts)
+        return f"Không tìm thấy giảng viên nào với tên **\"{name}\"**. Bạn có thể thử tên khác."
 
     # Tìm theo học vị/chức danh
-    for hoc_vi in ["giáo sư", "phó giáo sư", "tiến sĩ", "thạc sĩ"]:
+    for hoc_vi, label in [("giáo sư", "Giáo sư"), ("phó giáo sư", "Phó Giáo sư"),
+                           ("tiến sĩ", "Tiến sĩ"), ("thạc sĩ", "Thạc sĩ")]:
         if hoc_vi in q:
             results = conn.query(
                 """
                 MATCH (gv:GiangVien)
-                WHERE toLower(coalesce(gv.hoc_vi,'')) CONTAINS $hv OR toLower(coalesce(gv.chuc_danh,'')) CONTAINS $hv
-                RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh
+                WHERE toLower(coalesce(gv.hoc_vi,'')) CONTAINS $hv
+                   OR toLower(coalesce(gv.chuc_danh,'')) CONTAINS $hv
+                OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+                RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
                 ORDER BY gv.ho_va_ten
-                LIMIT 10
+                LIMIT 20
                 """,
                 {"hv": hoc_vi}
             )
             if results:
-                names = [r["ten"] for r in results]
-                count = len(names)
-                names_str = ", ".join(names[:5])
-                suffix = f" và {count - 5} người khác" if count > 5 else ""
-                return f"Có **{count} giảng viên** với học vị/chức danh **{hoc_vi}**: {names_str}{suffix}."
-            return f"Không tìm thấy giảng viên nào với học vị **{hoc_vi}** trong hệ thống."
+                count = len(results)
+                names = [f"**{r['ten']}**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "") for r in results[:10]]
+                suffix = f"\n_...và {count - 10} người khác_" if count > 10 else ""
+                return f"Có **{count} giảng viên** với học vị **{label}**:\n" + "\n".join(f"- {n}" for n in names) + suffix
+            return f"Không tìm thấy giảng viên nào với học vị **{label}** trong hệ thống."
 
-    # Top giảng viên theo số công trình
+    # Fallback: top giảng viên theo công trình
     results = conn.query("""
         MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
         RETURN gv.ho_va_ten AS ten, count(ct) AS so_cong_trinh
@@ -239,23 +369,22 @@ def handle_search_lecturer(question: str):
         parts = [f"**{r['ten']}** ({r['so_cong_trinh']} công trình)" for r in results]
         return "Top 5 giảng viên có nhiều công trình nhất:\n" + "\n".join(f"- {p}" for p in parts)
 
-    return "Vui lòng cung cấp thêm thông tin (tên, học vị...) để tôi có thể tìm kiếm chính xác hơn."
+    return "Vui lòng cung cấp thêm thông tin (tên, học vị...) để tôi tìm kiếm chính xác hơn."
 
 
 def handle_search_publication(question: str):
     """Tìm kiếm công trình nghiên cứu."""
     conn = get_neo4j_connection()
-    q = question.lower()
     name = extract_name(question)
     year = extract_year(question)
 
     if name:
-        # Tìm công trình của một giảng viên cụ thể
         results = conn.query(
             """
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
-            RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, ct.tap_chi AS tap_chi
+            RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
+                   ct.tap_chi AS tap_chi, ct.loai_cong_trinh AS loai
             ORDER BY ct.nam_xuat_ban DESC
             LIMIT 8
             """,
@@ -263,12 +392,15 @@ def handle_search_publication(question: str):
         )
         if results:
             count = len(results)
-            titles = [f"**{r['ten']}** ({r['nam'] or 'N/A'})" for r in results[:5]]
+            titles = []
+            for r in results[:5]:
+                line = f"**{r['ten']}** ({r['nam'] or 'N/A'})"
+                if r.get("tap_chi"): line += f"\n    📰 {r['tap_chi']}"
+                titles.append(line)
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
             return (
                 f"Tìm thấy **{count} công trình** của **{name}**:\n"
-                + "\n".join(f"- {t}" for t in titles)
-                + suffix
+                + "\n".join(f"- {t}" for t in titles) + suffix
             )
         return f"Không tìm thấy công trình nào của **{name}** trong hệ thống."
 
@@ -285,13 +417,12 @@ def handle_search_publication(question: str):
         )
         if results:
             count = len(results)
-            parts = [f"**{r['ten']}**" + (f" — {', '.join(r['tac_gia'][:2])}" if r.get("tac_gia") else "") for r in results[:5]]
+            parts = [
+                f"**{r['ten']}**" + (f" — {', '.join(r['tac_gia'][:2])}" if r.get("tac_gia") else "")
+                for r in results[:5]
+            ]
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
-            return (
-                f"Năm **{year}** có **{count}** công trình được ghi nhận:\n"
-                + "\n".join(f"- {p}" for p in parts)
-                + suffix
-            )
+            return f"Năm **{year}** có **{count}** công trình:\n" + "\n".join(f"- {p}" for p in parts) + suffix
         return f"Không tìm thấy công trình nào xuất bản năm **{year}**."
 
     # Công trình mới nhất
@@ -314,7 +445,6 @@ def handle_search_project(question: str):
     conn = get_neo4j_connection()
     name = extract_name(question)
     year = extract_year(question)
-    q = question.lower()
 
     if name:
         results = conn.query(
@@ -336,16 +466,16 @@ def handle_search_project(question: str):
                 if r.get("cap"): line += f" [{r['cap']}]"
                 vai = "Chủ nhiệm" if r.get("vai_tro") == "CHU_NHIEM" else "Thành viên"
                 line += f" ({vai})"
+                if r.get("nam_bd"): line += f" — {r['nam_bd']}"
+                if r.get("nam_kt"): line += f"–{r['nam_kt']}"
                 parts.append(line)
             suffix = f"\n_...và {count - 5} đề tài khác_" if count >= 5 else ""
             return (
                 f"Giảng viên **{name}** tham gia **{count} đề tài**:\n"
-                + "\n".join(f"- {p}" for p in parts)
-                + suffix
+                + "\n".join(f"- {p}" for p in parts) + suffix
             )
         return f"Không tìm thấy đề tài nào liên quan đến **{name}**."
 
-    # Lọc theo năm
     if year:
         results = conn.query(
             """
@@ -359,13 +489,12 @@ def handle_search_project(question: str):
         )
         if results:
             count = len(results)
-            parts = [f"**{r['ten']}**" + (f" (CN: {r['chu_nhiem']})" if r.get("chu_nhiem") else "") for r in results[:5]]
+            parts = [
+                f"**{r['ten']}**" + (f" (CN: {r['chu_nhiem']})" if r.get("chu_nhiem") else "")
+                for r in results[:5]
+            ]
             suffix = f"\n_...và {count - 5} đề tài khác_" if count >= 5 else ""
-            return (
-                f"Năm **{year}** có **{count} đề tài** nghiên cứu:\n"
-                + "\n".join(f"- {p}" for p in parts)
-                + suffix
-            )
+            return f"Năm **{year}** có **{count} đề tài**:\n" + "\n".join(f"- {p}" for p in parts) + suffix
         return f"Không tìm thấy đề tài nào thuộc năm **{year}**."
 
     # Danh sách đề tài gần đây
@@ -391,34 +520,35 @@ def handle_search_by_field(question: str):
     if not field:
         results = conn.query("""
             MATCH (lv:LinhVucNghienCuu)
-            RETURN lv.ten_linh_vuc AS ten
-            ORDER BY ten
-            LIMIT 10
+            OPTIONAL MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv)
+            RETURN lv.ten_linh_vuc AS ten, count(gv) AS so_gv
+            ORDER BY so_gv DESC, ten
+            LIMIT 12
         """)
         if results:
-            fields = [r["ten"] for r in results]
-            return "Các lĩnh vực nghiên cứu hiện có:\n" + "\n".join(f"- **{f}**" for f in fields)
+            fields = [f"**{r['ten']}** ({r['so_gv']} GV)" for r in results]
+            return "Các lĩnh vực nghiên cứu hiện có:\n" + "\n".join(f"- {f}" for f in fields)
         return "Bạn muốn tìm lĩnh vực nào? Ví dụ: AI, Machine Learning, Bảo mật, IoT..."
 
-    # Tìm giảng viên nghiên cứu lĩnh vực này
     lecturers = conn.query(
         """
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         WHERE toLower(lv.ten_linh_vuc) CONTAINS toLower($field)
-        RETURN gv.ho_va_ten AS ten, lv.ten_linh_vuc AS linh_vuc
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        RETURN gv.ho_va_ten AS ten, lv.ten_linh_vuc AS linh_vuc, bm.ten_bo_mon AS bo_mon
         ORDER BY gv.ho_va_ten
         LIMIT 10
         """,
         {"field": field}
     )
 
-    # Tìm công trình liên quan đến lĩnh vực
     pubs = conn.query(
         """
         MATCH (ct:CongTrinhNghienCuu)
         WHERE toLower(coalesce(ct.tu_khoa,'')) CONTAINS toLower($field)
            OR toLower(coalesce(ct.ten_cong_trinh,'')) CONTAINS toLower($field)
-        RETURN ct.ten_cong_trinh AS ten
+        RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
+        ORDER BY ct.nam_xuat_ban DESC
         LIMIT 5
         """,
         {"field": field}
@@ -426,31 +556,29 @@ def handle_search_by_field(question: str):
 
     parts = []
     if lecturers:
-        names = [r["ten"] for r in lecturers]
         lv_name = lecturers[0].get("linh_vuc", field)
-        parts.append(
-            f"👨‍🏫 **{len(names)} giảng viên** nghiên cứu về **{lv_name}**:\n"
-            + "\n".join(f"- {n}" for n in names)
-        )
+        names = [
+            f"**{r['ten']}**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "")
+            for r in lecturers
+        ]
+        parts.append(f"👨‍🏫 **{len(names)} giảng viên** nghiên cứu về **{lv_name}**:\n" + "\n".join(f"- {n}" for n in names))
     if pubs:
-        pub_list = [r["ten"] for r in pubs]
-        parts.append(
-            f"\n📄 **Công trình liên quan:**\n"
-            + "\n".join(f"- {p}" for p in pub_list)
-        )
+        pub_list = [f"**{r['ten']}** ({r['nam'] or 'N/A'})" for r in pubs]
+        parts.append(f"\n📄 **Công trình liên quan:**\n" + "\n".join(f"- {p}" for p in pub_list))
 
     if parts:
         return "\n".join(parts)
 
-    return f"Chưa tìm thấy dữ liệu về lĩnh vực **\"{field}\"** trong hệ thống. Hãy thử từ khóa khác."
+    return f"Chưa tìm thấy dữ liệu về lĩnh vực **\"{field}\"**. Hãy thử từ khóa khác."
 
 
 def handle_collaboration(question: str):
-    """Tìm mối quan hệ hợp tác giữa các giảng viên."""
+    """Tìm mối quan hệ hợp tác giữa các giảng viên (qua cả công trình lẫn đề tài)."""
     conn = get_neo4j_connection()
     name = extract_name(question)
 
     if name:
+        # Hợp tác qua công trình
         results = conn.query(
             """
             MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
@@ -463,10 +591,23 @@ def handle_collaboration(question: str):
         )
         if results:
             parts = [f"**{r['dong_nghiep']}** ({r['so_ct']} công trình chung)" for r in results]
-            return (
-                f"Giảng viên **{name}** đã hợp tác với:\n"
-                + "\n".join(f"- {p}" for p in parts)
-            )
+            return f"Giảng viên **{name}** đã hợp tác với:\n" + "\n".join(f"- {p}" for p in parts)
+
+        # Thử hợp tác qua đề tài
+        project_collab = conn.query(
+            """
+            MATCH (gv1:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2:GiangVien)
+            WHERE toLower(gv1.ho_va_ten) CONTAINS toLower($name) AND gv1 <> gv2
+            RETURN gv2.ho_va_ten AS dong_nghiep, count(dt) AS so_dt
+            ORDER BY so_dt DESC
+            LIMIT 8
+            """,
+            {"name": name}
+        )
+        if project_collab:
+            parts = [f"**{r['dong_nghiep']}** ({r['so_dt']} đề tài chung)" for r in project_collab]
+            return f"Giảng viên **{name}** đã cùng tham gia đề tài với:\n" + "\n".join(f"- {p}" for p in parts)
+
         return f"Không tìm thấy mối quan hệ hợp tác nào cho giảng viên **{name}**."
 
     # Cặp hợp tác nhiều nhất
@@ -484,17 +625,380 @@ def handle_collaboration(question: str):
     return "Chưa tìm thấy dữ liệu hợp tác. Thử cung cấp tên giảng viên cụ thể."
 
 
+# ============================================================
+# HANDLERS MỚI (v2)
+# ============================================================
+
+def handle_department(question: str):
+    """Xử lý câu hỏi về bộ môn."""
+    conn = get_neo4j_connection()
+    dept_name = extract_department(question)
+
+    if dept_name:
+        results = conn.query(
+            """
+            MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
+            WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept)
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+                   bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh
+            ORDER BY so_cong_trinh DESC, gv.ho_va_ten
+            """,
+            {"dept": dept_name}
+        )
+        if results:
+            bm = results[0].get("bo_mon", dept_name)
+            count = len(results)
+            parts = []
+            for r in results[:10]:
+                line = f"**{r['ten']}**"
+                if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
+                if r.get("so_cong_trinh"): line += f" — {r['so_cong_trinh']} CT"
+                parts.append(line)
+            suffix = f"\n_...và {count - 10} người khác_" if count > 10 else ""
+            return (
+                f"🏢 Bộ môn **{bm}** có **{count} giảng viên**:\n"
+                + "\n".join(f"- {p}" for p in parts) + suffix
+            )
+        return f"Không tìm thấy bộ môn nào khớp với **\"{dept_name}\"**."
+
+    # Liệt kê tất cả bộ môn
+    results = conn.query("""
+        MATCH (bm:BoMon)
+        OPTIONAL MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm)
+        RETURN bm.ten_bo_mon AS ten, count(gv) AS so_gv
+        ORDER BY so_gv DESC
+    """)
+    if results:
+        parts = [f"**{r['ten']}** ({r['so_gv']} giảng viên)" for r in results]
+        return f"Khoa CNTT có **{len(results)} bộ môn**:\n" + "\n".join(f"- {p}" for p in parts)
+    return "Không tìm thấy thông tin bộ môn."
+
+
+def handle_top_lecturers(question: str):
+    """Top giảng viên nổi bật theo công trình."""
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (gv:GiangVien)
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
+               count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt
+        ORDER BY so_ct DESC, so_dt DESC
+        LIMIT 10
+    """)
+    if results:
+        parts = []
+        for i, r in enumerate(results, 1):
+            line = f"**{i}. {r['ten']}**"
+            if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
+            line += f"\n  📄 {r['so_ct']} công trình | 🔬 {r['so_dt']} đề tài"
+            if r.get("bo_mon"): line += f" | 🏢 {r['bo_mon']}"
+            parts.append(line)
+        return "🏆 **Top 10 giảng viên nổi bật:**\n" + "\n".join(f"- {p}" for p in parts)
+    return "Không có dữ liệu."
+
+
+def handle_top_by_projects(question: str):
+    """Top giảng viên theo số đề tài."""
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (gv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+               count(DISTINCT dt) AS so_de_tai, bm.ten_bo_mon AS bo_mon
+        ORDER BY so_de_tai DESC
+        LIMIT 8
+    """)
+    if results:
+        parts = []
+        for i, r in enumerate(results, 1):
+            line = f"**{i}. {r['ten']}**"
+            if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
+            line += f" — **{r['so_de_tai']} đề tài**"
+            if r.get("bo_mon"): line += f" ({r['bo_mon']})"
+            parts.append(line)
+        return "🔬 **Top giảng viên có nhiều đề tài nhất:**\n" + "\n".join(f"- {p}" for p in parts)
+    return "Không có dữ liệu về đề tài."
+
+
+def handle_project_by_level(question: str):
+    """Lọc đề tài theo cấp (Bộ, Tỉnh, Trường, ...)."""
+    conn = get_neo4j_connection()
+    level = extract_project_level(question)
+
+    if level:
+        results = conn.query(
+            """
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE toLower(coalesce(dt.cap_de_tai,'')) CONTAINS toLower($level)
+            OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
+            RETURN dt.ten_de_tai AS ten, dt.cap_de_tai AS cap,
+                   gv.ho_va_ten AS chu_nhiem, dt.nam_bat_dau AS nam_bd, dt.nam_ket_thuc AS nam_kt
+            ORDER BY dt.nam_bat_dau DESC
+            LIMIT 10
+            """,
+            {"level": level}
+        )
+        if results:
+            count = len(results)
+            parts = []
+            for r in results[:8]:
+                line = f"**{r['ten']}**"
+                if r.get("chu_nhiem"): line += f"\n  👤 CN: {r['chu_nhiem']}"
+                if r.get("nam_bd"): line += f" | {r['nam_bd']}"
+                if r.get("nam_kt"): line += f"–{r['nam_kt']}"
+                parts.append(line)
+            suffix = f"\n_...và {count - 8} đề tài khác_" if count > 8 else ""
+            return f"📋 Có **{count} đề tài cấp {level}**:\n" + "\n".join(f"- {p}" for p in parts) + suffix
+        return f"Không tìm thấy đề tài nào ở **cấp {level}** trong hệ thống."
+
+    # Thống kê theo cấp
+    results = conn.query("""
+        MATCH (dt:DeTaiNghienCuu)
+        WHERE dt.cap_de_tai IS NOT NULL
+        RETURN dt.cap_de_tai AS cap, count(dt) AS so_luong
+        ORDER BY so_luong DESC
+    """)
+    if results:
+        parts = [f"**{r['cap']}**: {r['so_luong']} đề tài" for r in results]
+        return "📊 **Thống kê đề tài theo cấp:**\n" + "\n".join(f"- {p}" for p in parts)
+    return "Không có dữ liệu phân cấp đề tài."
+
+
+def handle_search_by_journal(question: str):
+    """Tìm công trình theo tạp chí/hội thảo."""
+    conn = get_neo4j_connection()
+    journal = extract_journal(question)
+
+    if journal:
+        results = conn.query(
+            """
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE toLower(coalesce(ct.tap_chi,'')) CONTAINS toLower($journal)
+               OR toLower(coalesce(ct.loai_cong_trinh,'')) CONTAINS toLower($journal)
+            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
+                   ct.tap_chi AS tap_chi, collect(gv.ho_va_ten) AS tac_gia
+            ORDER BY ct.nam_xuat_ban DESC
+            LIMIT 8
+            """,
+            {"journal": journal}
+        )
+        if results:
+            count = len(results)
+            parts = []
+            for r in results[:5]:
+                line = f"**{r['ten']}** ({r['nam'] or 'N/A'})"
+                if r.get("tac_gia"): line += f"\n  👤 {', '.join(r['tac_gia'][:2])}"
+                parts.append(line)
+            suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
+            return (
+                f"📰 Tìm thấy **{count} công trình** liên quan đến **{journal}**:\n"
+                + "\n".join(f"- {p}" for p in parts) + suffix
+            )
+        return f"Không tìm thấy công trình nào thuộc **{journal}** trong hệ thống."
+
+    # Liệt kê tạp chí phổ biến
+    results = conn.query("""
+        MATCH (ct:CongTrinhNghienCuu)
+        WHERE ct.tap_chi IS NOT NULL AND ct.tap_chi <> ''
+        RETURN ct.tap_chi AS tap_chi, count(ct) AS so_ct
+        ORDER BY so_ct DESC
+        LIMIT 10
+    """)
+    if results:
+        parts = [f"**{r['tap_chi']}** ({r['so_ct']} bài)" for r in results]
+        return "📰 **Tạp chí/Hội thảo phổ biến nhất:**\n" + "\n".join(f"- {p}" for p in parts)
+    return "Không có thông tin về tạp chí trong hệ thống."
+
+
+def handle_who_leads(question: str):
+    """Ai là chủ nhiệm đề tài?"""
+    conn = get_neo4j_connection()
+    q = question.lower()
+
+    # Trích xuất tên đề tài từ câu hỏi
+    project_name = ""
+    for t in ["đề tài", "dự án", "project", "đề án"]:
+        idx = q.find(t)
+        if idx != -1:
+            after = question[idx + len(t):].strip()
+            words = after.split()
+            filtered = [w for w in words if w.lower() not in ["là", "ai", "của", "nào", "?"]]
+            candidate = " ".join(filtered[:6]).strip("?.,!")
+            if len(candidate) > 2:
+                project_name = candidate
+            break
+
+    if project_name:
+        results = conn.query(
+            """
+            MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
+            WHERE toLower(dt.ten_de_tai) CONTAINS toLower($project)
+            RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+                   dt.ten_de_tai AS de_tai, dt.cap_de_tai AS cap, dt.nam_bat_dau AS nam_bd
+            LIMIT 5
+            """,
+            {"project": project_name}
+        )
+        if results:
+            parts = []
+            for r in results:
+                line = f"**{r['ten']}**"
+                if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
+                line += f"\n  🔬 Chủ nhiệm: _{r['de_tai']}_"
+                parts.append(line)
+            return "👤 Kết quả tìm chủ nhiệm:\n" + "\n".join(f"- {p}" for p in parts)
+        return f"Không tìm thấy chủ nhiệm cho đề tài liên quan đến **\"{project_name}\"**."
+
+    # Fallback: tìm theo tên giảng viên
+    name = extract_name(question)
+    if name:
+        return handle_search_project(question)
+
+    # Top chủ nhiệm
+    results = conn.query("""
+        MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
+        RETURN gv.ho_va_ten AS ten, count(dt) AS so_de_tai
+        ORDER BY so_de_tai DESC
+        LIMIT 8
+    """)
+    if results:
+        parts = [f"**{r['ten']}** (CN {r['so_de_tai']} đề tài)" for r in results]
+        return "👤 **Top chủ nhiệm đề tài:**\n" + "\n".join(f"- {p}" for p in parts)
+    return "Không có dữ liệu về chủ nhiệm đề tài."
+
+
+def handle_lecturer_info(question: str):
+    """Lấy thông tin chi tiết về một giảng viên."""
+    conn = get_neo4j_connection()
+    name = extract_name(question)
+
+    if not name:
+        return (
+            "Bạn muốn xem thông tin của giảng viên nào? "
+            "Ví dụ: _\"Thông tin thầy Nguyễn Văn A\"_."
+        )
+
+    results = conn.query(
+        """
+        MATCH (gv:GiangVien)
+        WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        OPTIONAL MATCH (gv)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
+        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
+               gv.email AS email, bm.ten_bo_mon AS bo_mon,
+               collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc,
+               count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt_cn
+        LIMIT 3
+        """,
+        {"name": name}
+    )
+
+    if not results:
+        return f"Không tìm thấy thông tin giảng viên với tên **\"{name}\"**."
+
+    cards = []
+    for r in results:
+        card = [f"👨‍🏫 **{r['ten']}**"]
+        if r.get("hoc_vi"): card.append(f"📚 Học vị: **{r['hoc_vi']}**")
+        if r.get("chuc_danh"): card.append(f"🎓 Chức danh: **{r['chuc_danh']}**")
+        if r.get("bo_mon"): card.append(f"🏢 Bộ môn: **{r['bo_mon']}**")
+        if r.get("email"): card.append(f"📧 Email: {r['email']}")
+        lvs = [lv for lv in (r.get("linh_vuc") or []) if lv][:4]
+        if lvs: card.append(f"🌐 Lĩnh vực: {', '.join(lvs)}")
+        card.append(f"📄 Công trình: **{r['so_ct']}** | 🔬 Đề tài chủ nhiệm: **{r['so_dt_cn']}**")
+        cards.append("\n".join(card))
+
+    return "\n\n---\n\n".join(cards)
+
+
 def handle_unknown(question: str):
-    """Trả về hướng dẫn khi không nhận ra câu hỏi."""
+    """
+    Smart fallback v2: Tự tìm kiếm tổng quát trên tất cả entities
+    trước khi trả về hướng dẫn.
+    """
+    conn = get_neo4j_connection()
+    q = question.strip()
+
+    # Tìm giảng viên gần đúng
+    gv_results = conn.query(
+        """
+        MATCH (gv:GiangVien)
+        WHERE toLower(gv.ho_va_ten) CONTAINS toLower($q)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
+        LIMIT 3
+        """,
+        {"q": q}
+    )
+
+    # Tìm công trình gần đúng
+    ct_results = conn.query(
+        """
+        MATCH (ct:CongTrinhNghienCuu)
+        WHERE toLower(ct.ten_cong_trinh) CONTAINS toLower($q)
+        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
+        LIMIT 3
+        """,
+        {"q": q}
+    )
+
+    # Tìm đề tài gần đúng
+    dt_results = conn.query(
+        """
+        MATCH (dt:DeTaiNghienCuu)
+        WHERE toLower(dt.ten_de_tai) CONTAINS toLower($q)
+        OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
+        RETURN dt.ten_de_tai AS ten, gv.ho_va_ten AS chu_nhiem
+        LIMIT 3
+        """,
+        {"q": q}
+    )
+
+    parts = []
+    if gv_results:
+        gvs = [
+            f"**{r['ten']}**" + (f" ({r['hoc_vi']})" if r.get("hoc_vi") else "")
+            for r in gv_results
+        ]
+        parts.append("👨‍🏫 **Giảng viên liên quan:**\n" + "\n".join(f"- {g}" for g in gvs))
+    if ct_results:
+        cts = [f"**{r['ten']}** ({r['nam'] or 'N/A'})" for r in ct_results]
+        parts.append("📄 **Công trình liên quan:**\n" + "\n".join(f"- {c}" for c in cts))
+    if dt_results:
+        dts = [
+            f"**{r['ten']}**" + (f" — CN: {r['chu_nhiem']}" if r.get("chu_nhiem") else "")
+            for r in dt_results
+        ]
+        parts.append("🔬 **Đề tài liên quan:**\n" + "\n".join(f"- {d}" for d in dts))
+
+    if parts:
+        return (
+            f"Tôi thử tìm kiếm với từ khóa **\"{q}\"** và tìm được:\n\n"
+            + "\n\n".join(parts)
+        )
+
+    # Không tìm được gì → hướng dẫn
     return (
         "Xin lỗi, tôi chưa hiểu câu hỏi của bạn 😅\n\n"
         "Tôi có thể giúp bạn:\n"
-        "- 👨‍🏫 Tìm **giảng viên** (vd: _\"Thầy Nguyễn Văn A\"_, _\"Giảng viên Tiến sĩ\"_)\n"
-        "- 📄 Tìm **công trình** (vd: _\"Công trình của cô Trần B\"_, _\"Bài báo năm 2023\"_)\n"
-        "- 🔬 Tìm **đề tài** (vd: _\"Đề tài nghiên cứu AI\"_, _\"Dự án năm 2022\"_)\n"
-        "- 🌐 Tìm theo **lĩnh vực** (vd: _\"Nghiên cứu về Machine Learning\"_)\n"
+        "- 👨‍🏫 Tìm **giảng viên** (vd: _\"Thầy Nguyễn Văn A\"_, _\"Tiến sĩ trong bộ môn X\"_)\n"
+        "- 📄 Tìm **công trình** (vd: _\"Bài báo của cô Trần B\"_, _\"Công trình năm 2023\"_)\n"
+        "- 🔬 Tìm **đề tài** (vd: _\"Đề tài của thầy A\"_, _\"Đề tài cấp Bộ\"_)\n"
+        "- 🏢 Hỏi về **bộ môn** (vd: _\"Bộ môn KTPM có những ai?\"_)\n"
+        "- 🌐 Tìm theo **lĩnh vực** (vd: _\"Nghiên cứu về AI\"_)\n"
         "- 📊 Xem **thống kê** (vd: _\"Có bao nhiêu giảng viên?\"_)\n"
-        "- 🤝 Tìm **hợp tác** (vd: _\"Ai hợp tác với thầy A?\"_)"
+        "- 🤝 Tìm **hợp tác** (vd: _\"Ai hợp tác với thầy A?\"_)\n"
+        "- 🏆 **Xếp hạng** (vd: _\"Giảng viên nào có nhiều đề tài nhất?\"_)\n"
+        "- 📰 Tìm theo **tạp chí** (vd: _\"Công trình đăng trên IEEE\"_)\n"
+        "- 👤 **Chủ nhiệm** (vd: _\"Ai chủ nhiệm đề tài X?\"_)\n"
+        "- ℹ️ **Thông tin GV** (vd: _\"Thông tin thầy Nguyễn Văn A\"_)"
     )
 
 
@@ -528,6 +1032,13 @@ def ask():
             "search_project": handle_search_project,
             "search_by_field": handle_search_by_field,
             "collaboration": handle_collaboration,
+            "department": handle_department,
+            "top_lecturers": handle_top_lecturers,
+            "top_by_projects": handle_top_by_projects,
+            "project_by_level": handle_project_by_level,
+            "search_by_journal": handle_search_by_journal,
+            "who_leads": handle_who_leads,
+            "lecturer_info": handle_lecturer_info,
             "unknown": handle_unknown,
         }
 

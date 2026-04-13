@@ -434,7 +434,7 @@ def get_overview_stats():
         # Top giảng viên theo số công trình
         top_gv = conn.query("""
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-            RETURN gv.ho_va_ten AS ten, id(gv) AS id, count(ct) AS so_cong_trinh
+            RETURN gv.ho_va_ten AS ten, gv.id AS id, count(ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC
             LIMIT 10
         """)
