@@ -858,6 +858,10 @@ async function showPublicationDetail(ctId) {
             document.getElementById('detailTitle').textContent = ct.ten_cong_trinh || 'Công trình nghiên cứu';
             document.getElementById('detailSubtitle').textContent = ct.loai_an_pham || 'Công trình';
             
+            const iconEl = document.getElementById('detailIcon');
+            iconEl.innerHTML = '<i class="fas fa-file-alt" style="color: #10b981;"></i>';
+            iconEl.style.background = 'rgba(16, 185, 129, 0.1)';
+            
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Loại ấn phẩm</span><br><b>${ct.loai_an_pham || 'N/A'}</b></div>
@@ -914,6 +918,10 @@ async function showProjectDetail(dtId) {
             const dt = dataDetail.data;
             document.getElementById('detailTitle').textContent = dt.ten_de_tai || 'Đề tài nghiên cứu';
             document.getElementById('detailSubtitle').textContent = dt.cap_de_tai ? `Cấp ${dt.cap_de_tai}` : 'Đề tài';
+            
+            const iconEl = document.getElementById('detailIcon');
+            iconEl.innerHTML = '<i class="fas fa-flask" style="color: #f59e0b;"></i>';
+            iconEl.style.background = 'rgba(245, 158, 11, 0.1)';
             
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Cấp đề tài</span><br><b>${dt.cap_de_tai || 'N/A'}</b></div>

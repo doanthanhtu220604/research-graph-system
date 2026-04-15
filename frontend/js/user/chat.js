@@ -92,6 +92,13 @@
     let t = text
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/_(.*?)_/g, "<em>$1</em>")
+      .replace(/\[([^\]]+)\]\((.+?)\)(?!\))/g, function(match, linkText, url) {
+        if (url.startsWith('javascript:')) {
+          let jsCode = url.replace('javascript:', '');
+          return `<a href="javascript:void(0)" onclick="${jsCode}; return false;" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">${linkText}</a>`;
+        }
+        return `<a href="${url}" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;">${linkText}</a>`;
+      })
       .replace(/\n/g, "<br>");
     return t;
   }

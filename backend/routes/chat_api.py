@@ -311,7 +311,7 @@ def handle_search_lecturer(question: str):
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-            RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
+            RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh,
                    count(DISTINCT dt) AS so_de_tai
             ORDER BY gv.ho_va_ten
@@ -322,7 +322,7 @@ def handle_search_lecturer(question: str):
         if results:
             parts = []
             for r in results:
-                info = f"**{r['ten']}**"
+                info = f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"
                 if r.get("hoc_vi"): info += f" ({r['hoc_vi']})"
                 if r.get("chuc_danh") and r["chuc_danh"] != r.get("hoc_vi"):
                     info += f", {r['chuc_danh']}"
@@ -345,7 +345,7 @@ def handle_search_lecturer(question: str):
                 WHERE toLower(coalesce(gv.hoc_vi,'')) CONTAINS $hv
                    OR toLower(coalesce(gv.chuc_danh,'')) CONTAINS $hv
                 OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-                RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
+                RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
                 ORDER BY gv.ho_va_ten
                 LIMIT 20
                 """,
@@ -353,7 +353,7 @@ def handle_search_lecturer(question: str):
             )
             if results:
                 count = len(results)
-                names = [f"**{r['ten']}**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "") for r in results[:10]]
+                names = [f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "") for r in results[:10]]
                 suffix = f"\n_...và {count - 10} người khác_" if count > 10 else ""
                 return f"Có **{count} giảng viên** với học vị **{label}**:\n" + "\n".join(f"- {n}" for n in names) + suffix
             return f"Không tìm thấy giảng viên nào với học vị **{label}** trong hệ thống."
@@ -361,12 +361,12 @@ def handle_search_lecturer(question: str):
     # Fallback: top giảng viên theo công trình
     results = conn.query("""
         MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-        RETURN gv.ho_va_ten AS ten, count(ct) AS so_cong_trinh
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, count(ct) AS so_cong_trinh
         ORDER BY so_cong_trinh DESC
         LIMIT 5
     """)
     if results:
-        parts = [f"**{r['ten']}** ({r['so_cong_trinh']} công trình)" for r in results]
+        parts = [f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))** ({r['so_cong_trinh']} công trình)" for r in results]
         return "Top 5 giảng viên có nhiều công trình nhất:\n" + "\n".join(f"- {p}" for p in parts)
 
     return "Vui lòng cung cấp thêm thông tin (tên, học vị...) để tôi tìm kiếm chính xác hơn."
@@ -383,7 +383,7 @@ def handle_search_publication(question: str):
             """
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
-            RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
+            RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
                    ct.tap_chi AS tap_chi, ct.loai_cong_trinh AS loai
             ORDER BY ct.nam_xuat_ban DESC
             LIMIT 8
@@ -394,7 +394,7 @@ def handle_search_publication(question: str):
             count = len(results)
             titles = []
             for r in results[:5]:
-                line = f"**{r['ten']}** ({r['nam'] or 'N/A'})"
+                line = f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})"
                 if r.get("tap_chi"): line += f"\n    📰 {r['tap_chi']}"
                 titles.append(line)
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
@@ -410,7 +410,7 @@ def handle_search_publication(question: str):
             MATCH (ct:CongTrinhNghienCuu)
             WHERE ct.nam_xuat_ban = $year
             OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-            RETURN ct.ten_cong_trinh AS ten, collect(gv.ho_va_ten) AS tac_gia
+            RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, collect(gv.ho_va_ten) AS tac_gia
             LIMIT 8
             """,
             {"year": int(year)}
@@ -418,7 +418,7 @@ def handle_search_publication(question: str):
         if results:
             count = len(results)
             parts = [
-                f"**{r['ten']}**" + (f" — {', '.join(r['tac_gia'][:2])}" if r.get("tac_gia") else "")
+                f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))**" + (f" — {', '.join(r['tac_gia'][:2])}" if r.get("tac_gia") else "")
                 for r in results[:5]
             ]
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
@@ -429,12 +429,12 @@ def handle_search_publication(question: str):
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-        RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
+        RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
         ORDER BY ct.nam_xuat_ban DESC
         LIMIT 5
     """)
     if results:
-        parts = [f"**{r['ten']}** ({r['nam'] or 'N/A'})" for r in results]
+        parts = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})" for r in results]
         return "5 công trình nghiên cứu mới nhất:\n" + "\n".join(f"- {p}" for p in parts)
 
     return "Không tìm thấy công trình nào. Hãy thử cung cấp tên tác giả hoặc năm xuất bản."
@@ -451,7 +451,7 @@ def handle_search_project(question: str):
             """
             MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
-            RETURN dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, type(r) AS vai_tro,
+            RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, type(r) AS vai_tro,
                    dt.nam_bat_dau AS nam_bd, dt.nam_ket_thuc AS nam_kt
             ORDER BY dt.nam_bat_dau DESC
             LIMIT 8
@@ -462,7 +462,7 @@ def handle_search_project(question: str):
             count = len(results)
             parts = []
             for r in results[:5]:
-                line = f"**{r['ten']}**"
+                line = f"**[{r['ten']}](javascript:showProjectDetail('{r['id']}'))**"
                 if r.get("cap"): line += f" [{r['cap']}]"
                 vai = "Chủ nhiệm" if r.get("vai_tro") == "CHU_NHIEM" else "Thành viên"
                 line += f" ({vai})"
@@ -482,7 +482,7 @@ def handle_search_project(question: str):
             MATCH (dt:DeTaiNghienCuu)
             WHERE dt.nam_bat_dau = $year OR dt.nam_ket_thuc = $year
             OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-            RETURN dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, gv.ho_va_ten AS chu_nhiem
+            RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, gv.ho_va_ten AS chu_nhiem
             LIMIT 8
             """,
             {"year": int(year)}
@@ -490,7 +490,7 @@ def handle_search_project(question: str):
         if results:
             count = len(results)
             parts = [
-                f"**{r['ten']}**" + (f" (CN: {r['chu_nhiem']})" if r.get("chu_nhiem") else "")
+                f"**[{r['ten']}](javascript:showProjectDetail('{r['id']}'))**" + (f" (CN: {r['chu_nhiem']})" if r.get("chu_nhiem") else "")
                 for r in results[:5]
             ]
             suffix = f"\n_...và {count - 5} đề tài khác_" if count >= 5 else ""
@@ -501,12 +501,12 @@ def handle_search_project(question: str):
     results = conn.query("""
         MATCH (dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-        RETURN dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, gv.ho_va_ten AS chu_nhiem
+        RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, gv.ho_va_ten AS chu_nhiem
         ORDER BY dt.nam_bat_dau DESC
         LIMIT 5
     """)
     if results:
-        parts = [f"**{r['ten']}**" + (f" — CN: {r['chu_nhiem']}" if r.get("chu_nhiem") else "") for r in results]
+        parts = [f"**[{r['ten']}](javascript:showProjectDetail('{r['id']}'))**" + (f" — CN: {r['chu_nhiem']}" if r.get("chu_nhiem") else "") for r in results]
         return "5 đề tài nghiên cứu gần đây:\n" + "\n".join(f"- {p}" for p in parts)
 
     return "Không tìm thấy đề tài nào phù hợp."
@@ -535,7 +535,7 @@ def handle_search_by_field(question: str):
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         WHERE toLower(lv.ten_linh_vuc) CONTAINS toLower($field)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv.ho_va_ten AS ten, lv.ten_linh_vuc AS linh_vuc, bm.ten_bo_mon AS bo_mon
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, lv.ten_linh_vuc AS linh_vuc, bm.ten_bo_mon AS bo_mon
         ORDER BY gv.ho_va_ten
         LIMIT 10
         """,
@@ -547,7 +547,7 @@ def handle_search_by_field(question: str):
         MATCH (ct:CongTrinhNghienCuu)
         WHERE toLower(coalesce(ct.tu_khoa,'')) CONTAINS toLower($field)
            OR toLower(coalesce(ct.ten_cong_trinh,'')) CONTAINS toLower($field)
-        RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
+        RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
         ORDER BY ct.nam_xuat_ban DESC
         LIMIT 5
         """,
@@ -558,12 +558,12 @@ def handle_search_by_field(question: str):
     if lecturers:
         lv_name = lecturers[0].get("linh_vuc", field)
         names = [
-            f"**{r['ten']}**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "")
+            f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "")
             for r in lecturers
         ]
         parts.append(f"👨‍🏫 **{len(names)} giảng viên** nghiên cứu về **{lv_name}**:\n" + "\n".join(f"- {n}" for n in names))
     if pubs:
-        pub_list = [f"**{r['ten']}** ({r['nam'] or 'N/A'})" for r in pubs]
+        pub_list = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})" for r in pubs]
         parts.append(f"\n📄 **Công trình liên quan:**\n" + "\n".join(f"- {p}" for p in pub_list))
 
     if parts:
@@ -583,14 +583,14 @@ def handle_collaboration(question: str):
             """
             MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
             WHERE toLower(gv1.ho_va_ten) CONTAINS toLower($name) AND gv1 <> gv2
-            RETURN gv2.ho_va_ten AS dong_nghiep, count(ct) AS so_ct
+            RETURN coalesce(gv2.id, 'gv_' + toString(id(gv2))) AS id, gv2.ho_va_ten AS dong_nghiep, count(ct) AS so_ct
             ORDER BY so_ct DESC
             LIMIT 8
             """,
             {"name": name}
         )
         if results:
-            parts = [f"**{r['dong_nghiep']}** ({r['so_ct']} công trình chung)" for r in results]
+            parts = [f"**[{r['dong_nghiep']}](javascript:showLecturerDetail('{r['id']}'))** ({r['so_ct']} công trình chung)" for r in results]
             return f"Giảng viên **{name}** đã hợp tác với:\n" + "\n".join(f"- {p}" for p in parts)
 
         # Thử hợp tác qua đề tài
@@ -598,14 +598,14 @@ def handle_collaboration(question: str):
             """
             MATCH (gv1:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2:GiangVien)
             WHERE toLower(gv1.ho_va_ten) CONTAINS toLower($name) AND gv1 <> gv2
-            RETURN gv2.ho_va_ten AS dong_nghiep, count(dt) AS so_dt
+            RETURN coalesce(gv2.id, 'gv_' + toString(id(gv2))) AS id, gv2.ho_va_ten AS dong_nghiep, count(dt) AS so_dt
             ORDER BY so_dt DESC
             LIMIT 8
             """,
             {"name": name}
         )
         if project_collab:
-            parts = [f"**{r['dong_nghiep']}** ({r['so_dt']} đề tài chung)" for r in project_collab]
+            parts = [f"**[{r['dong_nghiep']}](javascript:showLecturerDetail('{r['id']}'))** ({r['so_dt']} đề tài chung)" for r in project_collab]
             return f"Giảng viên **{name}** đã cùng tham gia đề tài với:\n" + "\n".join(f"- {p}" for p in parts)
 
         return f"Không tìm thấy mối quan hệ hợp tác nào cho giảng viên **{name}**."
@@ -614,12 +614,12 @@ def handle_collaboration(question: str):
     results = conn.query("""
         MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
         WHERE id(gv1) < id(gv2)
-        RETURN gv1.ho_va_ten AS gv1, gv2.ho_va_ten AS gv2, count(ct) AS so_ct
+        RETURN coalesce(gv1.id, 'gv_' + toString(id(gv1))) AS id1, coalesce(gv2.id, 'gv_' + toString(id(gv2))) AS id2, gv1.ho_va_ten AS gv1, gv2.ho_va_ten AS gv2, count(ct) AS so_ct
         ORDER BY so_ct DESC
         LIMIT 5
     """)
     if results:
-        parts = [f"**{r['gv1']}** & **{r['gv2']}**: {r['so_ct']} công trình chung" for r in results]
+        parts = [f"**[{r['gv1']}](javascript:showLecturerDetail('{r['id1']}'))** & **[{r['gv2']}](javascript:showLecturerDetail('{r['id2']}'))**: {r['so_ct']} công trình chung" for r in results]
         return "Top cặp giảng viên hợp tác nhiều nhất:\n" + "\n".join(f"- {p}" for p in parts)
 
     return "Chưa tìm thấy dữ liệu hợp tác. Thử cung cấp tên giảng viên cụ thể."
@@ -640,7 +640,7 @@ def handle_department(question: str):
             MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
             WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept)
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-            RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+            RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC, gv.ho_va_ten
             """,
@@ -651,7 +651,7 @@ def handle_department(question: str):
             count = len(results)
             parts = []
             for r in results[:10]:
-                line = f"**{r['ten']}**"
+                line = f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"
                 if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
                 if r.get("so_cong_trinh"): line += f" — {r['so_cong_trinh']} CT"
                 parts.append(line)
@@ -683,7 +683,7 @@ def handle_top_lecturers(question: str):
         OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
                count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt
         ORDER BY so_ct DESC, so_dt DESC
         LIMIT 10
@@ -691,7 +691,7 @@ def handle_top_lecturers(question: str):
     if results:
         parts = []
         for i, r in enumerate(results, 1):
-            line = f"**{i}. {r['ten']}**"
+            line = f"**{i}. [{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"
             if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
             line += f"\n  📄 {r['so_ct']} công trình | 🔬 {r['so_dt']} đề tài"
             if r.get("bo_mon"): line += f" | 🏢 {r['bo_mon']}"
@@ -706,7 +706,7 @@ def handle_top_by_projects(question: str):
     results = conn.query("""
         MATCH (gv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                count(DISTINCT dt) AS so_de_tai, bm.ten_bo_mon AS bo_mon
         ORDER BY so_de_tai DESC
         LIMIT 8
@@ -714,7 +714,7 @@ def handle_top_by_projects(question: str):
     if results:
         parts = []
         for i, r in enumerate(results, 1):
-            line = f"**{i}. {r['ten']}**"
+            line = f"**{i}. [{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"
             if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
             line += f" — **{r['so_de_tai']} đề tài**"
             if r.get("bo_mon"): line += f" ({r['bo_mon']})"
@@ -734,7 +734,7 @@ def handle_project_by_level(question: str):
             MATCH (dt:DeTaiNghienCuu)
             WHERE toLower(coalesce(dt.cap_de_tai,'')) CONTAINS toLower($level)
             OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-            RETURN dt.ten_de_tai AS ten, dt.cap_de_tai AS cap,
+            RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap,
                    gv.ho_va_ten AS chu_nhiem, dt.nam_bat_dau AS nam_bd, dt.nam_ket_thuc AS nam_kt
             ORDER BY dt.nam_bat_dau DESC
             LIMIT 10
@@ -745,7 +745,7 @@ def handle_project_by_level(question: str):
             count = len(results)
             parts = []
             for r in results[:8]:
-                line = f"**{r['ten']}**"
+                line = f"**[{r['ten']}](javascript:showProjectDetail('{r['id']}'))**"
                 if r.get("chu_nhiem"): line += f"\n  👤 CN: {r['chu_nhiem']}"
                 if r.get("nam_bd"): line += f" | {r['nam_bd']}"
                 if r.get("nam_kt"): line += f"–{r['nam_kt']}"
@@ -779,7 +779,7 @@ def handle_search_by_journal(question: str):
             WHERE toLower(coalesce(ct.tap_chi,'')) CONTAINS toLower($journal)
                OR toLower(coalesce(ct.loai_cong_trinh,'')) CONTAINS toLower($journal)
             OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-            RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
+            RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
                    ct.tap_chi AS tap_chi, collect(gv.ho_va_ten) AS tac_gia
             ORDER BY ct.nam_xuat_ban DESC
             LIMIT 8
@@ -790,7 +790,7 @@ def handle_search_by_journal(question: str):
             count = len(results)
             parts = []
             for r in results[:5]:
-                line = f"**{r['ten']}** ({r['nam'] or 'N/A'})"
+                line = f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})"
                 if r.get("tac_gia"): line += f"\n  👤 {', '.join(r['tac_gia'][:2])}"
                 parts.append(line)
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
@@ -931,7 +931,7 @@ def handle_unknown(question: str):
         MATCH (gv:GiangVien)
         WHERE toLower(gv.ho_va_ten) CONTAINS toLower($q)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
         LIMIT 3
         """,
         {"q": q}
@@ -943,7 +943,7 @@ def handle_unknown(question: str):
         MATCH (ct:CongTrinhNghienCuu)
         WHERE toLower(ct.ten_cong_trinh) CONTAINS toLower($q)
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-        RETURN ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
+        RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
         LIMIT 3
         """,
         {"q": q}
@@ -955,7 +955,7 @@ def handle_unknown(question: str):
         MATCH (dt:DeTaiNghienCuu)
         WHERE toLower(dt.ten_de_tai) CONTAINS toLower($q)
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-        RETURN dt.ten_de_tai AS ten, gv.ho_va_ten AS chu_nhiem
+        RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, gv.ho_va_ten AS chu_nhiem
         LIMIT 3
         """,
         {"q": q}
@@ -964,16 +964,16 @@ def handle_unknown(question: str):
     parts = []
     if gv_results:
         gvs = [
-            f"**{r['ten']}**" + (f" ({r['hoc_vi']})" if r.get("hoc_vi") else "")
+            f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**" + (f" ({r['hoc_vi']})" if r.get("hoc_vi") else "")
             for r in gv_results
         ]
         parts.append("👨‍🏫 **Giảng viên liên quan:**\n" + "\n".join(f"- {g}" for g in gvs))
     if ct_results:
-        cts = [f"**{r['ten']}** ({r['nam'] or 'N/A'})" for r in ct_results]
+        cts = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})" for r in ct_results]
         parts.append("📄 **Công trình liên quan:**\n" + "\n".join(f"- {c}" for c in cts))
     if dt_results:
         dts = [
-            f"**{r['ten']}**" + (f" — CN: {r['chu_nhiem']}" if r.get("chu_nhiem") else "")
+            f"**[{r['ten']}](javascript:showProjectDetail('{r['id']}'))**" + (f" — CN: {r['chu_nhiem']}" if r.get("chu_nhiem") else "")
             for r in dt_results
         ]
         parts.append("🔬 **Đề tài liên quan:**\n" + "\n".join(f"- {d}" for d in dts))

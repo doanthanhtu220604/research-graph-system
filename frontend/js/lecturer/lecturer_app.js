@@ -137,7 +137,8 @@ const ENTITY_CONFIG = {
             { name: 'nam_bat_dau', label: 'Năm bắt đầu', type: 'number' },
             { name: 'nam_ket_thuc', label: 'Năm kết thúc', type: 'number' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
-            { name: 'link', label: 'Link đề tài', type: 'url' }
+            { name: 'link', label: 'Link đề tài', type: 'url' },
+            { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' }
         ]
     }
 };
@@ -181,7 +182,7 @@ async function loadProjects() {
         if (data.status === 'ok') {
             currentEntitiesData['de-tai'] = data.data;
             if(data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa tham gia đề tài nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa tham gia đề tài nào.</td></tr>';
                 return;
             }
             tbody.innerHTML = data.data.map((dt) => `
@@ -190,6 +191,7 @@ async function loadProjects() {
                     <td><strong>${dt.ten_de_tai}</strong></td>
                     <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
                     <td>${dt.cap_de_tai || 'N/A'}</td>
+                    <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${dt.trang_thai || 'Đã duyệt'}</span></td>
                     <td>
                         <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('de-tai', '${dt.id}')"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/đề tài" onclick="deleteLecturerEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>

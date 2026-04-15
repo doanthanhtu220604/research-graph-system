@@ -175,7 +175,7 @@ def get_my_projects():
         query = """
         MATCH (g:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         WHERE (g.id IS NOT NULL AND toString(g.id) = toString($id)) OR (g.id IS NULL AND toString(id(g)) = toString($id))
-        RETURN dt {.*, id: coalesce(dt.id, id(dt)), vai_tro: type(r)} as de_tai
+        RETURN dt {.*, id: coalesce(dt.id, 'dt_' + toString(id(dt))), vai_tro: type(r)} as de_tai
         ORDER BY dt.nam_bat_dau DESC
         """
         results = conn.query(query, parameters={'id': gv_id})
@@ -195,6 +195,10 @@ def add_my_project():
     if not gv_id:
         return jsonify({'status': 'error', 'message': 'Thiếu giang_vien_id'}), 400
         
+    thanh_vien_ids = data.get('thanh_vien_ids', [])
+    if not isinstance(thanh_vien_ids, list):
+        thanh_vien_ids = []
+        
     vai_tro = data.get('vai_tro', 'THAM_GIA')
     rel_type = "CHU_NHIEM" if vai_tro == "CHU_NHIEM" else "THAM_GIA"
     
@@ -202,21 +206,38 @@ def add_my_project():
         conn = get_neo4j_connection()
         query = f"""
         MATCH (g:GiangVien) WHERE (g.id IS NOT NULL AND toString(g.id) = toString($gv_id)) OR (g.id IS NULL AND toString(id(g)) = toString($gv_id))
+        WITH g
+        
+        OPTIONAL MATCH (member:GiangVien)
+        WHERE member.id IN $thanh_vien_ids
+        WITH g, collect(member) AS members
+        
         CREATE (dt:DeTaiNghienCuu {{
             ten_de_tai: $ten_dt,
             cap_de_tai: $cap,
             nam_bat_dau: toInteger($nam_bd),
             nam_ket_thuc: toInteger($nam_kt),
             tom_tat: $tom_tat,
-            link: $link
+            link: $link,
+            trang_thai: 'Chờ duyệt',
+            nguoi_tao: g.ho_va_ten
         }})
-        WITH g, dt
-        SET dt.id = toString(id(dt))
+        WITH g, members, dt
+        SET dt.id = 'dt_' + toString(id(dt))
+        
         CREATE (g)-[:{rel_type}]->(dt)
-        RETURN dt {{.*, id: id(dt)}} as new_dt
+        
+        FOREACH (m IN members |
+            FOREACH (_ IN CASE WHEN m.id <> g.id THEN [1] ELSE [] END |
+                CREATE (m)-[:THAM_GIA]->(dt)
+            )
+        )
+        
+        RETURN dt {{.*}} as new_dt
         """
         result = conn.write(query, parameters={
             'gv_id': gv_id,
+            'thanh_vien_ids': thanh_vien_ids,
             'ten_dt': data.get('ten_de_tai', ''),
             'cap': data.get('cap_de_tai', ''),
             'nam_bd': data.get('nam_bat_dau'),
@@ -228,7 +249,7 @@ def add_my_project():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@lecturer_api_bp.route('/de-tai/<int:dt_id>', methods=['PUT', 'DELETE'])
+@lecturer_api_bp.route('/de-tai/<dt_id>', methods=['PUT', 'DELETE'])
 def update_my_project(dt_id):
     gv_id = request.args.get('gv_id') or (request.get_json() or {}).get('giang_vien_id')
     if not gv_id:
