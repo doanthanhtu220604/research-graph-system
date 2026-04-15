@@ -76,6 +76,18 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProjects();
     } else if (document.getElementById('page-admin-research-fields')) {
         loadResearchFields();
+    } else if (document.getElementById('page-admin-overview')) {
+        initDashboardOverview();
+    }
+    
+    // Khởi tạo Clock toàn cục
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Gắn sự kiện xuất CSV toàn cục nếu có nút
+    const exportBtn = document.getElementById('exportCsvBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportDashboardCsv);
     }
     
     // Gắn sự kiện submit cho form nếu form tồn tại trong file HTML này
@@ -84,6 +96,114 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', handleFormSubmit);
     }
 });
+
+// ============================================================
+// DASHBOARD OVERVIEW
+// ============================================================
+
+function initDashboardOverview() {
+    setTimeout(initDashboardChart, 100);
+}
+
+function updateClock() {
+    const clockEl = document.getElementById('realtimeClock');
+    if (!clockEl) return;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
+    const dateStr = now.toLocaleDateString('vi-VN');
+    clockEl.innerHTML = `<i class="far fa-clock"></i> ${timeStr} - ${dateStr}`;
+}
+
+function initDashboardChart() {
+    const ctx = document.getElementById('dashboardChart');
+    if (!ctx) return;
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Công nghệ phần mềm', 'Hệ thống thông tin', 'Mạng máy tính'],
+            datasets: [{
+                label: 'Số lượng bài báo',
+                data: [15, 12, 8],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }, {
+                label: 'Số lượng đề tài',
+                data: [5, 8, 3],
+                backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+}
+
+function exportDashboardCsv() {
+    // Xác định đang ở trang nào để xuất dữ liệu tương ứng
+    let csvContent = "data:text/csv;charset=utf-8,\ufeff";
+    let filename = "export_admin.csv";
+
+    if (document.getElementById('page-admin-overview')) {
+        csvContent += "Bộ môn,Số lượng bài báo,Số lượng đề tài\n";
+        csvContent += "Công nghệ phần mềm,15,5\n";
+        csvContent += "Hệ thống thông tin,12,8\n";
+        csvContent += "Mạng máy tính,8,3\n";
+        filename = "thong_ke_he_thong.csv";
+    } else if (document.getElementById('page-admin-lecturers')) {
+        csvContent += "ID,Họ và tên,Học vị,Chức danh,Bộ môn,Email\n";
+        const list = currentEntitiesData['giang-vien'] || [];
+        list.forEach(gv => {
+            csvContent += `"${gv.id || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.bo_mon || ''}","${gv.email || ''}"\n`;
+        });
+        filename = "danh_sach_giang_vien.csv";
+    } else if (document.getElementById('page-admin-publications')) {
+        csvContent += "ID,Tên công trình,Năm xuất bản,Loại ấn phẩm\n";
+        const list = currentEntitiesData['cong-trinh'] || [];
+        list.forEach(ct => {
+            csvContent += `"${ct.id || ''}","${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}","${ct.loai_an_pham || ''}"\n`;
+        });
+        filename = "danh_sach_cong_trinh.csv";
+    } else if (document.getElementById('page-admin-projects')) {
+        csvContent += "ID,Tên đề tài,Cấp đề tài,Năm bắt đầu,Năm kết thúc\n";
+        const list = currentEntitiesData['de-tai'] || [];
+        list.forEach(dt => {
+            csvContent += `"${dt.id || ''}","${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam_bat_dau || ''}","${dt.nam_ket_thuc || ''}"\n`;
+        });
+        filename = "danh_sach_de_tai.csv";
+    } else if (document.getElementById('page-admin-research-fields')) {
+        csvContent += "ID,Tên lĩnh vực\n";
+        const list = currentEntitiesData['linh-vuc'] || [];
+        list.forEach((lv, i) => {
+            csvContent += `"${lv.id || i+1}","${(lv.ten_linh_vuc || '').replace(/"/g, '""')}"\n`;
+        });
+        filename = "danh_sach_linh_vuc.csv";
+    }
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
 // ============================================================
 // LOAD DATA
