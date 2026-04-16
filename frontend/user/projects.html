@@ -23,25 +23,25 @@
 
         <section class="page active" id="page-projects" style="display: block;">
             <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-flask"></i> Đề tài Nghiên cứu</h2>
+                <div class="data-toolbar">
+                    <div class="toolbar-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="projSearchInput" placeholder="Tìm tên đề tài..." oninput="filterUserProjects()">
+                    </div>
+                    <select class="toolbar-select" id="projLevelFilter" onchange="filterUserProjects()">
+                        <option value="">Tất cả cấp</option>
+                        <option value="Cấp Nhà nước">Cấp Nhà nước</option>
+                        <option value="Cấp Bộ">Cấp Bộ</option>
+                        <option value="Cấp Tỉnh/Thành phố">Cấp Tỉnh/TP</option>
+                        <option value="Cấp Trường">Cấp Trường</option>
+                        <option value="Đề tài Doanh nghiệp">Đề tài DN</option>
+                    </select>
+                    <span class="toolbar-count" id="projCount"></span>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="data-table" id="projectsTable">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Tên đề tài</th>
-                                    <th>Chủ nhiệm</th>
-                                    <th>Cấp</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody id="projectsBody">
-                                <tr><td colspan="5" class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
-                            </tbody>
-                        </table>
+                <div id="projectsList" class="data-row-list">
+                    <div class="list-loading">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <span>Đang tải đề tài nghiên cứu...</span>
                     </div>
                 </div>
             </div>

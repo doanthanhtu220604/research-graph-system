@@ -23,27 +23,30 @@
 
         <section class="page active" id="page-lecturers" style="display: block;">
             <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-user-tie"></i> Danh sách Giảng viên</h2>
+                <div class="data-toolbar">
+                    <div class="toolbar-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="lecturerSearchInput" placeholder="Tìm tên giảng viên..." oninput="filterUserLecturers()">
+                    </div>
+                    <select class="toolbar-select" id="lecturerDeptFilter" onchange="filterUserLecturers()">
+                        <option value="">Tất cả bộ môn</option>
+                        <option value="Bộ môn Công nghệ phần mềm">Công nghệ phần mềm</option>
+                        <option value="Bộ môn Hệ thống thông tin">Hệ thống thông tin</option>
+                        <option value="Bộ môn Mạng máy tính và truyền thông">Mạng máy tính & TT</option>
+                    </select>
+                    <select class="toolbar-select" id="lecturerDegreeFilter" onchange="filterUserLecturers()">
+                        <option value="">Tất cả học vị</option>
+                        <option value="Tiến sĩ">Tiến sĩ</option>
+                        <option value="Thạc sĩ">Thạc sĩ</option>
+                        <option value="Phó Giáo sư">Phó Giáo sư</option>
+                        <option value="Giáo sư">Giáo sư</option>
+                    </select>
+                    <span class="toolbar-count" id="lecturerCount"></span>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="data-table" id="lecturersTable">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Họ và tên</th>
-                                    <th>Học vị</th>
-                                    <th>Chức danh</th>
-                                    <th>Bộ môn</th>
-                                    <th>Email</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="lecturersBody">
-                                <tr><td colspan="7" class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
-                            </tbody>
-                        </table>
+                <div id="lecturersGrid" class="profile-card-grid">
+                    <div class="list-loading" style="grid-column: 1/-1;">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <span>Đang tải danh sách giảng viên...</span>
                     </div>
                 </div>
             </div>

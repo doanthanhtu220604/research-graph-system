@@ -23,25 +23,28 @@
 
         <section class="page active" id="page-publications" style="display: block;">
             <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-file-alt"></i> Công trình Nghiên cứu</h2>
+                <div class="data-toolbar">
+                    <div class="toolbar-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="pubSearchInput" placeholder="Tìm tên công trình..." oninput="filterUserPublications()">
+                    </div>
+                    <select class="toolbar-select" id="pubYearFilter" onchange="filterUserPublications()">
+                        <option value="">Tất cả năm</option>
+                    </select>
+                    <select class="toolbar-select" id="pubTypeFilter" onchange="filterUserPublications()">
+                        <option value="">Tất cả loại</option>
+                        <option value="Bài báo khoa học">Bài báo khoa học</option>
+                        <option value="Sách và chương sách">Sách & chương sách</option>
+                        <option value="Hội nghị / Hội thảo quốc tế">Hội nghị quốc tế</option>
+                        <option value="Hội nghị / Hội thảo trong nước">Hội nghị trong nước</option>
+                        <option value="Báo cáo khoa học">Báo cáo khoa học</option>
+                    </select>
+                    <span class="toolbar-count" id="pubCount"></span>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="data-table" id="publicationsTable">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Tên công trình</th>
-                                    <th>Tác giả</th>
-                                    <th>Năm</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody id="publicationsBody">
-                                <tr><td colspan="5" class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
-                            </tbody>
-                        </table>
+                <div id="publicationsList" class="data-row-list">
+                    <div class="list-loading">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <span>Đang tải công trình nghiên cứu...</span>
                     </div>
                 </div>
             </div>

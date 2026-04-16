@@ -694,44 +694,82 @@ function hideSuggestions() {
 // LECTURERS PAGE
 // ============================================================
 
+// Global data cache for filtering
+let _allLecturers = [];
+let _allPublications = [];
+let _allProjects = [];
+
 async function loadLecturers() {
     try {
         const res = await fetch(`${API_BASE}/giang-vien`);
         const data = await res.json();
-
         if (data.status === 'ok') {
-            const tbody = document.getElementById('lecturersBody');
-            tbody.innerHTML = data.data.map((gv, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>
-                        ${gv.anh_dai_dien
-                            ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
-                            : `<i class="fas fa-user-circle" style="font-size:36px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
-                        }
-                        <strong>${gv.ho_va_ten || 'N/A'}</strong>
-                    </td>
-                    <td>${gv.hoc_vi || ''}</td>
-                    <td>${gv.chuc_danh || ''}</td>
-                    <td>${gv.bo_mon || ''}</td>
-                    <td>${gv.email || ''}</td>
-                    <td>
-                        ${gv.id ? `
-                        <button class="btn btn-view" onclick="showLecturerDetail('${gv.id}')">
-                            <i class="fas fa-eye"></i> Xem
-                        </button>
-                        ` : `
-                        <button class="btn btn-view" style="opacity:0.5; cursor:not-allowed;" title="Giảng viên chưa có ID trong hệ thống">
-                            <i class="fas fa-eye-slash"></i> Không có ID
-                        </button>
-                        `}
-                    </td>
-                </tr>
-            `).join('');
+            _allLecturers = data.data;
+            // Populate year dropdown for publications dynamically
+            renderLecturerCards(_allLecturers);
         }
     } catch (err) {
         console.error('Lecturers error:', err);
+        const g = document.getElementById('lecturersGrid');
+        if (g) g.innerHTML = '<div class="list-empty"><i class="fas fa-exclamation-triangle"></i>Lỗi tải dữ liệu</div>';
     }
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    return parts[parts.length - 1].charAt(0).toUpperCase();
+}
+
+function getDegreeColor(hocVi) {
+    if (!hocVi) return 'badge-gray';
+    if (hocVi.includes('Giáo sư')) return 'badge-red';
+    if (hocVi.includes('Tiến sĩ')) return 'badge-blue';
+    if (hocVi.includes('Thạc sĩ')) return 'badge-green';
+    return 'badge-gray';
+}
+
+function renderLecturerCards(list) {
+    const container = document.getElementById('lecturersGrid');
+    const countEl = document.getElementById('lecturerCount');
+    if (!container) return;
+    if (countEl) countEl.textContent = `${list.length} giảng viên`;
+    if (list.length === 0) {
+        container.innerHTML = '<div class="list-empty" style="grid-column:1/-1"><i class="fas fa-user-slash"></i>Không tìm thấy giảng viên phù hợp</div>';
+        return;
+    }
+    container.innerHTML = list.map(gv => {
+        const name = String(gv.ho_va_ten || 'N/A').replace(/</g, '&lt;');
+        const avatarHtml = gv.anh_dai_dien
+            ? `<img src="${String(gv.anh_dai_dien).replace(/"/g, '')}" alt="${name}">`
+            : `<span class="avatar-initials">${getInitials(gv.ho_va_ten)}</span>`;
+        const degreeCls = getDegreeColor(gv.hoc_vi);
+        const deptShort = (gv.bo_mon || '').replace('Bộ môn ', '');
+        return `
+            <div class="profile-card" onclick="showLecturerDetail('${gv.id}')">
+                <div class="profile-avatar">${avatarHtml}</div>
+                <div class="profile-name" title="${name}">${name}</div>
+                <div class="profile-dept">${deptShort || '&mdash;'}</div>
+                <div class="profile-badges">
+                    ${gv.hoc_vi ? `<span class="badge ${degreeCls}">${gv.hoc_vi}</span>` : ''}
+                    ${gv.id ? '' : '<span class="badge badge-gray">No ID</span>'}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterUserLecturers() {
+    const q = (document.getElementById('lecturerSearchInput')?.value || '').toLowerCase();
+    const dept = document.getElementById('lecturerDeptFilter')?.value || '';
+    const degree = document.getElementById('lecturerDegreeFilter')?.value || '';
+    const filtered = _allLecturers.filter(gv => {
+        const matchQ = (gv.ho_va_ten || '').toLowerCase().includes(q);
+        const matchDept = !dept || (gv.bo_mon === dept);
+        const matchDeg = !degree || ((gv.hoc_vi || '').includes(degree));
+        return matchQ && matchDept && matchDeg;
+    });
+    renderLecturerCards(filtered);
 }
 
 async function showLecturerDetail(gvId) {
@@ -979,32 +1017,73 @@ async function loadPublications() {
     try {
         const res = await fetch(`${API_BASE}/cong-trinh`);
         const data = await res.json();
-
         if (data.status === 'ok') {
-            const tbody = document.getElementById('publicationsBody');
-            tbody.innerHTML = data.data.map((ct, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${ct.ten_cong_trinh || 'N/A'}</td>
-                    <td>${(ct.tac_gia || []).join(', ') || 'N/A'}</td>
-                    <td>${ct.nam_xuat_ban || ''}</td>
-                    <td>
-                        ${ct.id ? `
-                        <button class="btn btn-view" onclick="showPublicationDetail('${ct.id}')">
-                            <i class="fas fa-eye"></i> Xem
-                        </button>
-                        ` : `
-                        <button class="btn btn-view" style="opacity:0.5; cursor:not-allowed;" title="Chưa có ID">
-                            <i class="fas fa-eye-slash"></i> Không có ID
-                        </button>
-                        `}
-                    </td>
-                </tr>
-            `).join('');
+            _allPublications = data.data;
+            // Dynamically fill year filter
+            const years = [...new Set(data.data.map(ct => ct.nam_xuat_ban).filter(Boolean))].sort((a,b) => b - a);
+            const ysel = document.getElementById('pubYearFilter');
+            if (ysel) {
+                const existing = new Set([...ysel.options].map(o => o.value));
+                years.forEach(y => { if (!existing.has(String(y))) { const o = document.createElement('option'); o.value = y; o.textContent = y; ysel.appendChild(o); } });
+            }
+            renderPublicationRows(_allPublications);
         }
     } catch (err) {
         console.error('Publications error:', err);
     }
+}
+
+function getTypeBadge(loai) {
+    if (!loai) return '<span class="badge badge-gray">Chưa phân loại</span>';
+    if (loai.includes('quốc tế') || loai.includes('Quốc tế')) return `<span class="badge badge-purple">${loai}</span>`;
+    if (loai.includes('Sách')) return `<span class="badge badge-teal">${loai}</span>`;
+    if (loai.includes('Bài báo')) return `<span class="badge badge-blue">${loai}</span>`;
+    if (loai.includes('Hội nghị')) return `<span class="badge badge-orange">${loai}</span>`;
+    return `<span class="badge badge-gray">${loai}</span>`;
+}
+
+function renderPublicationRows(list) {
+    const container = document.getElementById('publicationsList');
+    const countEl = document.getElementById('pubCount');
+    if (!container) return;
+    if (countEl) countEl.textContent = `${list.length} công trình`;
+    if (list.length === 0) {
+        container.innerHTML = '<div class="list-empty"><i class="fas fa-file-times"></i>Không tìm thấy công trình phù hợp</div>';
+        return;
+    }
+    container.innerHTML = list.map(ct => {
+        const title = String(ct.ten_cong_trinh || 'N/A').replace(/</g, '&lt;');
+        const authors = (ct.tac_gia || []).join(', ');
+        return `
+            <div class="data-row" onclick="showPublicationDetail('${ct.id}')">
+                <div class="data-row-icon row-icon-green"><i class="fas fa-file-alt"></i></div>
+                <div class="data-row-body">
+                    <div class="data-row-title" title="${title}">${title}</div>
+                    <div class="data-row-meta">
+                        ${getTypeBadge(ct.loai_an_pham)}
+                        ${ct.nam_xuat_ban ? `<span class="badge badge-gray"><i class="fas fa-calendar-alt"></i> ${ct.nam_xuat_ban}</span>` : ''}
+                        ${authors ? `<span class="data-row-sub"><i class="fas fa-user"></i> ${authors}</span>` : ''}
+                    </div>
+                </div>
+                <div class="data-row-actions">
+                    <button class="btn-icon btn-icon-view" title="Xem chi tiết" onclick="event.stopPropagation(); showPublicationDetail('${ct.id}')"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterUserPublications() {
+    const q = (document.getElementById('pubSearchInput')?.value || '').toLowerCase();
+    const year = document.getElementById('pubYearFilter')?.value || '';
+    const type = document.getElementById('pubTypeFilter')?.value || '';
+    const filtered = _allPublications.filter(ct => {
+        const matchQ = (ct.ten_cong_trinh || '').toLowerCase().includes(q);
+        const matchYear = !year || (String(ct.nam_xuat_ban) === year);
+        const matchType = !type || (ct.loai_an_pham === type);
+        return matchQ && matchYear && matchType;
+    });
+    renderPublicationRows(filtered);
 }
 
 // ============================================================
@@ -1015,32 +1094,64 @@ async function loadProjects() {
     try {
         const res = await fetch(`${API_BASE}/de-tai`);
         const data = await res.json();
-
         if (data.status === 'ok') {
-            const tbody = document.getElementById('projectsBody');
-            tbody.innerHTML = data.data.map((dt, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${dt.ten_de_tai || 'N/A'}</td>
-                    <td>${(dt.chu_nhiem || []).join(', ') || 'N/A'}</td>
-                    <td>${dt.cap_de_tai || ''}</td>
-                    <td>
-                        ${dt.id ? `
-                        <button class="btn btn-view" onclick="showProjectDetail('${dt.id}')">
-                            <i class="fas fa-eye"></i> Xem
-                        </button>
-                        ` : `
-                        <button class="btn btn-view" style="opacity:0.5; cursor:not-allowed;" title="Chưa có ID">
-                            <i class="fas fa-eye-slash"></i> Không có ID
-                        </button>
-                        `}
-                    </td>
-                </tr>
-            `).join('');
+            _allProjects = data.data;
+            renderProjectRows(_allProjects);
         }
     } catch (err) {
         console.error('Projects error:', err);
     }
+}
+
+function getLevelBadge(cap) {
+    if (!cap) return '<span class="badge badge-gray">Chưa xác định</span>';
+    if (cap.includes('Nhà nước')) return `<span class="badge badge-red">${cap}</span>`;
+    if (cap.includes('Bộ')) return `<span class="badge badge-orange">${cap}</span>`;
+    if (cap.includes('Tỉnh')) return `<span class="badge badge-purple">${cap}</span>`;
+    if (cap.includes('Trường') || cap.includes('Cơ sở')) return `<span class="badge badge-blue">${cap}</span>`;
+    if (cap.includes('Doanh')) return `<span class="badge badge-teal">${cap}</span>`;
+    return `<span class="badge badge-gray">${cap}</span>`;
+}
+
+function renderProjectRows(list) {
+    const container = document.getElementById('projectsList');
+    const countEl = document.getElementById('projCount');
+    if (!container) return;
+    if (countEl) countEl.textContent = `${list.length} đề tài`;
+    if (list.length === 0) {
+        container.innerHTML = '<div class="list-empty"><i class="fas fa-flask"></i>Không tìm thấy đề tài phù hợp</div>';
+        return;
+    }
+    container.innerHTML = list.map(dt => {
+        const title = String(dt.ten_de_tai || 'N/A').replace(/</g, '&lt;');
+        const years = (dt.nam_bat_dau || dt.nam_thuc_hien) ? `${dt.nam_bat_dau || dt.nam_thuc_hien} – ${dt.nam_ket_thuc || 'nay'}` : '';
+        return `
+            <div class="data-row" onclick="showProjectDetail('${dt.id}')">
+                <div class="data-row-icon row-icon-orange"><i class="fas fa-flask"></i></div>
+                <div class="data-row-body">
+                    <div class="data-row-title" title="${title}">${title}</div>
+                    <div class="data-row-meta">
+                        ${getLevelBadge(dt.cap_de_tai)}
+                        ${years ? `<span class="badge badge-gray"><i class="fas fa-clock"></i> ${years}</span>` : ''}
+                    </div>
+                </div>
+                <div class="data-row-actions">
+                    <button class="btn-icon btn-icon-view" title="Xem chi tiết" onclick="event.stopPropagation(); showProjectDetail('${dt.id}')"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterUserProjects() {
+    const q = (document.getElementById('projSearchInput')?.value || '').toLowerCase();
+    const level = document.getElementById('projLevelFilter')?.value || '';
+    const filtered = _allProjects.filter(dt => {
+        const matchQ = (dt.ten_de_tai || '').toLowerCase().includes(q);
+        const matchLevel = !level || (dt.cap_de_tai === level);
+        return matchQ && matchLevel;
+    });
+    renderProjectRows(filtered);
 }
 
 // ─── Chart instances (để destroy khi cần reload) ───
