@@ -97,13 +97,147 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ============================================================
-// DASHBOARD OVERVIEW
-// ============================================================
+// ─── Admin chart instances ───
+let admChartByYear = null;
+let admChartByLevel = null;
 
-function initDashboardOverview() {
-    setTimeout(initDashboardChart, 100);
+async function initDashboardOverview() {
+    try {
+        const res = await fetch(`${API_BASE}/stats/overview`);
+        const data = await res.json();
+        if (data.status !== 'ok') return;
+
+        // ── 1. Animate stat cards ──────────────────────────────
+        animateAdmCard('admCountGV', data.stats.giang_vien);
+        animateAdmCard('admCountCT', data.stats.cong_trinh);
+        animateAdmCard('admCountDT', data.stats.de_tai);
+        animateAdmCard('admCountBM', data.stats.bo_mon);
+
+        // ── 2. Bar chart — publications by year ───────────────
+        const ctNam = data.cong_trinh_theo_nam || [];
+        const ctxBar = document.getElementById('admChartByYear');
+        if (ctxBar) {
+            if (admChartByYear) admChartByYear.destroy();
+            admChartByYear = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ctNam.map(r => String(r.nam)),
+                    datasets: [{
+                        label: 'Số công trình',
+                        data: ctNam.map(r => r.so_luong),
+                        backgroundColor: ctNam.map((_, i) => `rgba(79,142,247,${0.4 + i / Math.max(ctNam.length - 1, 1) * 0.6})`),
+                        borderColor: '#4F8EF7',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b', titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8', padding: 10,
+                            callbacks: { label: ctx => ` ${ctx.parsed.y} công trình` }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, precision: 0 } }
+                    },
+                    animation: { duration: 800, easing: 'easeOutQuart' }
+                }
+            });
+        }
+
+        // ── 3. Doughnut chart — projects by level ─────────────
+        const dtCap = data.de_tai_theo_cap || [];
+        const ctxDonut = document.getElementById('admChartByLevel');
+        if (ctxDonut) {
+            if (admChartByLevel) admChartByLevel.destroy();
+            const palette = ['#4F8EF7','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899','#84cc16'];
+            admChartByLevel = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: dtCap.map(r => r.cap),
+                    datasets: [{
+                        data: dtCap.map(r => r.so_luong),
+                        backgroundColor: palette.slice(0, dtCap.length),
+                        borderColor: 'var(--surface, #ffffff)',
+                        borderWidth: 3, hoverOffset: 8,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#64748b', font: { family: 'Inter', size: 11 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b', titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8', padding: 10,
+                            callbacks: { label: ctx => ` ${ctx.parsed} đề tài` }
+                        }
+                    },
+                    animation: { duration: 800, easing: 'easeOutQuart' }
+                }
+            });
+        }
+
+        // ── 4. Top lecturers compact list ─────────────────────
+        renderAdmTopLecturers(data.top_giang_vien || []);
+
+    } catch (err) {
+        console.error('[Admin Dashboard] Error:', err);
+    }
 }
+
+function animateAdmCard(id, endValue, duration = 1200) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let start = null;
+    const step = ts => {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / duration, 1);
+        const eased = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+        el.textContent = Math.floor(eased * endValue);
+        if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+}
+
+function renderAdmTopLecturers(lecturers) {
+    const el = document.getElementById('admTopLecturersList');
+    if (!el) return;
+    if (!lecturers.length) {
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Chưa có dữ liệu.</p>';
+        return;
+    }
+    const maxCount = Math.max(...lecturers.map(g => Number(g.so_cong_trinh) || 0)) || 1;
+    const numClasses = ['gold', 'silver', 'bronze'];
+    el.innerHTML = lecturers.map((gv, i) => {
+        const count = Number(gv.so_cong_trinh) || 0;
+        const name = String(gv.ten || 'N/A').replace(/</g, '&lt;');
+        const numCls = numClasses[i] || '';
+        const pct = Math.max(8, Math.round((count / maxCount) * 100));
+        return `
+            <div class="adm-rank-item" onclick="viewLecturerStats('${gv.id || ''}')">
+                <div class="adm-rank-num ${numCls}">${i + 1}</div>
+                <div class="adm-rank-info">
+                    <div class="adm-rank-name" title="${name}">${name}</div>
+                    <div class="adm-rank-sub">
+                        <div style="width:${pct}%; height:3px; background:#4F8EF7; border-radius:2px; margin-top:4px; opacity:0.6;"></div>
+                    </div>
+                </div>
+                <span class="adm-rank-badge">${count} CT</span>
+            </div>
+        `;
+    }).join('');
+}
+
+
 
 function updateClock() {
     const clockEl = document.getElementById('realtimeClock');
@@ -111,51 +245,11 @@ function updateClock() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
     const dateStr = now.toLocaleDateString('vi-VN');
-    clockEl.innerHTML = `<i class="far fa-clock"></i> ${timeStr} - ${dateStr}`;
-}
-
-function initDashboardChart() {
-    const ctx = document.getElementById('dashboardChart');
-    if (!ctx) return;
-    
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Công nghệ phần mềm', 'Hệ thống thông tin', 'Mạng máy tính'],
-            datasets: [{
-                label: 'Số lượng bài báo',
-                data: [15, 12, 8],
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }, {
-                label: 'Số lượng đề tài',
-                data: [5, 8, 3],
-                backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                borderColor: 'rgba(255, 159, 64, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            }
-        }
-    });
+    clockEl.innerHTML = `<i class="far fa-clock"></i> ${timeStr} — ${dateStr}`;
 }
 
 function exportDashboardCsv() {
+
     // Xác định đang ở trang nào để xuất dữ liệu tương ứng
     let csvContent = "data:text/csv;charset=utf-8,\ufeff";
     let filename = "export_admin.csv";

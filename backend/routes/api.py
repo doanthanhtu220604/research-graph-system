@@ -439,6 +439,22 @@ def get_overview_stats():
             LIMIT 10
         """)
 
+        # Thống kê công trình theo năm xuất bản (5 năm gần nhất)
+        ct_theo_nam = conn.query("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE ct.nam_xuat_ban IS NOT NULL
+            RETURN ct.nam_xuat_ban AS nam, count(ct) AS so_luong
+            ORDER BY nam ASC
+        """)
+
+        # Thống kê đề tài theo cấp
+        dt_theo_cap = conn.query("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE dt.cap_de_tai IS NOT NULL
+            RETURN dt.cap_de_tai AS cap, count(dt) AS so_luong
+            ORDER BY so_luong DESC
+        """)
+
         return jsonify({
             "status": "ok",
             "stats": {
@@ -448,6 +464,8 @@ def get_overview_stats():
                 "bo_mon": int(bm_count["count"]) if bm_count else 0,
             },
             "top_giang_vien": top_gv,
+            "cong_trinh_theo_nam": [{"nam": r["nam"], "so_luong": int(r["so_luong"])} for r in ct_theo_nam],
+            "de_tai_theo_cap": [{"cap": r["cap"], "so_luong": int(r["so_luong"])} for r in dt_theo_cap],
         })
     except Exception as e:
         import traceback

@@ -1043,48 +1043,220 @@ async function loadProjects() {
     }
 }
 
-// ============================================================
-// STATISTICS PAGE
-// ============================================================
+// ─── Chart instances (để destroy khi cần reload) ───
+let chartByYear = null;
+let chartByLevel = null;
 
 async function loadStatistics() {
     try {
         const res = await fetch(`${API_BASE}/stats/overview`);
         const data = await res.json();
 
-        if (data.status === 'ok') {
-            // Top lecturers
-            renderTopLecturers(data.top_giang_vien, 'statsTopLecturers');
+        if (data.status !== 'ok') return;
 
-            // Overview
-            const overviewContainer = document.getElementById('statsOverview');
-            overviewContainer.innerHTML = `
-                <div class="stats-overview-item">
-                    <span class="stats-overview-label">Tổng giảng viên</span>
-                    <span class="stats-overview-value">${data.stats.giang_vien}</span>
-                </div>
-                <div class="stats-overview-item">
-                    <span class="stats-overview-label">Tổng công trình</span>
-                    <span class="stats-overview-value">${data.stats.cong_trinh}</span>
-                </div>
-                <div class="stats-overview-item">
-                    <span class="stats-overview-label">Tổng đề tài</span>
-                    <span class="stats-overview-value">${data.stats.de_tai}</span>
-                </div>
-                <div class="stats-overview-item">
-                    <span class="stats-overview-label">Tổng bộ môn</span>
-                    <span class="stats-overview-value">${data.stats.bo_mon}</span>
-                </div>
-                <div class="stats-overview-item">
-                    <span class="stats-overview-label">Tổng quan hệ</span>
-                    <span class="stats-overview-value">${data.stats.giang_vien + data.stats.cong_trinh + data.stats.de_tai + data.stats.bo_mon} nodes</span>
-                </div>
-            `;
+        // ── 1. Animate Stat Cards ──────────────────────────────────────────
+        animateStatCard('statCountGV', data.stats.giang_vien);
+        animateStatCard('statCountCT', data.stats.cong_trinh);
+        animateStatCard('statCountDT', data.stats.de_tai);
+        animateStatCard('statCountBM', data.stats.bo_mon);
+
+        // ── 2. Chart — Công trình theo năm (Bar Chart) ────────────────────
+        const ctNam = data.cong_trinh_theo_nam || [];
+        const barLabels = ctNam.map(r => String(r.nam));
+        const barValues = ctNam.map(r => r.so_luong);
+
+        const ctxBar = document.getElementById('chartPublicationsByYear');
+        if (ctxBar) {
+            if (chartByYear) chartByYear.destroy();
+            chartByYear = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'Số công trình',
+                        data: barValues,
+                        backgroundColor: barValues.map((_, i) => {
+                            const alpha = 0.5 + (i / Math.max(barValues.length - 1, 1)) * 0.5;
+                            return `rgba(79, 142, 247, ${alpha})`;
+                        }),
+                        borderColor: '#4F8EF7',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            padding: 10,
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} công trình`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 12 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: { family: 'Inter', size: 12 },
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        }
+                    },
+                    animation: { duration: 800, easing: 'easeOutQuart' },
+                }
+            });
         }
+
+        // ── 3. Chart — Đề tài theo cấp (Doughnut Chart) ──────────────────
+        const dtCap = data.de_tai_theo_cap || [];
+        const doughnutLabels = dtCap.map(r => r.cap);
+        const doughnutValues = dtCap.map(r => r.so_luong);
+        const doughnutColors = [
+            '#4F8EF7', '#10b981', '#f59e0b', '#8b5cf6',
+            '#ef4444', '#06b6d4', '#ec4899', '#84cc16'
+        ];
+
+        const ctxDoughnut = document.getElementById('chartProjectsByLevel');
+        if (ctxDoughnut) {
+            if (chartByLevel) chartByLevel.destroy();
+            chartByLevel = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: doughnutLabels,
+                    datasets: [{
+                        data: doughnutValues,
+                        backgroundColor: doughnutColors.slice(0, doughnutLabels.length),
+                        borderColor: 'var(--surface, #ffffff)',
+                        borderWidth: 3,
+                        hoverOffset: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#64748b',
+                                font: { family: 'Inter', size: 11 },
+                                padding: 12,
+                                usePointStyle: true,
+                                pointStyleWidth: 8,
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            padding: 10,
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed} đề tài`
+                            }
+                        }
+                    },
+                    animation: { duration: 800, easing: 'easeOutQuart' },
+                }
+            });
+        }
+
+        // ── 4. Leaderboard: Top 3 Podium + Rank List 4-10 ────────────────
+        renderStatsLeaderboard(data.top_giang_vien || []);
+
     } catch (err) {
         console.error('Statistics error:', err);
     }
 }
+
+function animateStatCard(id, endValue, duration = 1200) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let start = null;
+    const step = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        // easeOutExpo
+        const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+        el.textContent = Math.floor(eased * endValue);
+        if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+}
+
+function renderStatsLeaderboard(lecturers) {
+    const podiumEl = document.getElementById('statsPodium');
+    const rankListEl = document.getElementById('statsRankList');
+    if (!podiumEl) return;
+
+    if (!lecturers || lecturers.length === 0) {
+        podiumEl.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--text-muted);">Chưa có dữ liệu.</p>';
+        return;
+    }
+
+    const maxCount = Math.max(...lecturers.map(gv => Number(gv.so_cong_trinh) || 0)) || 1;
+
+    // Top 3 Podium
+    const top3 = lecturers.slice(0, 3);
+    const medals = [
+        { icon: 'fa-crown', cls: 'rank-1' },
+        { icon: 'fa-medal', cls: 'rank-2' },
+        { icon: 'fa-medal', cls: 'rank-3' },
+    ];
+
+    podiumEl.innerHTML = top3.map((gv, i) => {
+        const count = Number(gv.so_cong_trinh) || 0;
+        const name = String(gv.ten || 'N/A').replace(/</g, '&lt;');
+        const m = medals[i];
+        return `
+            <div class="podium-card ${m.cls}" onclick="showLecturerDetail('${gv.id || ''}')">
+                <div class="podium-medal"><i class="fas ${m.icon}"></i></div>
+                <div class="podium-name" title="${name}">${name}</div>
+                <div class="podium-count">${count}</div>
+                <div class="podium-count-label">công trình</div>
+            </div>
+        `;
+    }).join('');
+
+    // Rank 4-10
+    const rest = lecturers.slice(3);
+    if (rankListEl) {
+        rankListEl.innerHTML = rest.map((gv, i) => {
+            const count = Number(gv.so_cong_trinh) || 0;
+            const pct = Math.max(8, Math.round((count / maxCount) * 100));
+            const name = String(gv.ten || 'N/A').replace(/</g, '&lt;');
+            return `
+                <div class="rank-list-item" onclick="showLecturerDetail('${gv.id || ''}')">
+                    <div class="rank-num">${i + 4}</div>
+                    <div class="rank-info">
+                        <div class="rank-name" title="${name}">${name}</div>
+                    </div>
+                    <div class="rank-bar-wrap">
+                        <div class="rank-bar">
+                            <div class="rank-bar-fill" style="width: ${pct}%;"></div>
+                        </div>
+                        <span class="rank-count-badge">${count}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
 
 // ============================================================
 // LOGIN MODAL LOGIC
