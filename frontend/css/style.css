@@ -1588,10 +1588,15 @@ body:has(.sidebar) .card {
 /* ── Profile Card Grid (Giảng viên) ── */
 .profile-card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 18px;
     padding: 24px;
 }
+
+@media (max-width: 1200px) { .profile-card-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 992px) { .profile-card-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .profile-card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .profile-card-grid { grid-template-columns: 1fr; } }
 
 .profile-card {
     background: var(--bg-secondary);
@@ -1780,3 +1785,45 @@ body:has(.sidebar) .card {
 }
 .list-empty i { font-size: 36px; margin-bottom: 10px; opacity: 0.4; display: block; }
 
+/* ---------- Pagination ---------- */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+.pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.page-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.page-btn:hover:not(.disabled):not(.active) {
+    background: rgba(59, 130, 246, 0.08); /* accent-blue alpha */
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+.page-btn.active {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+.page-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(0,0,0,0.02);
+}

@@ -696,6 +696,9 @@ function hideSuggestions() {
 
 // Global data cache for filtering
 let _allLecturers = [];
+let _filteredLecturers = [];
+let _currentLecturerPage = 1;
+const LECTURERS_PER_PAGE = 10;
 let _allPublications = [];
 let _allProjects = [];
 
@@ -705,8 +708,8 @@ async function loadLecturers() {
         const data = await res.json();
         if (data.status === 'ok') {
             _allLecturers = data.data;
-            // Populate year dropdown for publications dynamically
-            renderLecturerCards(_allLecturers);
+            _filteredLecturers = [..._allLecturers];
+            renderLecturerPage(1);
         }
     } catch (err) {
         console.error('Lecturers error:', err);
@@ -729,16 +732,32 @@ function getDegreeColor(hocVi) {
     return 'badge-gray';
 }
 
-function renderLecturerCards(list) {
-    const container = document.getElementById('lecturersGrid');
+function renderLecturerPage(page) {
+    _currentLecturerPage = page;
+    const limit = LECTURERS_PER_PAGE;
+    const total = _filteredLecturers.length;
+    const totalPages = Math.ceil(total / limit);
+    
+    if (_currentLecturerPage < 1) _currentLecturerPage = 1;
+    if (_currentLecturerPage > totalPages && totalPages > 0) _currentLecturerPage = totalPages;
+    
+    const start = (_currentLecturerPage - 1) * limit;
+    const end = start + limit;
+    const listToRender = _filteredLecturers.slice(start, end);
+    
     const countEl = document.getElementById('lecturerCount');
+    if (countEl) countEl.textContent = `${total} giảng viên`;
+
+    const container = document.getElementById('lecturersGrid');
     if (!container) return;
-    if (countEl) countEl.textContent = `${list.length} giảng viên`;
-    if (list.length === 0) {
+    
+    if (total === 0) {
         container.innerHTML = '<div class="list-empty" style="grid-column:1/-1"><i class="fas fa-user-slash"></i>Không tìm thấy giảng viên phù hợp</div>';
+        renderLecturerPagination(0, 1);
         return;
     }
-    container.innerHTML = list.map(gv => {
+    
+    container.innerHTML = listToRender.map(gv => {
         const name = String(gv.ho_va_ten || 'N/A').replace(/</g, '&lt;');
         const avatarHtml = gv.anh_dai_dien
             ? `<img src="${String(gv.anh_dai_dien).replace(/"/g, '')}" alt="${name}">`
@@ -757,19 +776,56 @@ function renderLecturerCards(list) {
             </div>
         `;
     }).join('');
+    
+    renderLecturerPagination(totalPages, _currentLecturerPage);
+}
+
+function renderLecturerPagination(totalPages, currentPage) {
+    const container = document.getElementById('lecturersPagination');
+    if (!container) return;
+    
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '<div class="pagination">';
+    
+    if (currentPage > 1) {
+        html += `<button class="page-btn" onclick="renderLecturerPage(${currentPage - 1})" title="Trang trước"><i class="fas fa-chevron-left"></i></button>`;
+    } else {
+        html += `<button class="page-btn disabled" disabled><i class="fas fa-chevron-left"></i></button>`;
+    }
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+            html += `<button class="page-btn active">${i}</button>`;
+        } else {
+            html += `<button class="page-btn" onclick="renderLecturerPage(${i})">${i}</button>`;
+        }
+    }
+    
+    if (currentPage < totalPages) {
+        html += `<button class="page-btn" onclick="renderLecturerPage(${currentPage + 1})" title="Trang sau"><i class="fas fa-chevron-right"></i></button>`;
+    } else {
+        html += `<button class="page-btn disabled" disabled><i class="fas fa-chevron-right"></i></button>`;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 function filterUserLecturers() {
     const q = (document.getElementById('lecturerSearchInput')?.value || '').toLowerCase();
     const dept = document.getElementById('lecturerDeptFilter')?.value || '';
     const degree = document.getElementById('lecturerDegreeFilter')?.value || '';
-    const filtered = _allLecturers.filter(gv => {
+    _filteredLecturers = _allLecturers.filter(gv => {
         const matchQ = (gv.ho_va_ten || '').toLowerCase().includes(q);
         const matchDept = !dept || (gv.bo_mon === dept);
         const matchDeg = !degree || ((gv.hoc_vi || '').includes(degree));
         return matchQ && matchDept && matchDeg;
     });
-    renderLecturerCards(filtered);
+    renderLecturerPage(1);
 }
 
 async function showLecturerDetail(gvId) {
