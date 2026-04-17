@@ -1221,134 +1221,23 @@ async function loadStatistics() {
 
         if (data.status !== 'ok') return;
 
-        // ── 1. Animate Stat Cards ──────────────────────────────────────────
+        // ── 1. Animate Stat Cards ──────────────────────────────────────────────
         animateStatCard('statCountGV', data.stats.giang_vien);
         animateStatCard('statCountCT', data.stats.cong_trinh);
         animateStatCard('statCountDT', data.stats.de_tai);
         animateStatCard('statCountBM', data.stats.bo_mon);
 
-        // ── 2. Chart — Công trình theo năm (Bar Chart) ────────────────────
-        const ctNam = data.cong_trinh_theo_nam || [];
-        const barLabels = ctNam.map(r => String(r.nam));
-        const barValues = ctNam.map(r => r.so_luong);
-
-        const ctxBar = document.getElementById('chartPublicationsByYear');
-        if (ctxBar) {
-            if (chartByYear) chartByYear.destroy();
-            chartByYear = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: barLabels,
-                    datasets: [{
-                        label: 'Số công trình',
-                        data: barValues,
-                        backgroundColor: barValues.map((_, i) => {
-                            const alpha = 0.5 + (i / Math.max(barValues.length - 1, 1)) * 0.5;
-                            return `rgba(79, 142, 247, ${alpha})`;
-                        }),
-                        borderColor: '#4F8EF7',
-                        borderWidth: 1.5,
-                        borderRadius: 6,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#94a3b8',
-                            padding: 10,
-                            callbacks: {
-                                label: ctx => ` ${ctx.parsed.y} công trình`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 12 } }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            ticks: {
-                                color: '#94a3b8',
-                                font: { family: 'Inter', size: 12 },
-                                stepSize: 1,
-                                precision: 0
-                            }
-                        }
-                    },
-                    animation: { duration: 800, easing: 'easeOutQuart' },
-                }
-            });
-        }
-
-        // ── 3. Chart — Đề tài theo cấp (Doughnut Chart) ──────────────────
-        const dtCap = data.de_tai_theo_cap || [];
-        const doughnutLabels = dtCap.map(r => r.cap);
-        const doughnutValues = dtCap.map(r => r.so_luong);
-        const doughnutColors = [
-            '#4F8EF7', '#10b981', '#f59e0b', '#8b5cf6',
-            '#ef4444', '#06b6d4', '#ec4899', '#84cc16'
-        ];
-
-        const ctxDoughnut = document.getElementById('chartProjectsByLevel');
-        if (ctxDoughnut) {
-            if (chartByLevel) chartByLevel.destroy();
-            chartByLevel = new Chart(ctxDoughnut, {
-                type: 'doughnut',
-                data: {
-                    labels: doughnutLabels,
-                    datasets: [{
-                        data: doughnutValues,
-                        backgroundColor: doughnutColors.slice(0, doughnutLabels.length),
-                        borderColor: 'var(--surface, #ffffff)',
-                        borderWidth: 3,
-                        hoverOffset: 8,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '62%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#64748b',
-                                font: { family: 'Inter', size: 11 },
-                                padding: 12,
-                                usePointStyle: true,
-                                pointStyleWidth: 8,
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#94a3b8',
-                            padding: 10,
-                            callbacks: {
-                                label: ctx => ` ${ctx.parsed} đề tài`
-                            }
-                        }
-                    },
-                    animation: { duration: 800, easing: 'easeOutQuart' },
-                }
-            });
-        }
-
-        // ── 4. Leaderboard: Top 3 Podium + Rank List 4-10 ────────────────
-        renderStatsLeaderboard(data.top_giang_vien || []);
+        // ── 2. Render ongoing activities ───────────────────────────────────────
+        renderOngoingActivities(
+            data.de_tai_dang_thuc_hien || [],
+            data.cong_trinh_moi || []
+        );
 
     } catch (err) {
         console.error('Statistics error:', err);
     }
 }
+
 
 function animateStatCard(id, endValue, duration = 1200) {
     const el = document.getElementById(id);
@@ -1366,62 +1255,83 @@ function animateStatCard(id, endValue, duration = 1200) {
 }
 
 function renderStatsLeaderboard(lecturers) {
-    const podiumEl = document.getElementById('statsPodium');
-    const rankListEl = document.getElementById('statsRankList');
-    if (!podiumEl) return;
+    // Kept for backward compatibility
+}
 
-    if (!lecturers || lecturers.length === 0) {
-        podiumEl.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--text-muted);">Chưa có dữ liệu.</p>';
-        return;
-    }
-
-    const maxCount = Math.max(...lecturers.map(gv => Number(gv.so_cong_trinh) || 0)) || 1;
-
-    // Top 3 Podium
-    const top3 = lecturers.slice(0, 3);
-    const medals = [
-        { icon: 'fa-crown', cls: 'rank-1' },
-        { icon: 'fa-medal', cls: 'rank-2' },
-        { icon: 'fa-medal', cls: 'rank-3' },
-    ];
-
-    podiumEl.innerHTML = top3.map((gv, i) => {
-        const count = Number(gv.so_cong_trinh) || 0;
-        const name = String(gv.ten || 'N/A').replace(/</g, '&lt;');
-        const m = medals[i];
-        return `
-            <div class="podium-card ${m.cls}" onclick="showLecturerDetail('${gv.id || ''}')">
-                <div class="podium-medal"><i class="fas ${m.icon}"></i></div>
-                <div class="podium-name" title="${name}">${name}</div>
-                <div class="podium-count">${count}</div>
-                <div class="podium-count-label">công trình</div>
-            </div>
-        `;
-    }).join('');
-
-    // Rank 4-10
-    const rest = lecturers.slice(3);
-    if (rankListEl) {
-        rankListEl.innerHTML = rest.map((gv, i) => {
-            const count = Number(gv.so_cong_trinh) || 0;
-            const pct = Math.max(8, Math.round((count / maxCount) * 100));
-            const name = String(gv.ten || 'N/A').replace(/</g, '&lt;');
-            return `
-                <div class="rank-list-item" onclick="showLecturerDetail('${gv.id || ''}')">
-                    <div class="rank-num">${i + 4}</div>
-                    <div class="rank-info">
-                        <div class="rank-name" title="${name}">${name}</div>
-                    </div>
-                    <div class="rank-bar-wrap">
-                        <div class="rank-bar">
-                            <div class="rank-bar-fill" style="width: ${pct}%;"></div>
+// ── Render danh sách hoạt động ─────────────────────────────────────────
+function renderOngoingActivities(projects, publications) {
+    // Panel: Đề tài đang thực hiện
+    const projEl = document.getElementById('statsOngoingProjects');
+    if (projEl) {
+        if (!projects || projects.length === 0) {
+            projEl.innerHTML = '<div class="list-empty"><i class="fas fa-inbox"></i>Không có đề tài đang thực hiện</div>';
+        } else {
+            projEl.innerHTML = projects.map(dt => {
+                const title = String(dt.ten_de_tai || 'N/A').replace(/</g, '&lt;');
+                const cap = dt.cap_de_tai || 'Chưa xác định';
+                const nam = dt.nam_bat_dau ? `${dt.nam_bat_dau} – ${dt.nam_ket_thuc || 'nay'}` : '';
+                const chu = dt.chu_nhiem ? `<i class="fas fa-user"></i> ${dt.chu_nhiem}` : '';
+                return `
+                    <div class="activity-item" onclick="showProjectDetail('${dt.id || ''}')">
+                        <div class="activity-item-icon activity-icon-project">
+                            <i class="fas fa-flask"></i>
                         </div>
-                        <span class="rank-count-badge">${count}</span>
+                        <div class="activity-item-body">
+                            <div class="activity-item-title" title="${title}">${title}</div>
+                            <div class="activity-item-meta">
+                                <span class="badge-ongoing">Đang thực hiện</span>
+                                ${cap ? `<span>${cap}</span>` : ''}
+                                ${nam ? `<span><i class="fas fa-calendar"></i> ${nam}</span>` : ''}
+                                ${chu ? `<span>${chu}</span>` : ''}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        }
     }
+
+    // Panel: Công trình mới
+    const pubEl = document.getElementById('statsRecentPublications');
+    if (pubEl) {
+        if (!publications || publications.length === 0) {
+            pubEl.innerHTML = '<div class="list-empty"><i class="fas fa-inbox"></i>Không có dữ liệu</div>';
+        } else {
+            pubEl.innerHTML = publications.map(ct => {
+                const title = String(ct.ten_cong_trinh || 'N/A').replace(/</g, '&lt;');
+                const authors = (ct.tac_gia || []).slice(0, 2).join(', ');
+                const extra = (ct.tac_gia || []).length > 2 ? ` +${(ct.tac_gia || []).length - 2}` : '';
+                return `
+                    <div class="activity-item" onclick="showPublicationDetail('${ct.id || ''}')">
+                        <div class="activity-item-icon activity-icon-pub">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="activity-item-body">
+                            <div class="activity-item-title" title="${title}">${title}</div>
+                            <div class="activity-item-meta">
+                                ${ct.nam_xuat_ban ? `<span class="badge-new-pub">${ct.nam_xuat_ban}</span>` : ''}
+                                ${ct.loai_an_pham ? `<span>${ct.loai_an_pham}</span>` : ''}
+                                ${authors ? `<span><i class="fas fa-user"></i> ${authors}${extra}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+}
+
+// ── Switch tab giữa Đề tài và Công trình ────────────────────────────────
+function switchActivityTab(tab) {
+    const panels = { projects: 'panelProjects', publications: 'panelPublications' };
+    const tabs   = { projects: 'tabProjects',   publications: 'tabPublications' };
+
+    Object.keys(panels).forEach(key => {
+        const panel = document.getElementById(panels[key]);
+        const btn   = document.getElementById(tabs[key]);
+        if (panel) panel.classList.toggle('active', key === tab);
+        if (btn)   btn.classList.toggle('active', key === tab);
+    });
 }
 
 

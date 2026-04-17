@@ -18,6 +18,7 @@ def create_cong_trinh():
                 nam_xuat_ban: $nam_xuat_ban,
                 loai_an_pham: $loai_an_pham,
                 tom_tat: $tom_tat,
+                trang_thai: coalesce($trang_thai, 'Hoàn thành'),
                 link: $link
             })
             SET ct.id = 'ct_' + toString(id(ct))
@@ -38,6 +39,7 @@ def update_cong_trinh(id):
                 ct.nam_xuat_ban = $nam_xuat_ban,
                 ct.loai_an_pham = $loai_an_pham,
                 ct.tom_tat = $tom_tat,
+                ct.trang_thai = coalesce($trang_thai, 'Hoàn thành'),
                 ct.link = $link
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})

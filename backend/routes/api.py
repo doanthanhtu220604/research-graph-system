@@ -143,6 +143,7 @@ def get_all_de_tai():
         MATCH (dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
         RETURN dt, collect(gv.ho_va_ten) AS chu_nhiem
+        ORDER BY coalesce(dt.created_at, 0) DESC, id(dt) DESC
     """)
     de_tai_list = []
     for r in results:
@@ -455,6 +456,35 @@ def get_overview_stats():
             ORDER BY so_luong DESC
         """)
 
+        # ── Đề tài đang thực hiện ──────────────────────────────────────────
+        dt_dang_thuc_hien = conn.query("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE dt.trang_thai = 'Đang thực hiện'
+            OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
+            RETURN dt.id AS id,
+                   dt.ten_de_tai AS ten_de_tai,
+                   dt.cap_de_tai AS cap_de_tai,
+                   dt.nam_bat_dau AS nam_bat_dau,
+                   dt.nam_ket_thuc AS nam_ket_thuc,
+                   collect(gv.ho_va_ten)[0] AS chu_nhiem
+            ORDER BY dt.nam_bat_dau DESC
+            LIMIT 6
+        """)
+
+        # ── Công trình mới nhất ─────────────────────────────────────────────
+        ct_moi = conn.query("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE ct.nam_xuat_ban IS NOT NULL
+            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            RETURN ct.id AS id,
+                   ct.ten_cong_trinh AS ten_cong_trinh,
+                   ct.loai_an_pham AS loai_an_pham,
+                   ct.nam_xuat_ban AS nam_xuat_ban,
+                   collect(gv.ho_va_ten) AS tac_gia
+            ORDER BY ct.nam_xuat_ban DESC
+            LIMIT 6
+        """)
+
         return jsonify({
             "status": "ok",
             "stats": {
@@ -466,6 +496,27 @@ def get_overview_stats():
             "top_giang_vien": top_gv,
             "cong_trinh_theo_nam": [{"nam": r["nam"], "so_luong": int(r["so_luong"])} for r in ct_theo_nam],
             "de_tai_theo_cap": [{"cap": r["cap"], "so_luong": int(r["so_luong"])} for r in dt_theo_cap],
+            "de_tai_dang_thuc_hien": [
+                {
+                    "id": r["id"],
+                    "ten_de_tai": r["ten_de_tai"],
+                    "cap_de_tai": r["cap_de_tai"],
+                    "nam_bat_dau": r["nam_bat_dau"],
+                    "nam_ket_thuc": r["nam_ket_thuc"],
+                    "chu_nhiem": r["chu_nhiem"],
+                }
+                for r in dt_dang_thuc_hien
+            ],
+            "cong_trinh_moi": [
+                {
+                    "id": r["id"],
+                    "ten_cong_trinh": r["ten_cong_trinh"],
+                    "loai_an_pham": r["loai_an_pham"],
+                    "nam_xuat_ban": r["nam_xuat_ban"],
+                    "tac_gia": r["tac_gia"],
+                }
+                for r in ct_moi
+            ],
         })
     except Exception as e:
         import traceback

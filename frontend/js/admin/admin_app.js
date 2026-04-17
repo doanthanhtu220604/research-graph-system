@@ -36,6 +36,11 @@ const ENTITY_CONFIG = {
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
             { name: 'loai_an_pham', label: 'Loại ấn phẩm', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
+            { name: 'trang_thai', label: 'Trạng thái', type: 'select', options: [
+                { value: 'Hoàn thành', label: 'Hoàn thành' },
+                { value: 'Đang thực hiện', label: 'Đang thực hiện' },
+                { value: 'Chờ duyệt', label: 'Chờ duyệt' }
+            ]},
             { name: 'link', label: 'Link bài viết', type: 'url' }
         ]
     },
@@ -49,6 +54,10 @@ const ENTITY_CONFIG = {
             { name: 'nam_bat_dau', label: 'Năm bắt đầu', type: 'number' },
             { name: 'nam_ket_thuc', label: 'Năm kết thúc', type: 'number' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
+            { name: 'trang_thai', label: 'Trạng thái', type: 'select', options: [
+                { value: 'Hoàn thành', label: 'Hoàn thành' },
+                { value: 'Đang thực hiện', label: 'Đang thực hiện' }
+            ]},
             { name: 'link', label: 'Link đề tài', type: 'url' }
         ]
     },
@@ -458,17 +467,21 @@ function renderProjectsTable(dataList) {
     if (!tbody) return;
     
     if (dataList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy đề tài phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy đề tài phù hợp.</td></tr>';
         return;
     }
     
     tbody.innerHTML = dataList.map((dt) => {
         const originalIndex = currentEntitiesData['de-tai'].indexOf(dt);
+        const namThucHien = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) 
+            ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` 
+            : (dt.nam_bat_dau || dt.nam_ket_thuc || '');
         return `
         <tr>
             <td>${dt.id || 'N/A'}</td>
             <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
             <td>${dt.cap_de_tai || ''}</td>
+            <td>${namThucHien}</td>
             <td>
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>

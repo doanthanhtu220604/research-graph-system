@@ -19,7 +19,9 @@ def create_de_tai():
                 nam_bat_dau: $nam_bat_dau,
                 nam_ket_thuc: $nam_ket_thuc,
                 tom_tat: $tom_tat,
-                link: $link
+                trang_thai: coalesce($trang_thai, 'Hoàn thành'),
+                link: $link,
+                created_at: timestamp()
             })
             SET dt.id = 'dt_' + toString(id(dt))
             RETURN dt.id AS id
@@ -40,6 +42,7 @@ def update_de_tai(id):
                 dt.nam_bat_dau = $nam_bat_dau,
                 dt.nam_ket_thuc = $nam_ket_thuc,
                 dt.tom_tat = $tom_tat,
+                dt.trang_thai = coalesce($trang_thai, 'Hoàn thành'),
                 dt.link = $link
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
