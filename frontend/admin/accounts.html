@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quản lý tài khoản - Knowledge Map Admin">
+    <title>Quản lý Tài khoản - Knowledge Map Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .account-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-active   { background: rgba(40,167,69,0.1);  color: #28a745; border: 1px solid #28a745; }
+        .badge-locked   { background: rgba(220,53,69,0.1);  color: #dc3545; border: 1px solid #dc3545; }
+        .badge-no-acct  { background: rgba(108,117,125,0.1);color: #6c757d; border: 1px solid #6c757d; }
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .stat-card-icon {
+            width: 46px; height: 46px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .stat-card-info .value { font-size: 26px; font-weight: 700; color: var(--text-primary); }
+        .stat-card-info .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .pw-modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            align-items: center; justify-content: center;
+        }
+        .pw-modal-overlay.active { display: flex; }
+        .pw-modal {
+            background: var(--surface);
+            border-radius: 14px;
+            padding: 30px;
+            width: 420px;
+            max-width: 95vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+        .pw-modal h3 { margin: 0 0 20px; font-size: 18px; color: var(--text-primary); }
+        .pw-modal label { font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+        .pw-modal input[type=text],
+        .pw-modal input[type=password] {
+            width: 100%; padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px; font-size: 14px;
+            color: var(--text-primary);
+            background: var(--bg-hover);
+            box-sizing: border-box;
+        }
+        .pw-modal .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-user-shield"></i>
+                <span class="logo-text">KnowledgeMap Admin</span>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tổng quan hệ thống</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="lecturers.html" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <span>QL Giảng viên</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="publications.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>QL Công trình</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="projects.html" class="nav-link">
+                    <i class="fas fa-flask"></i>
+                    <span>QL Đề tài</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="research_fields.html" class="nav-link">
+                    <i class="fas fa-layer-group"></i>
+                    <span>QL Lĩnh vực NG</span>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="accounts.html" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <span>QL Tài khoản</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Về trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" onclick="logoutAdmin()" class="nav-link" style="color: var(--accent-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Quản lý Tài khoản</h1>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
+                <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 14px;"></div>
+                <span style="font-weight: 500; color: var(--text-secondary);">Xin chào, Admin</span>
+            </div>
+        </header>
+
+        <!-- ACCOUNTS SECTION -->
+        <section class="page active" id="page-admin-accounts" style="display: block;">
+
+            <!-- Stat Cards -->
+            <div class="stat-cards" id="accountStatCards">
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background:rgba(79,142,247,0.12); color:#4F8EF7;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-card-info">
+                        <div class="value" id="statTotal">—</div>
+                        <div class="label">Tổng giảng viên</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background:rgba(40,167,69,0.12); color:#28a745;">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-card-info">
+                        <div class="value" id="statActive">—</div>
+                        <div class="label">Có tài khoản</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background:rgba(108,117,125,0.12); color:#6c757d;">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <div class="stat-card-info">
+                        <div class="value" id="statNoAccount">—</div>
+                        <div class="label">Chưa có tài khoản</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background:rgba(220,53,69,0.12); color:#dc3545;">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="stat-card-info">
+                        <div class="value" id="statLocked">—</div>
+                        <div class="label">Bị khoá</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users-cog"></i> Quản lý Tài khoản Giảng viên</h2>
+                </div>
+                <div class="card-body">
+                    <div class="filter-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="width: 280px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="filterAccName" placeholder="Tìm tên giảng viên hoặc email..." style="font-size: 14px;" onkeyup="filterAccounts()">
+                        </div>
+                        <select id="filterAccStatus" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterAccounts()">
+                            <option value="">-- Tất cả trạng thái --</option>
+                            <option value="co_tai_khoan">Có tài khoản</option>
+                            <option value="chua_co">Chưa có tài khoản</option>
+                            <option value="Hoạt động">Đang hoạt động</option>
+                            <option value="Bị khoá">Bị khoá</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="adminAccountsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Họ và tên</th>
+                                    <th>Email</th>
+                                    <th>Bộ môn</th>
+                                    <th>Trạng thái TK</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAccountsBody">
+                                <tr><td colspan="6" class="loading-cell">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Password Modal -->
+    <div class="pw-modal-overlay" id="pwModalOverlay">
+        <div class="pw-modal">
+            <h3 id="pwModalTitle"><i class="fas fa-key"></i> Đặt mật khẩu</h3>
+            <input type="hidden" id="pwTargetId">
+            <input type="hidden" id="pwTargetMode">
+            <div style="margin-bottom: 16px;">
+                <label for="pwInput">Mật khẩu mới <span style="color:red">*</span></label>
+                <div style="position:relative;">
+                    <input type="password" id="pwInput" placeholder="Nhập mật khẩu mới..." autocomplete="new-password">
+                    <button type="button" onclick="togglePwVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);">
+                        <i class="fas fa-eye" id="pwToggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label for="pwConfirm">Xác nhận mật khẩu <span style="color:red">*</span></label>
+                <input type="password" id="pwConfirm" placeholder="Nhập lại mật khẩu..." autocomplete="new-password">
+            </div>
+            <div class="actions">
+                <button class="btn" onclick="closePwModal()">Huỷ</button>
+                <button class="btn btn-primary" onclick="savePwModal()"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/admin/admin_app.js"></script>
+    <script>
+        // ── Password Modal helpers ──────────────────────────────────
+        function openPwModal(gvId, mode) {
+            document.getElementById('pwTargetId').value = gvId;
+            document.getElementById('pwTargetMode').value = mode;
+            document.getElementById('pwInput').value = '';
+            document.getElementById('pwConfirm').value = '';
+            document.getElementById('pwModalTitle').innerHTML =
+                mode === 'set'
+                    ? '<i class="fas fa-key"></i> Tạo tài khoản'
+                    : '<i class="fas fa-redo"></i> Đặt lại mật khẩu';
+            document.getElementById('pwModalOverlay').classList.add('active');
+            document.getElementById('pwInput').focus();
+        }
+        function closePwModal() {
+            document.getElementById('pwModalOverlay').classList.remove('active');
+        }
+        function togglePwVisibility() {
+            const inp = document.getElementById('pwInput');
+            const ico = document.getElementById('pwToggleIcon');
+            if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; }
+            else { inp.type = 'password'; ico.className = 'fas fa-eye'; }
+        }
+        async function savePwModal() {
+            const gvId = document.getElementById('pwTargetId').value;
+            const mode = document.getElementById('pwTargetMode').value;
+            const pw = document.getElementById('pwInput').value.trim();
+            const cf = document.getElementById('pwConfirm').value.trim();
+            if (!pw) { alert('Vui lòng nhập mật khẩu.'); return; }
+            if (pw !== cf) { alert('Mật khẩu xác nhận không khớp.'); return; }
+            if (pw.length < 4) { alert('Mật khẩu phải có ít nhất 4 ký tự.'); return; }
+
+            const endpoint = mode === 'set'
+                ? `/api/admin/accounts/${gvId}/set-password`
+                : `/api/admin/accounts/${gvId}/reset-password`;
+            const body = mode === 'set' ? { password: pw } : { new_password: pw };
+            try {
+                const res = await fetch(endpoint, {
+                    method: mode === 'set' ? 'POST' : 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.status === 'ok') { closePwModal(); loadAccounts(); }
+                else { alert('Lỗi: ' + data.message); }
+            } catch(e) { alert('Lỗi kết nối.'); }
+        }
+        // Close modal on backdrop click
+        document.getElementById('pwModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closePwModal();
+        });
+    </script>
+</body>
+</html>

@@ -71,6 +71,18 @@ def update_de_tai(id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@admin_projects_bp.route("/de-tai/<id>/approve", methods=["PUT"])
+def approve_de_tai(id):
+    conn = get_neo4j_connection()
+    try:
+        conn.write("""
+            MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
+            SET dt.trang_thai = 'Đang thực hiện'
+        """, {"id": id})
+        return jsonify({"status": "ok", "message": "Duyệt đề tài thành công"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @admin_projects_bp.route("/de-tai/<id>", methods=["DELETE"])
 def delete_de_tai(id):
     conn = get_neo4j_connection()

@@ -103,7 +103,7 @@ def get_all_cong_trinh():
         MATCH (ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
         RETURN ct, collect(gv.ho_va_ten) AS tac_gia
-        ORDER BY ct.nam_xuat_ban DESC
+        ORDER BY ct.nam_xuat_ban DESC, coalesce(ct.created_at, 0) DESC, id(ct) DESC
     """)
     cong_trinh_list = []
     for r in results:

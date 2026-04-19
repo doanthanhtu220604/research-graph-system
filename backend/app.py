@@ -21,6 +21,7 @@ from backend.routes.admin_publications import admin_publications_bp
 from backend.routes.admin_projects import admin_projects_bp
 from backend.routes.admin_relations import admin_relations_bp
 from backend.routes.admin_research_fields import admin_research_fields_bp
+from backend.routes.admin_accounts import admin_accounts_bp
 from backend.routes.auth import auth_bp
 from backend.routes.lecturer_api import lecturer_api_bp
 from backend.routes.chat_api import chat_api_bp
@@ -41,6 +42,7 @@ def create_app():
     app.register_blueprint(admin_projects_bp, url_prefix='/api/admin')
     app.register_blueprint(admin_relations_bp)
     app.register_blueprint(admin_research_fields_bp, url_prefix='/api/admin')
+    app.register_blueprint(admin_accounts_bp, url_prefix='/api/admin')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(lecturer_api_bp, url_prefix='/api/lecturer')
     app.register_blueprint(chat_api_bp, url_prefix='/api/chat')

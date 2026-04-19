@@ -92,7 +92,8 @@ def add_my_publication():
             tom_tat: $tom_tat,
             link: $link,
             trang_thai: 'Chờ duyệt',
-            nguoi_tao: creator.ho_va_ten
+            nguoi_tao: creator.ho_va_ten,
+            created_at: timestamp()
         })
         WITH creator, members, ct
         SET ct.id = 'ct_' + toString(id(ct))
@@ -220,7 +221,8 @@ def add_my_project():
             tom_tat: $tom_tat,
             link: $link,
             trang_thai: 'Chờ duyệt',
-            nguoi_tao: g.ho_va_ten
+            nguoi_tao: g.ho_va_ten,
+            created_at: timestamp()
         }})
         WITH g, members, dt
         SET dt.id = 'dt_' + toString(id(dt))

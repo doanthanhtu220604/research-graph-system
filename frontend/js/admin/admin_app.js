@@ -84,6 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProjects();
     } else if (document.getElementById('page-admin-research-fields')) {
         loadResearchFields();
+    } else if (document.getElementById('page-admin-accounts')) {
+        loadAccounts();
     } else if (document.getElementById('page-admin-overview')) {
         initDashboardOverview();
     }
@@ -436,7 +438,7 @@ function filterPublications() {
 }
 
 async function approvePublication(id) {
-    if (!confirm('Bạn có chắc muốn duyệt công trình này thành "Đang làm"?')) return;
+    if (!confirm('Bạn có chắc muốn duyệt công trình này thành "Đang thực hiện"?')) return;
     try {
         const res = await fetch(`${ADMIN_API_BASE}/cong-trinh/${id}/approve`, {
             method: 'PUT'
@@ -450,6 +452,24 @@ async function approvePublication(id) {
     } catch (err) {
         console.error(err);
         alert('Lỗi khi duyệt công trình.');
+    }
+}
+
+async function approveProject(id) {
+    if (!confirm('Bạn có chắc muốn duyệt đề tài này thành "Đang thực hiện"?')) return;
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/de-tai/${id}/approve`, {
+            method: 'PUT'
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            loadProjects();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi duyệt đề tài.');
     }
 }
 
@@ -486,6 +506,7 @@ function renderProjectsTable(dataList) {
         let statusBg = 'rgba(108,117,125,0.1)';
         if (trangThai === 'Hoàn thành') { statusColor = '#28a745'; statusBg = 'rgba(40,167,69,0.1)'; }
         else if (trangThai === 'Đang thực hiện') { statusColor = '#007bff'; statusBg = 'rgba(0,123,255,0.1)'; }
+        else if (trangThai === 'Chờ duyệt')     { statusColor = '#fd7e14'; statusBg = 'rgba(253,126,20,0.1)'; }
         return `
         <tr>
             <td>${dt.id || 'N/A'}</td>
@@ -494,6 +515,7 @@ function renderProjectsTable(dataList) {
             <td>${namThucHien}</td>
             <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td>
+                ${trangThai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt đề tài" onclick="approveProject('${dt.id}')"><i class="fas fa-check"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}', \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
@@ -1152,6 +1174,104 @@ function createStatsModalHtml() {
         </div>
     `;
     document.body.appendChild(div);
+}
+
+// ============================================================
+// ACCOUNTS MANAGEMENT
+// ============================================================
+let allAccounts = [];
+
+async function loadAccounts() {
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/accounts`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+            allAccounts = data.data || [];
+            updateAccountStats();
+            renderAccountsTable(allAccounts);
+        }
+    } catch(e) { console.error('Error loadAccounts', e); }
+}
+
+function renderAccountsTable(list) {
+    const tbody = document.getElementById('adminAccountsBody');
+    if (!tbody) return;
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Không có dữ liệu tài khoản</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = list.map(acc => {
+        let statusBadge = '';
+        if (!acc.co_tai_khoan) {
+            statusBadge = '<span class="account-badge badge-no-acct"><i class="fas fa-exclamation-circle"></i> Chưa tạo</span>';
+        } else if (acc.trang_thai_tk === 'Hoạt động') {
+            statusBadge = '<span class="account-badge badge-active"><i class="fas fa-check-circle"></i> Hoạt động</span>';
+        } else {
+            statusBadge = '<span class="account-badge badge-locked"><i class="fas fa-lock"></i> Bị khoá</span>';
+        }
+        
+        let actions = '';
+        if (!acc.co_tai_khoan) {
+            actions = `<button class="btn btn-sm btn-primary" onclick="openPwModal('${acc.id}', 'set')"><i class="fas fa-key"></i> Tạo TK</button>`;
+        } else {
+            const lockIcon = acc.trang_thai_tk === 'Hoạt động' ? 'fa-lock' : 'fa-unlock';
+            const lockBtnColor = acc.trang_thai_tk === 'Hoạt động' ? 'var(--accent-red)' : '#28a745';
+            actions = `
+                <button class="btn btn-sm btn-view" title="Đặt lại mật khẩu" onclick="openPwModal('${acc.id}', 'reset')"><i class="fas fa-redo"></i></button>
+                <button class="btn btn-sm" style="color:${lockBtnColor}; border-color:${lockBtnColor};" title="${acc.trang_thai_tk === 'Hoạt động' ? 'Khoá' : 'Mở khoá'}" onclick="toggleAccountStatus('${acc.id}')"><i class="fas ${lockIcon}"></i></button>
+            `;
+        }
+        
+        return `
+            <tr>
+                <td>${acc.id}</td>
+                <td><strong>${acc.ho_va_ten}</strong><div style="font-size:12px;color:var(--text-muted);">${acc.hoc_vi||''}</div></td>
+                <td>${acc.email || '<i style="color:#ccc">Trống</i>'}</td>
+                <td>${acc.bo_mon || ''}</td>
+                <td>${statusBadge}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterAccounts() {
+    const searchText = (document.getElementById('filterAccName')?.value || '').toLowerCase();
+    const statusVal = document.getElementById('filterAccStatus')?.value || '';
+    
+    const filtered = allAccounts.filter(acc => {
+        const matchSearch = (acc.ho_va_ten || '').toLowerCase().includes(searchText) || (acc.email || '').toLowerCase().includes(searchText);
+        let matchStatus = true;
+        if (statusVal === 'co_tai_khoan') matchStatus = acc.co_tai_khoan;
+        else if (statusVal === 'chua_co') matchStatus = !acc.co_tai_khoan;
+        else if (statusVal) matchStatus = acc.co_tai_khoan && (acc.trang_thai_tk === statusVal);
+        
+        return matchSearch && matchStatus;
+    });
+    renderAccountsTable(filtered);
+}
+
+async function toggleAccountStatus(id) {
+    if(!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/accounts/${id}/toggle-status`, { method: 'PUT' });
+        const data = await res.json();
+        if(data.status === 'ok') loadAccounts();
+        else alert(data.message);
+    } catch(e) { console.error(e); }
+}
+
+function updateAccountStats() {
+    const total = allAccounts.length;
+    const haveAccount = allAccounts.filter(a => a.co_tai_khoan).length;
+    const noAccount = total - haveAccount;
+    const locked = allAccounts.filter(a => a.co_tai_khoan && a.trang_thai_tk !== 'Hoạt động').length;
+
+    if(document.getElementById('statTotal')) document.getElementById('statTotal').innerText = total;
+    if(document.getElementById('statActive')) document.getElementById('statActive').innerText = haveAccount;
+    if(document.getElementById('statNoAccount')) document.getElementById('statNoAccount').innerText = noAccount;
+    if(document.getElementById('statLocked')) document.getElementById('statLocked').innerText = locked;
 }
 
 // ============================================================

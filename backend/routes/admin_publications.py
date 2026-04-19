@@ -20,7 +20,8 @@ def create_cong_trinh():
                 loai_an_pham: $loai_an_pham,
                 tom_tat: $tom_tat,
                 trang_thai: coalesce($trang_thai, 'Đang thực hiện'),
-                link: $link
+                link: $link,
+                created_at: timestamp()
             })
             SET ct.id = 'ct_' + toString(id(ct))
             RETURN ct.id AS id
@@ -64,7 +65,7 @@ def approve_cong_trinh(id):
     try:
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
-            SET ct.trang_thai = 'Đang làm'
+            SET ct.trang_thai = 'Đang thực hiện'
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Duyệt công trình thành công"})
     except Exception as e:
