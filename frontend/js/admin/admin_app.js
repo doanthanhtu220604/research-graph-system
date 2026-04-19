@@ -36,10 +36,9 @@ const ENTITY_CONFIG = {
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
             { name: 'loai_an_pham', label: 'Loại ấn phẩm', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
-            { name: 'trang_thai', label: 'Trạng thái', type: 'select', options: [
-                { value: 'Hoàn thành', label: 'Hoàn thành' },
+            { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
                 { value: 'Đang thực hiện', label: 'Đang thực hiện' },
-                { value: 'Chờ duyệt', label: 'Chờ duyệt' }
+                { value: 'Hoàn thành', label: 'Hoàn thành' }
             ]},
             { name: 'link', label: 'Link bài viết', type: 'url' }
         ]
@@ -54,9 +53,9 @@ const ENTITY_CONFIG = {
             { name: 'nam_bat_dau', label: 'Năm bắt đầu', type: 'number' },
             { name: 'nam_ket_thuc', label: 'Năm kết thúc', type: 'number' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
-            { name: 'trang_thai', label: 'Trạng thái', type: 'select', options: [
-                { value: 'Hoàn thành', label: 'Hoàn thành' },
-                { value: 'Đang thực hiện', label: 'Đang thực hiện' }
+            { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
+                { value: 'Đang thực hiện', label: 'Đang thực hiện' },
+                { value: 'Hoàn thành', label: 'Hoàn thành' }
             ]},
             { name: 'link', label: 'Link đề tài', type: 'url' }
         ]
@@ -284,10 +283,10 @@ function exportDashboardCsv() {
         });
         filename = "danh_sach_cong_trinh.csv";
     } else if (document.getElementById('page-admin-projects')) {
-        csvContent += "ID,Tên đề tài,Cấp đề tài,Năm bắt đầu,Năm kết thúc\n";
+        csvContent += "ID,Tên đề tài,Cấp đề tài,Năm bắt đầu,Năm kết thúc,Trạng thái\n";
         const list = currentEntitiesData['de-tai'] || [];
         list.forEach(dt => {
-            csvContent += `"${dt.id || ''}","${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam_bat_dau || ''}","${dt.nam_ket_thuc || ''}"\n`;
+            csvContent += `"${dt.id || ''}","${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam_bat_dau || ''}","${dt.nam_ket_thuc || ''}","${dt.trang_thai || ''}"\n`;
         });
         filename = "danh_sach_de_tai.csv";
     } else if (document.getElementById('page-admin-research-fields')) {
@@ -397,14 +396,20 @@ function renderPublicationsTable(dataList) {
     
     tbody.innerHTML = dataList.map((ct) => {
         const originalIndex = currentEntitiesData['cong-trinh'].indexOf(ct);
+        const trangThai = ct.trang_thai || 'Chưa xác định';
+        let statusColor = '#6c757d';
+        let statusBg = 'rgba(108,117,125,0.1)';
+        if (trangThai === 'Hoàn thành')        { statusColor = '#28a745'; statusBg = 'rgba(40,167,69,0.1)'; }
+        else if (trangThai === 'Đang thực hiện') { statusColor = '#007bff'; statusBg = 'rgba(0,123,255,0.1)'; }
+        else if (trangThai === 'Chờ duyệt')     { statusColor = '#fd7e14'; statusBg = 'rgba(253,126,20,0.1)'; }
         return `
         <tr>
             <td>${ct.id || 'N/A'}</td>
             <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
             <td>${ct.nam_xuat_ban || ''}</td>
-            <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${ct.trang_thai || 'Đã duyệt'}</span></td>
+            <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td>
-                ${ct.trang_thai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication('${ct.id}')"><i class="fas fa-check"></i></button>` : ''}
+                ${trangThai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication('${ct.id}')"><i class="fas fa-check"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats('${ct.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', '${ct.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', '${ct.id}', \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
@@ -467,7 +472,7 @@ function renderProjectsTable(dataList) {
     if (!tbody) return;
     
     if (dataList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy đề tài phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy đề tài phù hợp.</td></tr>';
         return;
     }
     
@@ -476,12 +481,18 @@ function renderProjectsTable(dataList) {
         const namThucHien = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) 
             ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` 
             : (dt.nam_bat_dau || dt.nam_ket_thuc || '');
+        const trangThai = dt.trang_thai || 'Chưa xác định';
+        let statusColor = '#6c757d';
+        let statusBg = 'rgba(108,117,125,0.1)';
+        if (trangThai === 'Hoàn thành') { statusColor = '#28a745'; statusBg = 'rgba(40,167,69,0.1)'; }
+        else if (trangThai === 'Đang thực hiện') { statusColor = '#007bff'; statusBg = 'rgba(0,123,255,0.1)'; }
         return `
         <tr>
             <td>${dt.id || 'N/A'}</td>
             <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
             <td>${dt.cap_de_tai || ''}</td>
             <td>${namThucHien}</td>
+            <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td>
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
@@ -496,11 +507,13 @@ function filterProjects() {
     const list = currentEntitiesData['de-tai'] || [];
     const nameFilter = (document.getElementById('filterProjName')?.value || '').toLowerCase();
     const levelFilter = document.getElementById('filterProjLevel')?.value || '';
+    const statusFilter = document.getElementById('filterProjStatus')?.value || '';
     
     const filtered = list.filter(dt => {
         const matchName = (dt.ten_de_tai || '').toLowerCase().includes(nameFilter);
         const matchLevel = levelFilter === '' || (dt.cap_de_tai === levelFilter);
-        return matchName && matchLevel;
+        const matchStatus = statusFilter === '' || (dt.trang_thai === statusFilter);
+        return matchName && matchLevel && matchStatus;
     });
     
     renderProjectsTable(filtered);
@@ -549,7 +562,8 @@ async function openAdminModal(type, id = null, index = null) {
         if (f.type === 'textarea') {
             inputHtml = `<textarea id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''} style="min-height: 100px; width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);"></textarea>`;
         } else if (f.type === 'select') {
-            const optionsHtml = f.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('');
+            const defaultVal = (!id && f.default) ? f.default : null;
+            const optionsHtml = f.options.map(opt => `<option value="${opt.value}"${defaultVal === opt.value ? ' selected' : ''}>${opt.label}</option>`).join('');
             inputHtml = `<select id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>${optionsHtml}</select>`;
         } else {
             inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>`;
@@ -606,6 +620,86 @@ async function openAdminModal(type, id = null, index = null) {
         container.insertAdjacentHTML('beforeend', lvHtml);
     }
 
+    // Thêm phần chọn Tác giả cho Công trình khi THÊM MỚI
+    if (type === 'cong-trinh' && !id) {
+        container.insertAdjacentHTML('beforeend', `
+        <div class="form-group" id="authorPickerGroup">
+            <label>Tác giả <span style="color:var(--text-muted); font-size:12px; font-weight:normal;">(có thể chọn sau)</span></label>
+            <div id="authorPickerList" style="max-height:200px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+                <p style="color:var(--text-muted); font-size:13px;"><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách giảng viên...</p>
+            </div>
+        </div>`);
+        try {
+            const gvRes = await fetch(`${API_BASE}/giang-vien`);
+            const gvData = await gvRes.json();
+            const allGVs = gvData.data || [];
+            const listEl = document.getElementById('authorPickerList');
+            if (allGVs.length === 0) {
+                listEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Không có giảng viên nào.</p>';
+            } else {
+                listEl.innerHTML = allGVs.map(gv => `
+                    <div style="margin-bottom:8px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
+                            <input type="checkbox" name="gv_tac_gia_new" value="${gv.id}">
+                            <span>${gv.ho_va_ten}${gv.bo_mon ? ' <span style="color:var(--text-muted);font-size:12px;">(' + gv.bo_mon + ')</span>' : ''}</span>
+                        </label>
+                    </div>`).join('');
+            }
+        } catch (e) {
+            document.getElementById('authorPickerList').innerHTML = '<p style="color:red;font-size:13px;">Lỗi tải danh sách giảng viên.</p>';
+        }
+    }
+
+    // Thêm phần chọn Chủ nhiệm / Thành viên cho Đề tài khi THÊM MỚI
+    if (type === 'de-tai' && !id) {
+        container.insertAdjacentHTML('beforeend', `
+        <div class="form-group" id="memberPickerGroup">
+            <label>Giảng viên tham gia <span style="color:var(--text-muted); font-size:12px; font-weight:normal;">(có thể chọn sau)</span></label>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:200px;">
+                    <p style="font-size:13px; font-weight:600; color:var(--accent-blue); margin-bottom:6px;">
+                        <i class="fas fa-user-tie"></i> Chủ nhiệm
+                    </p>
+                    <div id="chuNhiemPickerList" style="max-height:180px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+                        <p style="color:var(--text-muted); font-size:13px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</p>
+                    </div>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <p style="font-size:13px; font-weight:600; color:#10b981; margin-bottom:6px;">
+                        <i class="fas fa-users"></i> Thành viên
+                    </p>
+                    <div id="thamGiaPickerList" style="max-height:180px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+                        <p style="color:var(--text-muted); font-size:13px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</p>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+        try {
+            const gvRes = await fetch(`${API_BASE}/giang-vien`);
+            const gvData = await gvRes.json();
+            const allGVs = gvData.data || [];
+            const cnEl = document.getElementById('chuNhiemPickerList');
+            const tgEl = document.getElementById('thamGiaPickerList');
+            if (allGVs.length === 0) {
+                cnEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Không có giảng viên.</p>';
+                tgEl.innerHTML = cnEl.innerHTML;
+            } else {
+                const rowsHtml = (name) => allGVs.map(gv => `
+                    <div style="margin-bottom:8px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
+                            <input type="checkbox" name="${name}" value="${gv.id}">
+                            <span style="font-size:13px;">${gv.ho_va_ten}${gv.bo_mon ? '<br><span style="color:var(--text-muted);font-size:11px;">' + gv.bo_mon + '</span>' : ''}</span>
+                        </label>
+                    </div>`).join('');
+                cnEl.innerHTML = rowsHtml('gv_chu_nhiem_new');
+                tgEl.innerHTML = rowsHtml('gv_tham_gia_new');
+            }
+        } catch (e) {
+            document.getElementById('chuNhiemPickerList').innerHTML = '<p style="color:red;font-size:13px;">Lỗi tải dữ liệu.</p>';
+            document.getElementById('thamGiaPickerList').innerHTML = '<p style="color:red;font-size:13px;">Lỗi tải dữ liệu.</p>';
+        }
+    }
+
     document.getElementById('adminModalOverlay').classList.add('active');
 }
 
@@ -643,6 +737,20 @@ async function handleFormSubmit(e) {
         } else {
             formData.linh_vuc_names = [];
         }
+    }
+
+    // Thu thập danh sách tác giả khi THÊM MỚI công trình
+    if (type === 'cong-trinh' && !id) {
+        const checked = document.querySelectorAll('input[name="gv_tac_gia_new"]:checked');
+        formData.giang_vien_ids = Array.from(checked).map(cb => cb.value);
+    }
+
+    // Thu thập Chủ nhiệm và Thành viên khi THÊM MỚI đề tài
+    if (type === 'de-tai' && !id) {
+        const cnChecked = document.querySelectorAll('input[name="gv_chu_nhiem_new"]:checked');
+        const tgChecked = document.querySelectorAll('input[name="gv_tham_gia_new"]:checked');
+        formData.chu_nhiem_ids = Array.from(cnChecked).map(cb => cb.value);
+        formData.tham_gia_ids  = Array.from(tgChecked).map(cb => cb.value);
     }
 
     try {

@@ -111,6 +111,11 @@
                             <option value="Cấp Trường">Cấp Trường / Cơ sở</option>
                             <option value="Đề tài Doanh nghiệp">Đề tài Doanh nghiệp</option>
                         </select>
+                        <select id="filterProjStatus" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterProjects()">
+                            <option value="">-- Trạng thái --</option>
+                            <option value="Hoàn thành">Hoàn thành</option>
+                            <option value="Đang thực hiện">Đang thực hiện</option>
+                        </select>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table" id="adminProjectsTable">
@@ -120,11 +125,12 @@
                                     <th>Tên đề tài</th>
                                     <th>Cấp đề tài</th>
                                     <th>Năm thực hiện</th>
+                                    <th>Trạng thái</th>
                                     <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="adminProjectsBody">
-                                <tr><td colspan="5" class="loading-cell">Đang tải...</td></tr>
+                                <tr><td colspan="6" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>
