@@ -12,11 +12,18 @@ Cải tiến v2:
 """
 
 import re
+import json
+import os
 from flask import Blueprint, jsonify, request
+from rapidfuzz import fuzz
+from pyvi import ViPosTagger
 from backend.services.neo4j_connection import get_neo4j_connection
 
 chat_api_bp = Blueprint("chat_api", __name__)
 
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'chat_intents.json')
+with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+    CHAT_CONFIG = json.load(f)
 
 # ============================================================
 # INTENT DETECTION (v2 - mở rộng)
@@ -25,65 +32,67 @@ chat_api_bp = Blueprint("chat_api", __name__)
 def detect_intent(question: str) -> str:
     """
     Phân tích câu hỏi và trả về intent.
-    Sử dụng keyword-matching đa lớp trên tiếng Việt.
+    Sử dụng HỆ THỐNG SCORING để tính điểm cho từng intent thay vì dùng rule tuần tự.
+    Giúp giải quyết việc đụng độ keyword (VD: 'có tên -> auto teacher intent').
     """
     q = question.lower()
+    scores = {intent: 0 for intent in CHAT_CONFIG["intents"].keys()}
 
-    # --- Thống kê / đếm số lượng ---
-    if any(kw in q for kw in ["bao nhiêu", "tổng số", "thống kê", "tổng cộng", "đếm", "số lượng"]):
-        return "statistics"
+    # 1. Tính điểm cơ bản dựa trên keyword matching
+    for intent, keywords in CHAT_CONFIG["intents"].items():
+        for kw in keywords:
+            kw_lower = kw.lower()
+            if kw_lower in q:
+                # Match chính xác chuỗi con: keyword càng dài điểm càng cao (số lượng từ * 10)
+                scores[intent] += len(kw_lower.split()) * 10
+            else:
+                # Match mờ (fuzz)
+                score = fuzz.partial_ratio(kw_lower, q)
+                if score > 85:
+                    scores[intent] += 5
 
-    # --- Hợp tác / cùng nghiên cứu ---
-    if any(kw in q for kw in ["hợp tác", "cùng nghiên cứu", "cộng tác", "cùng tác giả", "cùng làm việc", "làm việc cùng"]):
-        return "collaboration"
+    # 2. Extract thêm year và áp dụng Strong Rules
+    year = extract_year(question)
+    
+    if year:
+        # Nếu có 'năm' và có dấu hiệu hỏi về 'đề tài' -> Tăng mạnh điểm search_project
+        if scores.get("search_project", 0) > 0:
+            scores["search_project"] += 50
+            
+        # Nếu có 'năm' và dấu hiệu hỏi về 'công trình'
+        if scores.get("search_publication", 0) > 0:
+            scores["search_publication"] += 50
+            
+        # Thống kê thường gắn liền với năm
+        if scores.get("statistics", 0) > 0:
+            scores["statistics"] += 20
 
-    # --- Bộ môn (phải trước search_by_field) ---
-    if any(kw in q for kw in ["bộ môn", "thuộc bộ môn", "trong bộ môn", "danh sách bộ môn", "các bộ môn"]):
-        return "department"
+    # 3. Phân tích ngữ cảnh chồng chéo keyword
+    # - Nếu tìm "top" + "đề tài" -> chuyển thành top_by_projects 
+    if scores.get("top_lecturers", 0) > 0 and scores.get("top_by_projects", 0) > 0:
+        scores["top_by_projects"] += 100
 
-    # --- Cấp độ đề tài ---
-    if any(kw in q for kw in ["cấp bộ", "cấp tỉnh", "cấp trường", "cấp cơ sở", "cấp nhà nước", "cấp đề tài"]):
-        return "project_by_level"
+    # - Nếu nhắc "đề tài" + "thầy cô" -> Ưu tiên "đề tài" thay vì bị nhận nhầm thành "search_lecturer"
+    if scores.get("search_project", 0) > 0 and scores.get("search_lecturer", 0) > 0:
+        scores["search_project"] += 20
 
-    # --- Top / xếp hạng ---
-    if any(kw in q for kw in ["top", "nhiều nhất", "hàng đầu", "nổi bật", "xuất sắc", "dẫn đầu", "cao nhất", "xếp hạng"]):
-        if any(kw in q for kw in ["đề tài", "dự án", "nckh", "project"]):
-            return "top_by_projects"
-        return "top_lecturers"
+    # - Nếu nhắc "công trình/bài báo" + "thầy cô" -> Ưu tiên "công trình"
+    if scores.get("search_publication", 0) > 0 and scores.get("search_lecturer", 0) > 0:
+        scores["search_publication"] += 20
 
-    # --- Tạp chí / hội thảo ---
-    if any(kw in q for kw in ["tạp chí", "hội thảo", "hội nghị", "journal", "conference", "đăng trên", "xuất bản trên", "ieee", "scopus", "isi", "springer"]):
-        return "search_by_journal"
+    # - Nếu hỏi "ai chủ nhiệm" + tên -> Ai chủ nhiệm mạnh hơn search_lecturer
+    if scores.get("who_leads", 0) > 0 and scores.get("search_lecturer", 0) > 0:
+        scores["who_leads"] += 20
 
-    # --- Chủ nhiệm / người phụ trách ---
-    if any(kw in q for kw in ["chủ nhiệm", "người phụ trách", "phụ trách", "người đứng đầu", "ai phụ trách", "ai chủ nhiệm"]):
-        return "who_leads"
+    # 4. Filter ra intent lớn nhất
+    top_intent = "unknown"
+    max_score = 0
+    for intent, score in scores.items():
+        if score > max_score and score > 0:
+            max_score = score
+            top_intent = intent
 
-    # --- Thông tin chi tiết giảng viên ---
-    if any(kw in q for kw in ["thông tin", "email", "liên hệ", "liên lạc", "giới thiệu về", "profile", "số điện thoại"]):
-        return "lecturer_info"
-
-    # --- Tìm theo lĩnh vực nghiên cứu ---
-    if any(kw in q for kw in ["nghiên cứu về", "chuyên về", "lĩnh vực", "chuyên ngành", "mảng", "thuộc lĩnh vực"]):
-        return "search_by_field"
-
-    # --- Tìm giảng viên theo tên / học vị ---
-    if any(kw in q for kw in ["giảng viên", "thầy", "cô", "gv", "giáo viên", "giảng sư",
-                               "tiến sĩ", "ts.", "ts ", "phó giáo sư", "pgs.", "pgs ",
-                               "giáo sư", "gs.", "gs ", "thạc sĩ", "ths.", "ths "]):
-        return "search_lecturer"
-
-    # --- Tìm công trình / bài báo ---
-    if any(kw in q for kw in ["công trình", "bài báo", "xuất bản", "publication",
-                               "bài viết", "bài nghiên cứu", "paper"]):
-        return "search_publication"
-
-    # --- Tìm đề tài / dự án ---
-    if any(kw in q for kw in ["đề tài", "dự án", "project", "nghiên cứu khoa học", "nckh",
-                               "đề tài khoa học", "đề án"]):
-        return "search_project"
-
-    return "unknown"
+    return top_intent
 
 
 # ============================================================
@@ -93,11 +102,54 @@ def detect_intent(question: str) -> str:
 def extract_name(question: str) -> str:
     """
     Trích xuất tên người từ câu hỏi.
-    Hỗ trợ nhiều trigger hơn và fallback bằng cụm từ viết hoa liên tiếp.
+    Dùng Pyvi (ViPosTagger) cho Natural Language Processing và Rapidfuzz kết hợp DB Neo4j.
     """
     q = question.strip()
     q_lower = q.lower()
 
+    # 1. Thử dùng Pyvi lấy Proper Noun (Np)
+    try:
+        tagged_words, tagged_pos = ViPosTagger.postagging(q)
+        np_words = []
+        for word, pos in zip(tagged_words, tagged_pos):
+            if pos == 'Np':
+                np_words.append(word.replace("_", " "))
+        
+        if np_words:
+            # Chọn cụm Np dài nhất (vì có thể có nhiều tên riêng được nhận diện)
+            # Hoặc kết hợp các Np liên tiếp, nhưng ở đây có thể nối hoặc lấy tên đầu.
+            return " ".join(np_words)
+    except Exception:
+        pass
+
+    # 2. Database Fuzzy Matching
+    try:
+        conn = get_neo4j_connection()
+        results = conn.query("MATCH (gv:GiangVien) RETURN gv.ho_va_ten AS ten")
+        if results:
+            names = [r['ten'] for r in results if r.get('ten')]
+            # Ưu tiên các tên dài (tránh trường hợp tên ngắn khớp một phần trong từ khác)
+            names.sort(key=len, reverse=True)
+            
+            best_match = None
+            highest_score = 0
+            for ten in names:
+                ten_lower = ten.lower()
+                # Thử tìm trực tiếp chuỗi họ tên con trong câu
+                if ten_lower in q_lower:
+                    return ten
+                
+                score = fuzz.partial_ratio(ten_lower, q_lower)
+                if score > 85 and score > highest_score:
+                    highest_score = score
+                    best_match = ten
+                    
+            if best_match:
+                return best_match
+    except Exception:
+        pass
+
+    # 3. Fallback: Rule-based (Tránh trường hợp DB lỗi)
     triggers = [
         "thầy", "cô", "gv", "giảng viên", "giáo viên",
         "tiến sĩ", "ts.", "ts ", "pgs.", "pgs ", "gs.", "gs ",
@@ -123,23 +175,6 @@ def extract_name(question: str) -> str:
             if name_parts and len(" ".join(name_parts)) > 1:
                 return " ".join(name_parts)
 
-    # Fallback: cụm từ viết hoa liên tiếp (có thể là tên người) bỏ qua từ đầu câu
-    skip_words = {"ai", "có", "là", "tìm", "cho", "biết", "được", "các",
-                  "những", "hãy", "liệt", "kê", "danh", "sách", "hỏi",
-                  "xem", "cho", "tôi", "bạn"}
-    words = q.split()
-    cap_run = []
-    for i, w in enumerate(words):
-        clean = re.sub(r"[^a-zA-ZÀ-ỹ]", "", w)
-        if clean and clean[0].isupper() and clean.lower() not in skip_words and i > 0:
-            cap_run.append(clean)
-        else:
-            if len(cap_run) >= 2:
-                return " ".join(cap_run)
-            cap_run = []
-    if len(cap_run) >= 2:
-        return " ".join(cap_run)
-
     return ""
 
 
@@ -160,15 +195,9 @@ def extract_field(question: str) -> str:
             words = after.split()
             return " ".join(words[:3]).strip("?.,!").strip()
 
-    tech_kws = [
-        "trí tuệ nhân tạo", "machine learning", "deep learning", "xử lý ngôn ngữ",
-        "thị giác máy tính", "computer vision", "khai phá dữ liệu", "data mining",
-        "mạng nơ-ron", "bảo mật", "an ninh mạng", "iot", "blockchain", "cloud",
-        "big data", "mạng máy tính", "hệ thống thông tin", "cơ sở dữ liệu",
-        "phần mềm", "hệ điều hành", "lập trình", "ai", "nlp",
-    ]
+    tech_kws = CHAT_CONFIG["keywords"].get("tech_kws", [])
     for kw in tech_kws:
-        if kw in q:
+        if kw in q or fuzz.partial_ratio(kw, q) > 85:
             return kw
     return ""
 
@@ -224,8 +253,10 @@ def extract_journal(question: str) -> str:
                     break
                 result.append(clean)
             return " ".join(result).strip()
-    for kw in ["ieee", "scopus", "isi", "springer", "elsevier"]:
-        if kw in q:
+            
+    journal_kws = CHAT_CONFIG["keywords"].get("journal_kws", [])
+    for kw in journal_kws:
+        if kw in q or fuzz.partial_ratio(kw, q) > 85:
             return kw
     return ""
 

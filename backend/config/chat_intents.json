@@ -1,0 +1,27 @@
+{
+  "intents": {
+    "statistics": ["bao nhiêu", "tổng số", "thống kê", "tổng cộng", "đếm", "số lượng"],
+    "collaboration": ["hợp tác", "cùng nghiên cứu", "cộng tác", "cùng tác giả", "cùng làm việc", "làm việc cùng"],
+    "department": ["bộ môn", "thuộc bộ môn", "trong bộ môn", "danh sách bộ môn", "các bộ môn"],
+    "project_by_level": ["cấp bộ", "cấp tỉnh", "cấp trường", "cấp cơ sở", "cấp nhà nước", "cấp đề tài"],
+    "top_by_projects": ["đề tài", "dự án", "nckh", "project"],
+    "top_lecturers": ["top", "nhiều nhất", "hàng đầu", "nổi bật", "xuất sắc", "dẫn đầu", "cao nhất", "xếp hạng"],
+    "search_by_journal": ["tạp chí", "hội thảo", "hội nghị", "journal", "conference", "đăng trên", "xuất bản trên"],
+    "who_leads": ["chủ nhiệm", "người phụ trách", "phụ trách", "người đứng đầu", "ai phụ trách", "ai chủ nhiệm"],
+    "lecturer_info": ["thông tin", "email", "liên hệ", "liên lạc", "giới thiệu về", "profile", "số điện thoại"],
+    "search_by_field": ["nghiên cứu về", "chuyên về", "lĩnh vực", "chuyên ngành", "mảng", "thuộc lĩnh vực"],
+    "search_lecturer": ["giảng viên", "thầy", "cô", "gv", "giáo viên", "giảng sư", "tiến sĩ", "ts.", "ts ", "phó giáo sư", "pgs.", "pgs ", "giáo sư", "gs.", "gs ", "thạc sĩ", "ths.", "ths "],
+    "search_publication": ["công trình", "bài báo", "xuất bản", "publication", "bài viết", "bài nghiên cứu", "paper"],
+    "search_project": ["đề tài", "dự án", "project", "nghiên cứu khoa học", "nckh", "đề tài khoa học", "đề án"]
+  },
+  "keywords": {
+    "tech_kws": [
+      "trí tuệ nhân tạo", "machine learning", "deep learning", "xử lý ngôn ngữ",
+      "thị giác máy tính", "computer vision", "khai phá dữ liệu", "data mining",
+      "mạng nơ-ron", "bảo mật", "an ninh mạng", "iot", "blockchain", "cloud",
+      "big data", "mạng máy tính", "hệ thống thông tin", "cơ sở dữ liệu",
+      "phần mềm", "hệ điều hành", "lập trình", "ai", "nlp"
+    ],
+    "journal_kws": ["ieee", "scopus", "isi", "springer", "elsevier"]
+  }
+}
