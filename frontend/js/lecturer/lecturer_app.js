@@ -46,7 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load all lecturers for select fields
     loadAllLecturers();
+
+    // Start Clock
+    updateClock();
+    setInterval(updateClock, 1000);
 });
+
+function updateClock() {
+    const el = document.getElementById('realtimeClock');
+    if (!el) return;
+    const now = new Date();
+    el.textContent = now.toLocaleString('vi-VN', { 
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        day: '2-digit', month: '2-digit', year: 'numeric' 
+    });
+}
 
 async function loadAllLecturers() {
     try {
@@ -155,18 +169,20 @@ async function loadPublications() {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa có công trình nào.</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.data.map((ct) => `
+            tbody.innerHTML = data.data.map((ct) => {
+                const statusClass = ct.trang_thai === 'Hoàn thành' ? 'status-completed' : (ct.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : '');
+                return `
                 <tr>
                     <td>${ct.id}</td>
-                    <td><strong>${ct.ten_cong_trinh}</strong></td>
+                    <td><strong style="color: var(--text-primary);">${ct.ten_cong_trinh}</strong></td>
                     <td>${ct.nam_xuat_ban || ''}</td>
-                    <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${ct.trang_thai || 'Đã duyệt'}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('cong-trinh', '${ct.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/công trình" onclick="deleteLecturerEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${ct.trang_thai || 'Đã duyệt'}</span></td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none;"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa bỏ liên kết/công trình" onclick="deleteLecturerEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
     } catch (err) {
         console.error(err);
@@ -185,19 +201,21 @@ async function loadProjects() {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa tham gia đề tài nào.</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.data.map((dt) => `
+            tbody.innerHTML = data.data.map((dt) => {
+                const statusClass = dt.trang_thai === 'Hoàn thành' ? 'status-completed' : (dt.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : '');
+                return `
                 <tr>
                     <td>${dt.id}</td>
-                    <td><strong>${dt.ten_de_tai}</strong></td>
-                    <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
+                    <td><strong style="color: var(--text-primary);">${dt.ten_de_tai}</strong></td>
+                    <td><span style="background: var(--bg-hover); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
                     <td>${dt.cap_de_tai || 'N/A'}</td>
-                    <td><span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 13px;">${dt.trang_thai || 'Đã duyệt'}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('de-tai', '${dt.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa bỏ liên kết/đề tài" onclick="deleteLecturerEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${dt.trang_thai || 'Đã duyệt'}</span></td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-sm btn-view" title="Xem/Sửa thông tin" onclick="openLecturerModal('de-tai', '${dt.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none;"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa bỏ liên kết/đề tài" onclick="deleteLecturerEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
     } catch (err) {
         console.error(err);
@@ -343,4 +361,47 @@ function closeStatsModal() {
     if(document.getElementById('lecturerStatsModalOverlay')) {
         document.getElementById('lecturerStatsModalOverlay').classList.remove('active');
     }
+}
+
+// ============================================================
+// FILTERING LOGIC
+// ============================================================
+
+function filterProjects() {
+    const nameVal = document.getElementById('filterProjName').value.toLowerCase();
+    const levelVal = document.getElementById('filterProjLevel').value;
+    const statusVal = document.getElementById('filterProjStatus').value;
+
+    const rows = document.querySelectorAll('#lecturerProjectsBody tr');
+    rows.forEach(row => {
+        if (row.cells.length < 5) return;
+        const name = row.cells[1].textContent.toLowerCase();
+        const level = row.cells[3].textContent;
+        const status = row.cells[4].textContent;
+
+        let visible = true;
+        if (nameVal && !name.includes(nameVal)) visible = false;
+        if (levelVal && !level.includes(levelVal)) visible = false;
+        if (statusVal && status !== statusVal) visible = false;
+
+        row.style.display = visible ? '' : 'none';
+    });
+}
+
+function filterPublications() {
+    const nameVal = document.getElementById('filterPubName').value.toLowerCase();
+    const yearVal = document.getElementById('filterPubYear').value;
+
+    const rows = document.querySelectorAll('#lecturerPublicationsBody tr');
+    rows.forEach(row => {
+        if (row.cells.length < 4) return;
+        const name = row.cells[1].textContent.toLowerCase();
+        const year = row.cells[2].textContent;
+
+        let visible = true;
+        if (nameVal && !name.includes(nameVal)) visible = false;
+        if (yearVal && !year.includes(yearVal)) visible = false;
+
+        row.style.display = visible ? '' : 'none';
+    });
 }

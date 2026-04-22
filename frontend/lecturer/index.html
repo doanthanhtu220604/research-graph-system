@@ -10,6 +10,108 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        /* ─── Admin Dashboard Overrides ─── */
+        .admin-stat-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .adm-stat-card {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 22px 20px;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: default;
+        }
+
+        .adm-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 35px rgba(0,0,0,0.1);
+        }
+
+        .adm-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .adm-stat-card.blue::before   { background: linear-gradient(90deg, #4F8EF7, #6ea8ff); }
+        .adm-stat-card.green::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+
+        .adm-stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px;
+            margin-bottom: 14px;
+        }
+
+        .adm-stat-card.blue   .adm-stat-icon { background: rgba(79,142,247,0.12); color: #4F8EF7; }
+        .adm-stat-card.green  .adm-stat-icon { background: rgba(16,185,129,0.12); color: #10b981; }
+
+        .adm-stat-value {
+            font-size: 36px; font-weight: 800;
+            line-height: 1; letter-spacing: -1px;
+            margin-bottom: 5px;
+        }
+
+        .adm-stat-card.blue   .adm-stat-value { color: #4F8EF7; }
+        .adm-stat-card.green  .adm-stat-value { color: #10b981; }
+
+        .adm-stat-label {
+            font-size: 13px; font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .adm-stat-action {
+            position: absolute; bottom: 14px; right: 16px;
+            font-size: 11px; color: var(--text-muted);
+            text-decoration: none;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .adm-stat-action:hover { color: var(--accent-blue); }
+
+        .adm-stat-bg-icon {
+            position: absolute; right: -10px; bottom: -10px;
+            font-size: 80px; opacity: 0.04;
+            pointer-events: none;
+        }
+
+        .admin-panel {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 22px;
+            margin-top: 24px;
+        }
+
+        .admin-panel-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-panel-title {
+            font-size: 16px; font-weight: 700;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        @media (max-width: 1100px) {
+            .admin-stat-cards { grid-template-columns: repeat(2,1fr); }
+        }
+    </style>
 </head>
 <body>
     <nav class="sidebar" id="sidebar">
@@ -59,44 +161,55 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title" id="pageTitle">Thông tin Giảng viên</h1>
-            <div class="header-actions">
-                <span style="font-weight: 500; color: var(--text-secondary); margin-right: 15px;" id="welcomeText">Xin chào, Giảng viên</span>
+            <h1 class="page-title" id="pageTitle">Tổng quan Giảng viên</h1>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+                <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 13px;"></div>
+                <div style="display:flex; align-items:center; gap: 8px; margin-left: 10px;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <span style="font-weight: 600; color: var(--text-primary); font-size:13px;" id="welcomeText">Giảng viên</span>
+                </div>
             </div>
         </header>
 
         <section class="page active" id="page-lecturer-overview">
-            <div class="stats-grid" id="lecturerStatsGrid">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: var(--gradient-primary);"><i class="fas fa-file-alt"></i></div>
-                    <div class="stat-info">
-                        <h3 class="stat-number" id="countPublications">0</h3>
-                        <p class="stat-label">Công trình nghiên cứu</p>
-                    </div>
+            <div class="admin-stat-cards" id="lecturerStatsGrid">
+                <div class="adm-stat-card blue">
+                    <div class="adm-stat-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="adm-stat-value" id="countPublications">0</div>
+                    <div class="adm-stat-label">Công trình nghiên cứu</div>
+                    <a href="publications.html" class="adm-stat-action">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+                    <div class="adm-stat-bg-icon"><i class="fas fa-file-alt"></i></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: var(--gradient-orange);"><i class="fas fa-flask"></i></div>
-                    <div class="stat-info">
-                        <h3 class="stat-number" id="countProjects">0</h3>
-                        <p class="stat-label">Đề tài tham gia</p>
-                    </div>
+                <div class="adm-stat-card green">
+                    <div class="adm-stat-icon"><i class="fas fa-flask"></i></div>
+                    <div class="adm-stat-value" id="countProjects">0</div>
+                    <div class="adm-stat-label">Đề tài tham gia</div>
+                    <a href="projects.html" class="adm-stat-action">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+                    <div class="adm-stat-bg-icon"><i class="fas fa-flask"></i></div>
                 </div>
             </div>
             
-            <div class="card" style="margin-top: 20px;">
-                <div class="card-header">
-                    <h2><i class="fas fa-id-card"></i> Chi tiết tài khoản</h2>
+            <div class="admin-panel">
+                <div class="admin-panel-header">
+                    <div class="admin-panel-title">
+                        <i class="fas fa-id-card" style="color: #4F8EF7;"></i>
+                        Chi tiết tài khoản
+                    </div>
                 </div>
                 <div class="card-body">
                     <div style="display: flex; gap: 30px; align-items: flex-start;">
-                        <img id="lecturerAvatar" src="" alt="Avatar" style="width: 120px; height: 120px; border-radius: 60px; object-fit: cover; background: #f1f2f6;">
+                        <img id="lecturerAvatar" src="" alt="Avatar" style="width: 120px; height: 120px; border-radius: 60px; object-fit: cover; background: #f1f2f6; border: 4px solid var(--surface); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                         <div>
-                            <h3 id="lecturerName" style="font-size: 24px; margin-bottom: 10px; color: var(--text-primary);">Đang tải...</h3>
-                            <p style="margin-bottom: 8px;"><strong>Bộ môn:</strong> <span id="lecturerDept">...</span></p>
-                            <p style="margin-bottom: 8px;"><strong>Email:</strong> <span id="lecturerEmail">...</span></p>
-                            <p style="margin-bottom: 8px;"><strong>Học vị:</strong> <span id="lecturerDegree">...</span></p>
-                            <p style="margin-bottom: 8px;"><strong>Chức danh:</strong> <span id="lecturerTitle">...</span></p>
-                            <p style="margin-bottom: 8px;"><strong>Lĩnh vực:</strong> <span id="lecturerFields">...</span></p>
+                            <h3 id="lecturerName" style="font-size: 24px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700;">Đang tải...</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 30px;">
+                                <p style="margin-bottom: 0;"><strong>Bộ môn:</strong> <span id="lecturerDept">...</span></p>
+                                <p style="margin-bottom: 0;"><strong>Email:</strong> <span id="lecturerEmail">...</span></p>
+                                <p style="margin-bottom: 0;"><strong>Học vị:</strong> <span id="lecturerDegree">...</span></p>
+                                <p style="margin-bottom: 0;"><strong>Chức danh:</strong> <span id="lecturerTitle">...</span></p>
+                                <p style="margin-bottom: 0; grid-column: 1 / -1;"><strong>Lĩnh vực nghiên cứu:</strong> <span id="lecturerFields">...</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>

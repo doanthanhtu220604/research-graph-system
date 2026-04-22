@@ -10,6 +10,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        .admin-panel {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 22px;
+            margin-top: 24px;
+        }
+
+        .admin-panel-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-panel-title {
+            font-size: 16px; font-weight: 700;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .filter-controls {
+            display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative; flex: 1; min-width: 200px;
+        }
+
+        .search-box i {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 14px;
+        }
+
+        .search-box input {
+            width: 100%; padding: 10px 12px 10px 35px;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            font-size: 14px; outline: none; transition: border-color 0.2s;
+        }
+
+        .search-box input:focus { border-color: var(--accent-blue); }
+
+        .filter-select {
+            padding: 10px 12px; border: 1px solid var(--border-color);
+            border-radius: 8px; font-size: 14px; outline: none;
+            background: var(--surface); color: var(--text-primary);
+            min-width: 150px;
+        }
+
+        .status-badge {
+            padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+            white-space: nowrap; display: inline-block;
+        }
+        .status-ongoing { background: rgba(79, 142, 247, 0.1); color: #4F8EF7; }
+        .status-completed { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    </style>
 </head>
 <body>
     <nav class="sidebar" id="sidebar">
@@ -56,34 +115,68 @@
 
     <main class="main-content" id="mainContent">
         <header class="top-header">
-            <h1 class="page-title">Đề tài của tôi</h1>
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="openLecturerModal('de-tai')">
-                    <i class="fas fa-plus"></i> Thêm mới
-                </button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Đề tài của tôi</h1>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+                <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 13px;"></div>
+                <div style="display:flex; align-items:center; gap: 8px; margin-left: 10px;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <span style="font-weight: 600; color: var(--text-primary); font-size:13px;" id="welcomeText">Giảng viên</span>
+                </div>
             </div>
         </header>
 
         <section class="page active" id="page-lecturer-projects">
-            <div class="card">
-                <div class="card-body" style="padding: 0;">
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Tên đề tài</th>
-                                    <th>Vai trò</th>
-                                    <th>Cấp / Năm</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lecturerProjectsBody">
-                                <tr><td colspan="6" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>
-                            </tbody>
-                        </table>
+            <div class="admin-panel">
+                <div class="admin-panel-header">
+                    <div class="admin-panel-title">
+                        <i class="fas fa-flask" style="color: #4F8EF7;"></i>
+                        Danh sách Đề tài Nghiên cứu
                     </div>
+                    <button class="btn btn-primary btn-sm" onclick="openLecturerModal('de-tai')">
+                        <i class="fas fa-plus"></i> Thêm mới
+                    </button>
+                </div>
+                
+                <div class="filter-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="filterProjName" placeholder="Tìm tên đề tài..." onkeyup="filterProjects()">
+                    </div>
+                    <select id="filterProjLevel" class="filter-select" onchange="filterProjects()">
+                        <option value="">-- Cấp đề tài --</option>
+                        <option value="Cấp Nhà nước">Cấp Nhà nước</option>
+                        <option value="Cấp Bộ">Cấp Bộ</option>
+                        <option value="Cấp Tỉnh">Cấp Tỉnh</option>
+                        <option value="Cấp cơ sở">Cấp cơ sở / Trường</option>
+                    </select>
+                    <select id="filterProjStatus" class="filter-select" onchange="filterProjects()">
+                        <option value="">-- Trạng thái --</option>
+                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Đang thực hiện">Đang thực hiện</option>
+                    </select>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="lecturerProjectsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên đề tài</th>
+                                <th style="width: 150px;">Vai trò</th>
+                                <th>Cấp / Năm</th>
+                                <th style="width: 150px; text-align: center;">Trạng thái</th>
+                                <th style="width: 100px; text-align: center;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lecturerProjectsBody">
+                            <tr><td colspan="6" style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
