@@ -36,6 +36,15 @@ def detect_intent(question: str) -> str:
     Giúp giải quyết việc đụng độ keyword (VD: 'có tên -> auto teacher intent').
     """
     q = question.lower()
+    
+    # 0. HARD RULES (Ưu tiên tuyệt đối cho các câu hỏi phổ biến, không dùng scoring)
+    if "thuộc bộ môn nào" in q or "ở bộ môn nào" in q or "thuộc khoa nào" in q:
+        return "lecturer_info"
+    if re.search(r"có bao nhiêu (đề tài|dự án|công trình|bài báo|giảng viên|thầy|cô|người)", q):
+        return "statistics"
+    if "ai là chủ nhiệm" in q or "chủ nhiệm là ai" in q or "ai phụ trách" in q:
+        return "who_leads"
+
     scores = {intent: 0 for intent in CHAT_CONFIG["intents"].keys()}
 
     # 1. Tính điểm cơ bản dựa trên keyword matching
@@ -51,8 +60,19 @@ def detect_intent(question: str) -> str:
                 if score > 85:
                     scores[intent] += 5
 
-    # 2. Extract thêm year và áp dụng Strong Rules
+    # 2. Phân tích theo Pattern câu hỏi (Question patterns)
+    if re.search(r"bao nhiêu|có mấy|đếm|thống kê|số lượng|tổng số|tất cả bao nhiêu", q):
+        scores["statistics"] += 40
+    if re.search(r"ai là chủ nhiệm|ai phụ trách|ai dẫn dắt|ai đứng đầu|chủ nhiệm là ai", q):
+        scores["who_leads"] += 40
+    if re.search(r"cùng nghiên cứu|hợp tác với|làm việc chung|viết chung|cùng viết|cộng tác", q):
+        scores["collaboration"] += 40
+    if re.search(r"(top|nhất|cao nhất|hàng đầu|nhiều nhất) (giảng viên|thầy|cô|gv)", q):
+        scores["top_lecturers"] += 40
+
+    # 3. Extract thêm entities (Year, Name) và áp dụng Strong Rules
     year = extract_year(question)
+    name = extract_name(question)
     
     if year:
         # Nếu có 'năm' và có dấu hiệu hỏi về 'đề tài' -> Tăng mạnh điểm search_project
@@ -67,24 +87,47 @@ def detect_intent(question: str) -> str:
         if scores.get("statistics", 0) > 0:
             scores["statistics"] += 20
 
-    # 3. Phân tích ngữ cảnh chồng chéo keyword
+    if name:
+        # Tăng điểm khi có NAME để chatbot nhạy bén hơn
+        scores["search_lecturer"] += 30
+        
+        # Boost thêm cho các intent mang tính chuyên biệt nếu đã xuất hiện keyword
+        if scores.get("search_project", 0) > 0:
+            scores["search_project"] += 30
+        if scores.get("search_publication", 0) > 0:
+            scores["search_publication"] += 30
+        if scores.get("who_leads", 0) > 0:
+            scores["who_leads"] += 30
+        if scores.get("collaboration", 0) > 0:
+            scores["collaboration"] += 30
+        if scores.get("lecturer_info", 0) > 0 or re.search(r"thông tin|giới thiệu|email|số điện thoại|liên hệ", q):
+            scores["lecturer_info"] += 50
+
+    # 4. Phân tích ngữ cảnh chồng chéo keyword & GIẢM điểm intent tổng quát
     # - Nếu tìm "top" + "đề tài" -> chuyển thành top_by_projects 
     if scores.get("top_lecturers", 0) > 0 and scores.get("top_by_projects", 0) > 0:
         scores["top_by_projects"] += 100
+        scores["top_lecturers"] -= 50 # Giảm điểm tổng quát
 
-    # - Nếu nhắc "đề tài" + "thầy cô" -> Ưu tiên "đề tài" thay vì bị nhận nhầm thành "search_lecturer"
+    # - Nếu nhắc "đề tài" + "thầy|cô" -> Ưu tiên "đề tài", giảm điểm "search_lecturer"
     if scores.get("search_project", 0) > 0 and scores.get("search_lecturer", 0) > 0:
         scores["search_project"] += 20
+        scores["search_lecturer"] -= 40 # Phạt nặng intent giảng viên chung chung
 
-    # - Nếu nhắc "công trình/bài báo" + "thầy cô" -> Ưu tiên "công trình"
+    # - Nếu nhắc "công trình/bài báo" + "thầy|cô" -> Ưu tiên "công trình", giảm điểm "search_lecturer"
     if scores.get("search_publication", 0) > 0 and scores.get("search_lecturer", 0) > 0:
         scores["search_publication"] += 20
+        scores["search_lecturer"] -= 40
 
-    # - Nếu hỏi "ai chủ nhiệm" + tên -> Ai chủ nhiệm mạnh hơn search_lecturer
-    if scores.get("who_leads", 0) > 0 and scores.get("search_lecturer", 0) > 0:
-        scores["who_leads"] += 20
+    # - Nếu hỏi "ai chủ nhiệm" / "thầy cô" / "đề tài" -> Chủ nhiệm là cụ thể nhất
+    if scores.get("who_leads", 0) > 0:
+        if scores.get("search_lecturer", 0) > 0:
+            scores["search_lecturer"] -= 40
+        if scores.get("search_project", 0) > 0:
+            scores["who_leads"] += 20 # Chủ nhiệm đi liền với dự án
+            scores["search_project"] -= 20
 
-    # 4. Filter ra intent lớn nhất
+    # 5. Filter ra intent lớn nhất
     top_intent = "unknown"
     max_score = 0
     for intent, score in scores.items():
@@ -868,7 +911,7 @@ def handle_who_leads(question: str):
             """
             MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
             WHERE toLower(dt.ten_de_tai) CONTAINS toLower($project)
-            RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+            RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    dt.ten_de_tai AS de_tai, dt.cap_de_tai AS cap, dt.nam_bat_dau AS nam_bd
             LIMIT 5
             """,
@@ -877,7 +920,7 @@ def handle_who_leads(question: str):
         if results:
             parts = []
             for r in results:
-                line = f"**{r['ten']}**"
+                line = f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"
                 if r.get("hoc_vi"): line += f" ({r['hoc_vi']})"
                 line += f"\n  🔬 Chủ nhiệm: _{r['de_tai']}_"
                 parts.append(line)
@@ -892,12 +935,12 @@ def handle_who_leads(question: str):
     # Top chủ nhiệm
     results = conn.query("""
         MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
-        RETURN gv.ho_va_ten AS ten, count(dt) AS so_de_tai
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, count(dt) AS so_de_tai
         ORDER BY so_de_tai DESC
         LIMIT 8
     """)
     if results:
-        parts = [f"**{r['ten']}** (CN {r['so_de_tai']} đề tài)" for r in results]
+        parts = [f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))** (CN {r['so_de_tai']} đề tài)" for r in results]
         return "👤 **Top chủ nhiệm đề tài:**\n" + "\n".join(f"- {p}" for p in parts)
     return "Không có dữ liệu về chủ nhiệm đề tài."
 
@@ -921,7 +964,7 @@ def handle_lecturer_info(question: str):
         OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
-        RETURN gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
                gv.email AS email, bm.ten_bo_mon AS bo_mon,
                collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc,
                count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt_cn
@@ -935,7 +978,7 @@ def handle_lecturer_info(question: str):
 
     cards = []
     for r in results:
-        card = [f"👨‍🏫 **{r['ten']}**"]
+        card = [f"👨‍🏫 **[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"]
         if r.get("hoc_vi"): card.append(f"📚 Học vị: **{r['hoc_vi']}**")
         if r.get("chuc_danh"): card.append(f"🎓 Chức danh: **{r['chuc_danh']}**")
         if r.get("bo_mon"): card.append(f"🏢 Bộ môn: **{r['bo_mon']}**")
