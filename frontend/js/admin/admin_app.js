@@ -739,6 +739,14 @@ async function openAdminModal(type, id = null, index = null) {
         } catch (e) {
             document.getElementById('authorPickerList').innerHTML = '<p style="color:red;font-size:13px;">Lỗi tải danh sách giảng viên.</p>';
         }
+
+        // Ô nhập tên tác giả ngoài
+        container.insertAdjacentHTML('beforeend', `
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="field_tac_gia_ngoai_ct">Tác giả ngoài <span style="color:var(--text-muted); font-size:12px; font-weight:normal;">(phân tách bằng dấu phẩy)</span></label>
+            <input type="text" id="field_tac_gia_ngoai_ct" name="tac_gia_ngoai_ct"
+                placeholder="VD: Nguyen Van A, John Smith, Tanaka Yuki">
+        </div>`);
     }
 
     // Thêm phần chọn Chủ nhiệm / Thành viên cho Đề tài khi THÊM MỚI
@@ -789,6 +797,14 @@ async function openAdminModal(type, id = null, index = null) {
             document.getElementById('chuNhiemPickerList').innerHTML = '<p style="color:red;font-size:13px;">Lỗi tải dữ liệu.</p>';
             document.getElementById('thamGiaPickerList').innerHTML = '<p style="color:red;font-size:13px;">Lỗi tải dữ liệu.</p>';
         }
+
+        // Ô nhập tên tác giả ngoài
+        container.insertAdjacentHTML('beforeend', `
+        <div class="form-group" style="margin-top: 20px;">
+            <label for="field_tac_gia_ngoai_dt">Tác giả ngoài <span style="color:var(--text-muted); font-size:12px; font-weight:normal;">(phân tách bằng dấu phẩy)</span></label>
+            <input type="text" id="field_tac_gia_ngoai_dt" name="tac_gia_ngoai_dt"
+                placeholder="VD: Nguyen Van A, John Smith, Tanaka Yuki">
+        </div>`);
     }
 
     document.getElementById('adminModalOverlay').classList.add('active');
@@ -834,6 +850,10 @@ async function handleFormSubmit(e) {
     if (type === 'cong-trinh' && !id) {
         const checked = document.querySelectorAll('input[name="gv_tac_gia_new"]:checked');
         formData.giang_vien_ids = Array.from(checked).map(cb => cb.value);
+        const tgnInput = document.getElementById('field_tac_gia_ngoai_ct');
+        formData.tac_gia_ngoai_names = tgnInput && tgnInput.value.trim()
+            ? tgnInput.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+            : [];
     }
 
     // Thu thập Chủ nhiệm và Thành viên khi THÊM MỚI đề tài
@@ -842,6 +862,10 @@ async function handleFormSubmit(e) {
         const tgChecked = document.querySelectorAll('input[name="gv_tham_gia_new"]:checked');
         formData.chu_nhiem_ids = Array.from(cnChecked).map(cb => cb.value);
         formData.tham_gia_ids  = Array.from(tgChecked).map(cb => cb.value);
+        const tgnInput = document.getElementById('field_tac_gia_ngoai_dt');
+        formData.tac_gia_ngoai_names = tgnInput && tgnInput.value.trim()
+            ? tgnInput.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+            : [];
     }
 
     try {
@@ -1151,15 +1175,28 @@ async function viewPublicationStats(ctId) {
                 </div>
             `;
             
-            html += `<h4 style="margin-top:20px; color:var(--accent-blue); padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-users"></i> Tác giả (${ct.tac_gia ? ct.tac_gia.length : 0})</h4>`;
+            html += `<h4 style="margin-top:20px; color:var(--accent-blue); padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-users"></i> Tác giả nội bộ (${ct.tac_gia ? ct.tac_gia.length : 0})</h4>`;
             if (ct.tac_gia && ct.tac_gia.length > 0) {
                 html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
                 ct.tac_gia.forEach(tg => {
-                    html += `<li><b>${tg}</b></li>`;
+                    html += `<li><i class="fas fa-user-tie" style="color:#4F8EF7; font-size:11px; margin-right:4px;"></i><b>${tg}</b></li>`;
                 });
                 html += `</ul>`;
             } else {
                 html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có tác giả nào được gán.</p>`;
+            }
+
+            const tgnList = ct.tac_gia_ngoai || [];
+            html += `<h4 style="margin-top:20px; color:#e67e22; padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-user-friends"></i> Tác giả ngoài (${tgnList.length})</h4>`;
+            if (tgnList.length > 0) {
+                html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.8;">`;
+                tgnList.forEach(tgn => {
+                    const donVi = tgn.don_vi ? `<span style="color:var(--text-muted); font-size:12px;"> — ${tgn.don_vi}</span>` : '';
+                    html += `<li><i class="fas fa-user-friends" style="color:#e67e22; font-size:11px; margin-right:4px;"></i><b>${tgn.ten}</b>${donVi}</li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Không có tác giả ngoài.</p>`;
             }
             
             body.innerHTML = html;
@@ -1209,6 +1246,19 @@ async function viewProjectStats(dtId) {
                 html += `</ul>`;
             } else {
                 html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có thành viên nào được gán.</p>`;
+            }
+
+            const tgnList = dt.tac_gia_ngoai || [];
+            html += `<h4 style="margin-top:20px; color:#e67e22; padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-user-friends"></i> Tác giả ngoài (${tgnList.length})</h4>`;
+            if (tgnList.length > 0) {
+                html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.8;">`;
+                tgnList.forEach(tgn => {
+                    const donVi = tgn.don_vi ? `<span style="color:var(--text-muted); font-size:12px;"> — ${tgn.don_vi}</span>` : '';
+                    html += `<li><i class="fas fa-user-friends" style="color:#e67e22; font-size:11px; margin-right:4px;"></i><b>${tgn.ten}</b>${donVi}</li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Không có tác giả ngoài.</p>`;
             }
             
             body.innerHTML = html;

@@ -12,6 +12,7 @@ def create_de_tai():
     data = request.json
     chu_nhiem_ids = data.pop("chu_nhiem_ids", [])
     tham_gia_ids  = data.pop("tham_gia_ids", [])
+    tac_gia_ngoai_names = data.pop("tac_gia_ngoai_names", [])
     conn = get_neo4j_connection()
     try:
         result = conn.write("""
@@ -47,6 +48,19 @@ def create_de_tai():
                 WHERE gv.id = gv_id AND dt.id = $dt_id
                 MERGE (gv)-[:THAM_GIA]->(dt)
             """, {"dt_id": new_id, "gv_ids": tham_gia_ids})
+
+        # Gán tác giả ngoài
+        for ten in tac_gia_ngoai_names:
+            ten = ten.strip()
+            if not ten:
+                continue
+            conn.write("""
+                MERGE (tgn:TacGiaNgoai {ho_va_ten: $ten})
+                ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn))
+                WITH tgn
+                MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $dt_id
+                MERGE (tgn)-[:DONG_TAC_GIA]->(dt)
+            """, {"ten": ten, "dt_id": new_id})
 
         return jsonify({"status": "ok", "message": "Thêm đề tài thành công", "id": new_id})
     except Exception as e:

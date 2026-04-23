@@ -122,12 +122,21 @@ def get_cong_trinh_detail(ct_id):
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
         RETURN ct, collect(gv.ho_va_ten) AS tac_gia
     """, {"id": ct_id})
+
+    tac_gia_ngoai_res = conn.query("""
+        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+        WHERE ct.id = $id
+        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi
+    """, {"id": ct_id})
     
     if not result or not result.get("ct"):
         return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
         
     data = dict(result["ct"])
     data["tac_gia"] = result["tac_gia"]
+    data["tac_gia_ngoai"] = [
+        {"ten": r["ten"], "don_vi": r["don_vi"]} for r in tac_gia_ngoai_res
+    ]
     return jsonify({"status": "ok", "data": data})
 
 
@@ -162,12 +171,21 @@ def get_de_tai_detail(dt_id):
         OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
         RETURN dt, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS thanh_vien
     """, {"id": dt_id})
-    
+
+    tac_gia_ngoai_res = conn.query("""
+        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+        WHERE dt.id = $id
+        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi
+    """, {"id": dt_id})
+
     if not result or not result.get("dt"):
         return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
         
     data = dict(result["dt"])
     data["thanh_vien"] = result["thanh_vien"]
+    data["tac_gia_ngoai"] = [
+        {"ten": r["ten"], "don_vi": r["don_vi"]} for r in tac_gia_ngoai_res
+    ]
     return jsonify({"status": "ok", "data": data})
 
 
