@@ -980,9 +980,30 @@ async function showPublicationDetail(ctId) {
             if (ct.tac_gia && ct.tac_gia.length > 0) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Nhóm tác giả</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Nhóm tác giả (trong trường)</h3>
                         <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                            ${ct.tac_gia.map(tg => `<span style="padding:5px 10px; background:rgba(79, 142, 247, 0.1); color:var(--accent-blue); border-radius:15px; font-size:13px;">${tg}</span>`).join('')}
+                            ${ct.tac_gia.map(tg => `<span style="padding:5px 10px; background:rgba(79, 142, 247, 0.1); color:var(--accent-blue); border-radius:15px; font-size:13px;"><i class="fas fa-user-tie" style="margin-right:4px; font-size:11px;"></i>${tg}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (ct.tac_gia_ngoai && ct.tac_gia_ngoai.length > 0) {
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài trường (${ct.tac_gia_ngoai.length})</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            ${ct.tac_gia_ngoai.map(tg => `
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(139,92,246,0.07); border-radius:10px; border-left:3px solid #8b5cf6;">
+                                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(139,92,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <i class="fas fa-user" style="color:#8b5cf6; font-size:13px;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'N/A'}</div>
+                                        ${tg.don_vi ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-building" style="margin-right:3px;"></i>${tg.don_vi}</div>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 `;
@@ -1041,13 +1062,39 @@ async function showProjectDetail(dtId) {
             if (dt.thanh_vien && dt.thanh_vien.length > 0) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Thành viên tham gia</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Thành viên tham gia (trong trường)</h3>
                         ${dt.thanh_vien.map(tv => `
-                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid ${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--border-color)'};">
-                                <strong>${tv.ten}</strong>
-                                <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">Vai trò: ${tv.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm đề tài' : 'Thành viên'}</div>
+                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid ${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--border-color)'}; display:flex; align-items:center; gap:10px;">
+                                <div style="width:32px; height:32px; border-radius:50%; background:${tv.vai_tro === 'CHU_NHIEM' ? 'rgba(245,158,11,0.15)' : 'rgba(0,0,0,0.05)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="fas fa-user-tie" style="color:${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--text-muted)'}; font-size:13px;"></i>
+                                </div>
+                                <div>
+                                    <strong>${tv.ten}</strong>
+                                    <div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">${tv.vai_tro === 'CHU_NHIEM' ? '<span style="color:var(--accent-orange); font-weight:600;">Chủ nhiệm đề tài</span>' : 'Thành viên'}</div>
+                                </div>
                             </div>
                         `).join('')}
+                    </div>
+                `;
+            }
+
+            if (dt.tac_gia_ngoai && dt.tac_gia_ngoai.length > 0) {
+                bodyHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài trường (${dt.tac_gia_ngoai.length})</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            ${dt.tac_gia_ngoai.map(tg => `
+                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(139,92,246,0.07); border-radius:10px; border-left:3px solid #8b5cf6;">
+                                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(139,92,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <i class="fas fa-user" style="color:#8b5cf6; font-size:13px;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'N/A'}</div>
+                                        ${tg.don_vi ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-building" style="margin-right:3px;"></i>${tg.don_vi}</div>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 `;
             }

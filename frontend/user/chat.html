@@ -16,23 +16,19 @@
         .chat-container {
             display: flex;
             flex-direction: column;
-            background: var(--bg-card);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            height: calc(100vh - 180px);
+            background: transparent;
+            height: 100%;
+            flex: 1;
             overflow: hidden;
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
         }
 
         .chat-header-main {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px 20px;
-            background: rgba(59, 130, 246, 0.05);
-            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            background: transparent;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             flex-shrink: 0;
         }
 
@@ -110,40 +106,37 @@
         .chat-msg-wrap {
             display: flex;
             flex-direction: column;
-            max-width: 80%;
+            width: 100%;
             animation: fadeIn 0.3s ease forwards;
         }
 
         .chat-msg-user {
-            align-self: flex-end;
-            align-items: flex-end;
+            align-items: flex-start;
         }
 
         .chat-msg-bot {
-            align-self: flex-start;
             align-items: flex-start;
         }
 
         .chat-bubble {
-            padding: 12px 18px;
-            border-radius: 18px;
+            padding: 16px 20px;
+            border-radius: 12px;
             font-size: 15px;
             line-height: 1.6;
             word-break: break-word;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            width: 100%;
         }
 
         .chat-bubble-user {
-            background: var(--gradient-primary);
-            color: #fff;
-            border-bottom-right-radius: 4px;
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--text-primary);
+            border: 1px solid rgba(0,0,0,0.02);
         }
 
         .chat-bubble-bot {
-            background: rgba(0, 0, 0, 0.03);
+            background: transparent;
             color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 4px;
+            border: none;
         }
 
         .chat-bubble-bot strong {
@@ -199,9 +192,9 @@
             display: flex;
             align-items: flex-end;
             gap: 12px;
-            padding: 16px 20px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-card);
+            padding: 16px 24px 30px 24px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            background: transparent;
             flex-shrink: 0;
         }
 
@@ -285,12 +278,10 @@
 <body>
     <div id="header-placeholder"></div>
 
-    <main class="main-content" id="mainContent">
-        <div class="page-header">
-            <h1 class="page-title">Hỏi đáp</h1>
-        </div>
+    <main class="main-content" id="mainContent" style="padding: 0; display: flex; flex-direction: column; height: calc(100vh - 70px); overflow: hidden;">
 
-        <section class="page active" id="page-chat" style="display: block;">
+
+        <section class="page active" id="page-chat" style="display: flex; flex-direction: column; flex: 1; height: 100%; overflow: hidden; padding: 0;">
             <div class="chat-container">
                 
                 <div class="chat-header-main">

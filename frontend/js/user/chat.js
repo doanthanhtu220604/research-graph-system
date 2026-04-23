@@ -43,7 +43,7 @@
     });
   }
 
-  function appendMessage(role, text) {
+  function appendMessage(role, text, graph = null) {
     if (!els.messages) return;
 
     const wrap = document.createElement("div");
@@ -51,14 +51,79 @@
 
     const bubble = document.createElement("div");
     bubble.className = `chat-bubble chat-bubble-${role}`;
-    bubble.innerHTML = formatText(text);
+    
+    // Header icon cho giống thiết kế
+    const iconHtml = role === 'bot' 
+        ? `<div style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; background:#f59e0b; color:white; margin-right:12px; flex-shrink:0;"><i class="fas fa-robot"></i></div>` 
+        : `<div style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; background:#ef4444; color:white; margin-right:12px; flex-shrink:0;"><i class="fas fa-user"></i></div>`;
+        
+    bubble.innerHTML = `<div style="display:flex; align-items:flex-start;">
+        ${iconHtml}
+        <div style="flex:1;">${formatText(text)}</div>
+    </div>`;
 
     wrap.appendChild(bubble);
+
+    // Xử lý Graph
+    if (graph && graph.nodes && graph.edges) {
+        const graphContainer = document.createElement("div");
+        graphContainer.className = "chat-graph-container";
+        graphContainer.style.height = "350px";
+        graphContainer.style.width = "calc(100% - 44px)"; // Trừ đi width của icon
+        graphContainer.style.marginLeft = "44px";
+        graphContainer.style.marginTop = "12px";
+        graphContainer.style.borderRadius = "12px";
+        graphContainer.style.background = "linear-gradient(to bottom, #f8fafc, #ffffff)";
+        graphContainer.style.border = "1px solid var(--border-color)";
+        graphContainer.style.boxShadow = "inset 0 2px 10px rgba(0,0,0,0.02)";
+        graphContainer.style.position = "relative";
+        
+        wrap.appendChild(graphContainer);
+        
+        setTimeout(() => {
+            const data = {
+                nodes: new vis.DataSet(graph.nodes.map(n => ({
+                    id: n.id,
+                    label: n.label,
+                    color: {
+                        background: n.color,
+                        border: n.color,
+                        highlight: { background: n.color, border: '#fff' }
+                    },
+                    shape: n.shape || 'dot',
+                    size: n.size || 15,
+                    font: { face: 'Inter', size: 12, color: '#334155' },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(0,0,0,0.1)', size: 5 }
+                }))),
+                edges: new vis.DataSet(graph.edges.map(e => ({
+                    from: e.from,
+                    to: e.to,
+                    label: e.label,
+                    font: { size: 10, align: 'middle', color: '#94a3b8', strokeWidth: 0 },
+                    arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+                    color: { color: 'rgba(0,0,0,0.15)' },
+                    smooth: { type: 'continuous' }
+                })))
+            };
+            
+            const options = {
+                physics: { 
+                    solver: 'forceAtlas2Based',
+                    forceAtlas2Based: { gravitationalConstant: -30, centralGravity: 0.005, springLength: 100 }
+                },
+                interaction: { dragNodes: true, zoomView: true, dragView: true, tooltipDelay: 200 }
+            };
+            
+            new vis.Network(graphContainer, data, options);
+        }, 100);
+    }
 
     // Timestamp
     const ts = document.createElement("div");
     ts.className = "chat-timestamp";
     ts.textContent = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+    ts.style.marginLeft = "44px";
     wrap.appendChild(ts);
 
     els.messages.appendChild(wrap);
@@ -120,7 +185,7 @@
   }
 
   function restoreHistory() {
-    history.forEach((msg) => appendMessage(msg.role, msg.text));
+    history.forEach((msg) => appendMessage(msg.role, msg.text, msg.graph));
     if (els.messages) els.messages.scrollTop = els.messages.scrollHeight;
   }
 
@@ -150,8 +215,8 @@
       const data = await res.json();
       const answer = data.answer || "Xin lỗi, tôi không thể trả lời lúc này.";
       removeTypingIndicator();
-      appendMessage("bot", answer);
-      history.push({ role: "bot", text: answer });
+      appendMessage("bot", answer, data.graph);
+      history.push({ role: "bot", text: answer, graph: data.graph });
       saveHistory();
     } catch (err) {
       removeTypingIndicator();

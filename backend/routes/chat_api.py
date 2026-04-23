@@ -1085,7 +1085,7 @@ def ask():
     """
     POST /api/chat/ask
     Body: { "question": "..." }
-    Response: { "status": "ok", "answer": "...", "intent": "..." }
+    Response: { "status": "ok", "answer": "...", "intent": "...", "graph": {...} }
     """
     data = request.get_json(silent=True) or {}
     question = (data.get("question") or "").strip()
@@ -1119,10 +1119,14 @@ def ask():
         handler = handler_map.get(intent, handle_unknown)
         answer = handler(question)
 
+        # Build mini graph from entities mentioned in answer
+        graph = build_graph_for_answer(answer)
+
         return jsonify({
             "status": "ok",
             "answer": answer,
             "intent": intent,
+            "graph": graph,
         })
 
     except Exception as e:
@@ -1133,3 +1137,106 @@ def ask():
             "answer": "Đã xảy ra lỗi khi xử lý câu hỏi. Vui lòng thử lại sau.",
             "intent": "error",
         }), 500
+
+def build_graph_for_answer(answer: str) -> dict:
+    """
+    Parse entity IDs from answer text (javascript:showXxxDetail links),
+    then fetch their 1-hop subgraph from Neo4j.
+    Returns { nodes: [...], edges: [...] } or None if no entities found.
+    """
+    # Extract entity IDs from markdown links like: javascript:showLecturerDetail('gv_1')
+    id_pattern = re.findall(
+        r"javascript:show(?:Lecturer|Publication|Project)Detail\('([^']+)'\)",
+        answer
+    )
+    node_ids = list(dict.fromkeys(id_pattern))  # deduplicate, preserve order
+    if not node_ids:
+        return None
+
+    # Limit to first 5 entities to keep graph manageable
+    node_ids = node_ids[:5]
+
+    try:
+        conn = get_neo4j_connection()
+        label_config = {
+            "GiangVien":         {"color": "#4F8EF7", "shape": "dot",      "size": 22},
+            "CongTrinhNghienCuu":{"color": "#2ECC71", "shape": "diamond",  "size": 16},
+            "DeTaiNghienCuu":    {"color": "#F39C12", "shape": "triangle", "size": 18},
+            "BoMon":             {"color": "#E74C3C", "shape": "square",   "size": 18},
+            "Khoa":              {"color": "#9B59B6", "shape": "star",     "size": 24},
+            "LinhVucNghienCuu":  {"color": "#1ABC9C", "shape": "hexagon", "size": 18},
+            "TacGiaNgoai":       {"color": "#8b5cf6", "shape": "dot",      "size": 14},
+        }
+
+        nodes_map = {}
+        edges = []
+
+        for node_id in node_ids:
+            results = conn.query("""
+                MATCH (center) WHERE center.id = $nid
+                WITH center
+                MATCH (center)-[r]-(neighbor)
+                WHERE neighbor.id IS NOT NULL
+                RETURN center, r, neighbor,
+                       center.id AS cid, neighbor.id AS nid2,
+                       labels(center) AS clabels, labels(neighbor) AS nlabels,
+                       type(r) AS rel_type
+                LIMIT 30
+            """, {"nid": node_id})
+
+            for row in results:
+                # Center
+                cid = row["cid"]
+                if cid and cid not in nodes_map:
+                    clabel = row["clabels"][0] if row["clabels"] else "Unknown"
+                    cprops = dict(row["center"])
+                    cfg = label_config.get(clabel, {"color": "#95A5A6", "shape": "dot", "size": 14})
+                    nodes_map[cid] = {
+                        "id": cid,
+                        "label": (cprops.get("ho_va_ten") or cprops.get("ten_cong_trinh")
+                                  or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
+                                  or cprops.get("ten_khoa") or cprops.get("ten_linh_vuc")
+                                  or str(cprops.get("id", ""))),
+                        "group": clabel,
+                        "color": cfg["color"],
+                        "shape": cfg["shape"],
+                        "size": cfg["size"] + 6,  # center node slightly larger
+                        "is_center": True,
+                    }
+
+                # Neighbor
+                nid2 = row["nid2"]
+                if nid2 and nid2 not in nodes_map:
+                    nlabel = row["nlabels"][0] if row["nlabels"] else "Unknown"
+                    nprops = dict(row["neighbor"])
+                    cfg = label_config.get(nlabel, {"color": "#95A5A6", "shape": "dot", "size": 14})
+                    nodes_map[nid2] = {
+                        "id": nid2,
+                        "label": (nprops.get("ho_va_ten") or nprops.get("ten_cong_trinh")
+                                  or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
+                                  or nprops.get("ten_khoa") or nprops.get("ten_linh_vuc")
+                                  or str(nprops.get("id", ""))),
+                        "group": nlabel,
+                        "color": cfg["color"],
+                        "shape": cfg["shape"],
+                        "size": cfg["size"],
+                        "is_center": False,
+                    }
+
+                if cid and nid2:
+                    edge_key = f"{cid}→{nid2}→{row['rel_type']}"
+                    if edge_key not in [f"{e['from']}→{e['to']}→{e['label']}" for e in edges]:
+                        edges.append({"from": cid, "to": nid2, "label": row["rel_type"]})
+
+        if not nodes_map:
+            return None
+
+        return {
+            "nodes": list(nodes_map.values()),
+            "edges": edges,
+            "legend": label_config,
+        }
+
+    except Exception as ex:
+        print(f"[GRAPH BUILD ERROR] {ex}")
+        return None
