@@ -1,3 +1,8 @@
-﻿rel_type,start_labels,end_id,start_id,end_labels
-THAM_GIA,GiangVien,149,22,DeTaiNghienCuu
-THAM_GIA,GiangVien,150,22,DeTaiNghienCuu
+﻿start_id,end_id,start_labels,rel_type,end_labels
+6,293,GiangVien,THAM_GIA,DeTaiNghienCuu
+8,202,GiangVien,THAM_GIA,DeTaiNghienCuu
+8,235,GiangVien,THAM_GIA,DeTaiNghienCuu
+10,235,GiangVien,THAM_GIA,DeTaiNghienCuu
+13,235,GiangVien,THAM_GIA,DeTaiNghienCuu
+22,149,GiangVien,THAM_GIA,DeTaiNghienCuu
+22,150,GiangVien,THAM_GIA,DeTaiNghienCuu

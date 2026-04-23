@@ -1,40 +1,42 @@
-﻿nam_thuc_hien,neo4j_id,cap_de_tai,ten_de_tai,ma_so
-2022,24,Chưa xác định,Xây dựng hệ thống thử nghiệm nhận dạng bệnh tôm dựa trên kỹ thuật thị giác máy tính,TR2022-13-03
-2022,25,Chưa xác định,Xây dựng công cụ hỗ trợ quá trình Tự đánh giá tại Trường Đại học Nha Trang,TR2022-13-04
-2021,26,Chưa xác định,Ứng dụng Item Response Theory thiết kế và đánh giá đề thi trắc nghiệm,TR2021-13-03
-2021,27,Chưa xác định,Xây dựng phần mềm hỗ trợ soạn thảo văn bản hành chính tại Trường Đại học Nha Trang,TR2021-13-04
-2020,28,Chưa xác định,Nghiên cứu nền tảng mô phỏng tấn công mạng tùy biến không dây di động trên OMNeT++ 5.6 (NTU-Attack),TR2020-13-03
-2020,29,"Đề tài, dự án NCKH cấp trường","Xây dựng Chatbot thử nghiệm hỗ trợ, tư vấn tự động cho sinh viên trên trang tin tức Trường Đại học Nha Trang",TR2020-13-42
-2018,30,Chưa xác định,Xây dựng khóa học trực tuyến Hướng dẫn giảng viên triển khai giảng dạy bằng công cụ Elearning trong đào tạo,TR2018-13-16
-2018,31,Chưa xác định,Xây dựng phần mềm quản lý phòng máy thực hành tại Trường đại học Nha Trang.,TR2018-13-23
-2016,32,Chưa xác định,Nghiên cứu xây dựng công cụ tạo website tĩnh cho CBVC Trường Đại học Nha Trang,TR2016-13-06
-2016,33,Chưa xác định,Nghiên cứu và ứng dụng điều khiển máy tính bằng các cử chỉ tay sử dụng camera 3D,TR2016-13-07
-2015,34,Chưa xác định,Ứng dụng công nghệ GIS và công nghệ di động trên điện thoại thông minh hỗ trợ cho tàu cá hoạt động trên biển,TR2015-13-02
-2013,35,Chưa xác định,Xây dựng phần mềm quản lý nhân sự Trường Đại học Nha Trang,TR2013-13-11
-2010,36,Chưa xác định,Xác định điều kiện cần và đủ của đồ thị Hamilton tối đại,TR2010-13-08
-2010,37,Chưa xác định,Các tiêu chuẩn hội tụ của thuật toán hiệu chỉnh Tikhonov cho mô hình bài toán cân bằng,TR2010-13-09
-Trước 2010,38,Chưa xác định,Xây dựng chương trình thi trắc nghiệm,
-Trước 2010,39,Chưa xác định,Khai thác các luật kết hợp trong cơ sở dữ liệu có tính thời gian <Đề tài nghiên cứu cấp Bộ>,
-Trước 2010,40,Chưa xác định,Phát triển lý thuyết tập thô và xây dựng chương trình ứng dụng minh họa (hỗ trợ xử lý thông tin dạy và học tại Trường Đại học Nha Trang),
-2008/2009,124,Chưa xác định,"Xây dựng Phần mềm quản lý sinh viên nội, ngoại trú khoa Tự nhiên, Cao đẳng Sư phạm Nha Trang",
-2014/2015,125,Chưa xác định,"Tài liệu tham khảo Thiết bị truyền thông, Đại Học Khánh Hòa",
-2025,149,Chưa xác định,Phát triển một số giải pháp tối ưu hóa quản lý và cấp phát tài nguyên đảm bảo QoS trong hệ thống mạng 5G,102.02-2025.82
-2015,150,Chưa xác định,Xây dựng và triển khai một số giải pháp nhằm phát triển và nâng cao chất lượng hệ thống thông tin trên website của Trường Đại học Nha Trang theo yêu cầu của các tổ chức kiểm định chất lượng giáo dục,TR2015-13-17
-2024,230,"Đề tài, dự án NCKH cấp trường",Khảo sát một số điều kiện sinh trưởng của cây giống sa nhân tím Amomum longiligulare T.L.Wu tại vườn ươm Đại học Nha Trang dưới sự hỗ trợ của hệ thống nông nghiệp thông minh IoT,
-2023,231,"Đề tài, dự án NCKH cấp trường",Thiết kế thực hành ảo trong lĩnh vực sinh học,
-2024,235,"Đề tài, dự án NCKH cấp Bộ/Tỉnh",Ứng dụng công nghệ thông tin để quản lý cơ sở dữ liệu nghệ thuật bài chòi ở Khánh Hòa,
-2021,243,"Thực hiện đề tài, dự án NCKH do nước ngoài tài trợ",Kế hoạch xúc tiến kinh doanh của Trung tâm đào tạo an ninh mạng thành lập tại Việt Nam,
-2020,244,"Đề tài, dự án NCKH cấp trường",Xây dựng phần mềm quản lý phòng máy thực hành tại Trường đại học Nha Trang,
-2024,249,"Đề tài, dự án NCKH cấp trường",Nghiên cứu học sâu và ứng dụng trong thị giác máy tính: Thử nghiệm với bài toán đếm tôm giống,
-2020,256,"Đề tài, dự án NCKH cấp trường",Nâng cao hiệu quả giải quyết thủ tục hành chính tại trường Đại học Nha Trang,
-2025,260,"Đề tài, dự án NCKH cấp trường",Lồng ghép kỹ năng nghề nghiệp vào giảng dạy: Từ đề cương chi tiết học phần đến triển khai thực tế tại Trường Đại học Nha Trang,
-2024,262,Hướng dẫn sinh viên làm đề tài NCKH,"Xây dựng ứng dụng hỗ trợ công tác sinh viên Khoa Công nghệ Thông tin, Trường Đại học Nha Trang",
-2024,263,Hướng dẫn sinh viên làm đề tài NCKH,Ứng dụng thị giác máy tính xây dựng hệ thống cảnh báo trạng thái buồn ngủ khi lái xe,
-2024,264,Hướng dẫn sinh viên làm đề tài NCKH,Nghiên cứu ứng dụng mạng nơron trong hệ thống IoT để giám sát hành vi té ngã hỗ trợ cảnh báo đột qụy,
-2021,265,"Đề tài, dự án NCKH cấp trường",Nghiên cứu xây dựng nền tảng mô phỏng tấn công mạng tùy biến không dây di động trên Omnet++,
-2024,268,Hướng dẫn sinh viên làm đề tài NCKH,"Xây dựng công cụ thử nghiệm hỗ trợ nhập điểm, đối sánh dữ liệu điểm từ ảnh bảng điểm viết tay với dữ liệu trên phần mềm quản lý đào tạo Trường Đại học Nha Trang",
-2024,269,"Đề tài, dự án NCKH cấp Bộ/Tỉnh",Xây dựng hệ thống giám sát và điều khiển nhà yến thông minh,
-2023,270,Hướng dẫn sinh viên làm đề tài NCKH,Xây dựng công cụ hỗ trợ giám sát thi trực tuyến tại trường Đại học Nha Trang,
-2020,271,"Đề tài, dự án NCKH cấp trường","Nghiên cứu topic modelling, thử nghiệm phân lớp tự động các ý kiến phản hồi của người học Trường Đại học Nha Trang",
-2020,273,"Đề tài, dự án NCKH cấp trường",Xây dựng khóa học trực tuyến Hướng dẫn giảng viên triển khai giảng dạy bằng công cụ E-Learning trong mô hình đào tạo kết hợp (Blended learning) tại trường Đại học Nha Trang,
-2024,290,Hướng dẫn sinh viên làm đề tài NCKH,Nghiên cứu ứng dụng trí tuệ nhân tạo trong việc phát hiện tấn công lừa đảo (Phising): Thử nghiệm trường hợp Web Phising,
+﻿neo4j_id,nam_bat_dau,id,link,created_at,nam_thuc_hien,nguoi_tao,nam_ket_thuc,ten_de_tai,trang_thai,cap_de_tai,ma_so,tom_tat
+24,2022,dt_24,,,2022,,2022,Xây dựng hệ thống thử nghiệm nhận dạng bệnh tôm dựa trên kỹ thuật thị giác máy tính,Hoàn thành,Chưa xác định,TR2022-13-03,
+25,2022,dt_25,,,2022,,2022,Xây dựng công cụ hỗ trợ quá trình Tự đánh giá tại Trường Đại học Nha Trang,Hoàn thành,Chưa xác định,TR2022-13-04,
+26,2021,dt_26,,,2021,,2021,Ứng dụng Item Response Theory thiết kế và đánh giá đề thi trắc nghiệm,Hoàn thành,Chưa xác định,TR2021-13-03,
+27,2021,dt_27,,,2021,,2021,Xây dựng phần mềm hỗ trợ soạn thảo văn bản hành chính tại Trường Đại học Nha Trang,Hoàn thành,Chưa xác định,TR2021-13-04,
+28,2020,dt_28,,,2020,,2020,Nghiên cứu nền tảng mô phỏng tấn công mạng tùy biến không dây di động trên OMNeT++ 5.6 (NTU-Attack),Hoàn thành,Chưa xác định,TR2020-13-03,
+29,2020,dt_29,,,2020,,2020,"Xây dựng Chatbot thử nghiệm hỗ trợ, tư vấn tự động cho sinh viên trên trang tin tức Trường Đại học Nha Trang",Hoàn thành,"Đề tài, dự án NCKH cấp trường",TR2020-13-42,
+30,2018,dt_30,,,2018,,2018,Xây dựng khóa học trực tuyến Hướng dẫn giảng viên triển khai giảng dạy bằng công cụ Elearning trong đào tạo,Hoàn thành,Chưa xác định,TR2018-13-16,
+31,2018,dt_31,,,2018,,2018,Xây dựng phần mềm quản lý phòng máy thực hành tại Trường đại học Nha Trang.,Hoàn thành,Chưa xác định,TR2018-13-23,
+32,2016,dt_32,,,2016,,2016,Nghiên cứu xây dựng công cụ tạo website tĩnh cho CBVC Trường Đại học Nha Trang,Hoàn thành,Chưa xác định,TR2016-13-06,
+33,2016,dt_33,,,2016,,2016,Nghiên cứu và ứng dụng điều khiển máy tính bằng các cử chỉ tay sử dụng camera 3D,Hoàn thành,Chưa xác định,TR2016-13-07,
+34,2015,dt_34,,,2015,,2015,Ứng dụng công nghệ GIS và công nghệ di động trên điện thoại thông minh hỗ trợ cho tàu cá hoạt động trên biển,Hoàn thành,Chưa xác định,TR2015-13-02,
+35,2013,dt_35,,,2013,,2013,Xây dựng phần mềm quản lý nhân sự Trường Đại học Nha Trang,Hoàn thành,Chưa xác định,TR2013-13-11,
+36,2010,dt_36,,,2010,,2010,Xác định điều kiện cần và đủ của đồ thị Hamilton tối đại,Hoàn thành,Chưa xác định,TR2010-13-08,
+37,2010,dt_37,,,2010,,2010,Các tiêu chuẩn hội tụ của thuật toán hiệu chỉnh Tikhonov cho mô hình bài toán cân bằng,Hoàn thành,Chưa xác định,TR2010-13-09,
+38,2010,dt_38,,,Trước 2010,,2010,Xây dựng chương trình thi trắc nghiệm,Hoàn thành,Chưa xác định,,
+39,2010,dt_39,,,Trước 2010,,2010,Khai thác các luật kết hợp trong cơ sở dữ liệu có tính thời gian <Đề tài nghiên cứu cấp Bộ>,Hoàn thành,Chưa xác định,,
+40,2010,dt_40,,,Trước 2010,,2010,Phát triển lý thuyết tập thô và xây dựng chương trình ứng dụng minh họa (hỗ trợ xử lý thông tin dạy và học tại Trường Đại học Nha Trang),Hoàn thành,Chưa xác định,,
+124,2008,dt_124,,,2008/2009,,2009,"Xây dựng Phần mềm quản lý sinh viên nội, ngoại trú khoa Tự nhiên, Cao đẳng Sư phạm Nha Trang",Hoàn thành,Chưa xác định,,
+125,2014,dt_125,,,2014/2015,,2015,"Tài liệu tham khảo Thiết bị truyền thông, Đại Học Khánh Hòa",Hoàn thành,Chưa xác định,,
+149,2025,dt_149,,,2025,,2025,Phát triển một số giải pháp tối ưu hóa quản lý và cấp phát tài nguyên đảm bảo QoS trong hệ thống mạng 5G,Hoàn thành,Chưa xác định,102.02-2025.82,
+150,2015,dt_150,,,2015,,2015,Xây dựng và triển khai một số giải pháp nhằm phát triển và nâng cao chất lượng hệ thống thông tin trên website của Trường Đại học Nha Trang theo yêu cầu của các tổ chức kiểm định chất lượng giáo dục,Hoàn thành,Chưa xác định,TR2015-13-17,
+202,2026,dt_202,,1776602087956,,Huỳnh Tuấn Anh,,bốn mươi,Đang thực hiện,Cấp cơ sở,,
+230,2024,dt_230,,,2024,,2024,Khảo sát một số điều kiện sinh trưởng của cây giống sa nhân tím Amomum longiligulare T.L.Wu tại vườn ươm Đại học Nha Trang dưới sự hỗ trợ của hệ thống nông nghiệp thông minh IoT,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+231,2023,dt_231,,,2023,,2023,Thiết kế thực hành ảo trong lĩnh vực sinh học,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+235,2024,dt_235,https://dantoctongiao.baodantoc.vn/khanh-hoa-ung-dung-cong-nghe-thong-tin-de-quan-ly-co-so-du-lieu-nghe-thuat-bai-choi-1711333133211.htm,,2024,,2024,Ứng dụng công nghệ thông tin để quản lý cơ sở dữ liệu nghệ thuật bài chòi ở Khánh Hòa,Hoàn thành,"Đề tài, dự án NCKH cấp Bộ/Tỉnh",,
+243,2021,dt_243,,,2021,,2021,Kế hoạch xúc tiến kinh doanh của Trung tâm đào tạo an ninh mạng thành lập tại Việt Nam,Hoàn thành,"Thực hiện đề tài, dự án NCKH do nước ngoài tài trợ",,
+244,2020,dt_244,,,2020,,2020,Xây dựng phần mềm quản lý phòng máy thực hành tại Trường đại học Nha Trang,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+249,2024,dt_249,,,2024,,2024,Nghiên cứu học sâu và ứng dụng trong thị giác máy tính: Thử nghiệm với bài toán đếm tôm giống,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+256,2020,dt_256,,,2020,,2020,Nâng cao hiệu quả giải quyết thủ tục hành chính tại trường Đại học Nha Trang,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+260,2025,dt_260,,,2025,,2025,Lồng ghép kỹ năng nghề nghiệp vào giảng dạy: Từ đề cương chi tiết học phần đến triển khai thực tế tại Trường Đại học Nha Trang,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+262,2024,dt_262,,,2024,,2024,"Xây dựng ứng dụng hỗ trợ công tác sinh viên Khoa Công nghệ Thông tin, Trường Đại học Nha Trang",Hoàn thành,Hướng dẫn sinh viên làm đề tài NCKH,,
+263,2024,dt_263,,,2024,,2024,Ứng dụng thị giác máy tính xây dựng hệ thống cảnh báo trạng thái buồn ngủ khi lái xe,Hoàn thành,Hướng dẫn sinh viên làm đề tài NCKH,,
+264,2024,dt_264,,,2024,,2024,Nghiên cứu ứng dụng mạng nơron trong hệ thống IoT để giám sát hành vi té ngã hỗ trợ cảnh báo đột qụy,Hoàn thành,Hướng dẫn sinh viên làm đề tài NCKH,,
+265,2021,dt_265,,,2021,,2021,Nghiên cứu xây dựng nền tảng mô phỏng tấn công mạng tùy biến không dây di động trên Omnet++,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+268,2024,dt_268,,,2024,,2024,"Xây dựng công cụ thử nghiệm hỗ trợ nhập điểm, đối sánh dữ liệu điểm từ ảnh bảng điểm viết tay với dữ liệu trên phần mềm quản lý đào tạo Trường Đại học Nha Trang",Hoàn thành,Hướng dẫn sinh viên làm đề tài NCKH,,
+269,2024,dt_269,,,2024,,2024,Xây dựng hệ thống giám sát và điều khiển nhà yến thông minh,Hoàn thành,"Đề tài, dự án NCKH cấp Bộ/Tỉnh",,
+270,2023,dt_270,,,2023,,2023,Xây dựng công cụ hỗ trợ giám sát thi trực tuyến tại trường Đại học Nha Trang,Hoàn thành,Hướng dẫn sinh viên làm đề tài NCKH,,
+271,2020,dt_271,,,2020,,2020,"Nghiên cứu topic modelling, thử nghiệm phân lớp tự động các ý kiến phản hồi của người học Trường Đại học Nha Trang",Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+273,2020,dt_273,,,2020,,2020,Xây dựng khóa học trực tuyến Hướng dẫn giảng viên triển khai giảng dạy bằng công cụ E-Learning trong mô hình đào tạo kết hợp (Blended learning) tại trường Đại học Nha Trang,Hoàn thành,"Đề tài, dự án NCKH cấp trường",,
+290,2024,dt_290,,,2024,,2024,Nghiên cứu ứng dụng trí tuệ nhân tạo trong việc phát hiện tấn công lừa đảo (Phising): Thử nghiệm trường hợp Web Phising,Hoàn thành,Hướng dẫn sinh viên làm đề tài NCKH,,
+293,2026,dt_293,,1776430461158,,,,ádasdasd,Đang thực hiện,,,

@@ -1,4 +1,5 @@
-﻿ten_bo_mon,neo4j_id
-Bộ môn Công nghệ phần mềm,0
-Bộ môn Hệ thống thông tin,1
-Bộ môn Mạng máy tính và truyền thông,2
+﻿neo4j_id,ten_bo_mon,id
+0,Bộ môn Công nghệ phần mềm,bm_0
+1,Bộ môn Hệ thống thông tin,bm_1
+2,Bộ môn Mạng máy tính và truyền thông,bm_2
+157,Hệ thống thông tin quản lý,bm_157

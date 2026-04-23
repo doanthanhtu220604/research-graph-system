@@ -1,4 +1,4 @@
-﻿rel_type,start_labels,end_id,start_id,end_labels
-THUOC_KHOA,BoMon,46,0,Khoa
-THUOC_KHOA,BoMon,46,1,Khoa
-THUOC_KHOA,BoMon,46,2,Khoa
+﻿start_id,end_id,start_labels,rel_type,end_labels
+0,46,BoMon,THUOC_KHOA,Khoa
+1,46,BoMon,THUOC_KHOA,Khoa
+2,46,BoMon,THUOC_KHOA,Khoa
