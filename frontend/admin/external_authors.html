@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Quản trị Bản đồ tri thức">
-    <title>Quản lý Lĩnh vực nghiên cứu - Knowledge Map Admin</title>
+    <title>Quản lý Tác giả ngoài - Knowledge Map Admin</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
                     <span>QL Giảng viên</span>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a href="external_authors.html" class="nav-link">
                     <i class="fas fa-user-friends"></i>
                     <span>QL Tác giả ngoài</span>
@@ -52,7 +52,7 @@
                     <span>QL Đề tài</span>
                 </a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a href="research_fields.html" class="nav-link">
                     <i class="fas fa-layer-group"></i>
                     <span>QL Lĩnh vực NG</span>
@@ -90,7 +90,7 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title" id="pageTitle">Quản lý Lĩnh vực nghiên cứu</h1>
+            <h1 class="page-title" id="pageTitle">Quản lý Tác giả ngoài</h1>
             <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
                 <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 14px;"></div>
                 <button id="exportCsvBtn" class="btn" style="background: #28a745; color: white; border: none; padding: 6px 12px; font-size: 14px;"><i class="fas fa-file-csv"></i> Xuất CSV</button>
@@ -98,29 +98,37 @@
             </div>
         </header>
 
-        <!-- RESEARCH FIELDS SECTION -->
-        <section class="page active" id="page-admin-research-fields" style="display: block;">
+        <!-- EXTERNAL AUTHORS SECTION -->
+        <section class="page active" id="page-admin-external-authors" style="display: block;">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-layer-group"></i> Danh sách Lĩnh vực</h2>
+                    <h2><i class="fas fa-user-friends"></i> Quản lý Tác giả ngoài</h2>
                     <div class="card-actions">
-                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('linh-vuc')">
+                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('tac-gia-ngoai')">
                             <i class="fas fa-plus"></i> Thêm mới
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="filter-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="width: 250px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="filterTgnName" placeholder="Tìm tên tác giả..." style="font-size: 14px;" onkeyup="filterExternalAuthors()">
+                        </div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="data-table" id="adminResearchFieldsTable">
+                        <table class="data-table" id="adminExternalAuthorsTable">
                             <thead>
                                 <tr>
-                                    <th style="width: 10%;">ID</th>
-                                    <th>Tên Lĩnh vực</th>
-                                    <th style="width: 15%;">Hành động</th>
+                                    <th>ID</th>
+                                    <th>Họ và tên</th>
+                                    <th>Đơn vị công tác</th>
+                                    <th>Học vị/Chức danh</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminResearchFieldsBody">
-                                <tr><td colspan="3" class="loading-cell">Đang tải...</td></tr>
+                            <tbody id="adminExternalAuthorsBody">
+                                <tr><td colspan="5" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -154,6 +162,6 @@
         </div>
     </main>
 
-    <script src="../js/admin/admin_app.js"></script>
+    <script src="../js/admin/admin_app.js?v=1.1"></script>
 </body>
 </html>

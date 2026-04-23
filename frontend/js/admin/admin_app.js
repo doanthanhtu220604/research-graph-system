@@ -67,6 +67,18 @@ const ENTITY_CONFIG = {
         fields: [
             { name: 'ten_linh_vuc', label: 'Tên Lĩnh vực', type: 'text', required: true }
         ]
+    },
+    'tac-gia-ngoai': {
+        title: 'Tác giả ngoài',
+        apiUrl: `${ADMIN_API_BASE}/tac-gia-ngoai`, // Using admin URL since it's only in admin for now
+        adminApiUrl: `${ADMIN_API_BASE}/tac-gia-ngoai`,
+        fields: [
+            { name: 'ho_va_ten', label: 'Họ và tên', type: 'text', required: true },
+            { name: 'don_vi_cong_tac', label: 'Đơn vị công tác', type: 'text' },
+            { name: 'hoc_vi', label: 'Học vị', type: 'text' },
+            { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
+            { name: 'email', label: 'Email', type: 'email' }
+        ]
     }
 };
 
@@ -86,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadResearchFields();
     } else if (document.getElementById('page-admin-accounts')) {
         loadAccounts();
+    } else if (document.getElementById('page-admin-external-authors')) {
+        loadExternalAuthors();
     } else if (document.getElementById('page-admin-overview')) {
         initDashboardOverview();
     }
@@ -298,6 +312,13 @@ function exportDashboardCsv() {
             csvContent += `"${lv.id || i+1}","${(lv.ten_linh_vuc || '').replace(/"/g, '""')}"\n`;
         });
         filename = "danh_sach_linh_vuc.csv";
+    } else if (document.getElementById('page-admin-external-authors')) {
+        csvContent += "ID,Họ và tên,Đơn vị công tác,Học vị,Chức danh,Email\n";
+        const list = currentEntitiesData['tac-gia-ngoai'] || [];
+        list.forEach(tgn => {
+            csvContent += `"${tgn.id || ''}","${tgn.ho_va_ten || ''}","${tgn.don_vi_cong_tac || ''}","${tgn.hoc_vi || ''}","${tgn.chuc_danh || ''}","${tgn.email || ''}"\n`;
+        });
+        filename = "danh_sach_tac_gia_ngoai.csv";
     }
     
     const encodedUri = encodeURI(csvContent);
@@ -565,6 +586,54 @@ async function loadResearchFields() {
     }
 }
 
+async function loadExternalAuthors() {
+    try {
+        const res = await fetch(ENTITY_CONFIG['tac-gia-ngoai'].apiUrl);
+        const data = await res.json();
+        
+        if (data.status === 'ok') {
+            currentEntitiesData['tac-gia-ngoai'] = data.data;
+            renderExternalAuthorsTable(data.data);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function renderExternalAuthorsTable(dataList) {
+    const tbody = document.getElementById('adminExternalAuthorsBody');
+    if (!tbody) return;
+    
+    if (dataList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy tác giả ngoài phù hợp.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataList.map((tgn, index) => `
+        <tr>
+            <td>${tgn.id || 'N/A'}</td>
+            <td><strong>${tgn.ho_va_ten || 'N/A'}</strong></td>
+            <td>${tgn.don_vi_cong_tac || ''}</td>
+            <td>${[tgn.hoc_vi, tgn.chuc_danh].filter(Boolean).join(' / ')}</td>
+            <td>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('tac-gia-ngoai', '${tgn.id}', ${index})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('tac-gia-ngoai', '${tgn.id}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterExternalAuthors() {
+    const list = currentEntitiesData['tac-gia-ngoai'] || [];
+    const nameFilter = (document.getElementById('filterTgnName')?.value || '').toLowerCase();
+    
+    const filtered = list.filter(tgn => {
+        return (tgn.ho_va_ten || '').toLowerCase().includes(nameFilter);
+    });
+    
+    renderExternalAuthorsTable(filtered);
+}
+
 // ============================================================
 // MODAL FORMS
 // ============================================================
@@ -793,6 +862,7 @@ async function handleFormSubmit(e) {
             else if (type === 'cong-trinh') loadPublications();
             else if (type === 'de-tai') loadProjects();
             else if (type === 'linh-vuc') loadResearchFields();
+            else if (type === 'tac-gia-ngoai') loadExternalAuthors();
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -824,6 +894,7 @@ async function deleteEntity(type, id) {
             else if (type === 'cong-trinh') loadPublications();
             else if (type === 'de-tai') loadProjects();
             else if (type === 'linh-vuc') loadResearchFields();
+            else if (type === 'tac-gia-ngoai') loadExternalAuthors();
         } else {
             alert('Lỗi: ' + data.message);
         }
