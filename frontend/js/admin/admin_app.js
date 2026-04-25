@@ -1333,13 +1333,22 @@ function renderAccountsTable(list) {
         }
         
         let actions = '';
+        const safeName = (acc.ho_va_ten || '').replace(/'/g, "\\'");
+        const safeUsername = (acc.username || '').replace(/'/g, "\\'");
+        const safeEmail = (acc.email || '').replace(/'/g, "\\'");
+        const infoBtn = `<button class="btn btn-sm btn-view" title="Xem chi tiết thông tin" onclick="openInfoModal('${safeName}', '${safeUsername}', '${safeEmail}')"><i class="fas fa-eye"></i></button>`;
+
         if (!acc.co_tai_khoan) {
-            actions = `<button class="btn btn-sm btn-primary" onclick="openPwModal('${acc.id}', 'set')"><i class="fas fa-key"></i> Tạo TK</button>`;
+            actions = `
+                ${infoBtn}
+                <button class="btn btn-sm btn-primary" onclick="openPwModal('${acc.id}', 'set')"><i class="fas fa-key"></i> Tạo TK</button>
+            `;
         } else {
             const lockIcon = acc.trang_thai_tk === 'Hoạt động' ? 'fa-lock' : 'fa-unlock';
             const lockBtnColor = acc.trang_thai_tk === 'Hoạt động' ? 'var(--accent-red)' : '#28a745';
             actions = `
-                <button class="btn btn-sm btn-view" title="Đặt lại mật khẩu" onclick="openPwModal('${acc.id}', 'reset')"><i class="fas fa-redo"></i></button>
+                ${infoBtn}
+                <button class="btn btn-sm btn-view" style="color: var(--accent-orange); border-color: rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.1);" title="Đặt lại mật khẩu" onclick="openPwModal('${acc.id}', 'reset')"><i class="fas fa-redo"></i></button>
                 <button class="btn btn-sm" style="color:${lockBtnColor}; border-color:${lockBtnColor};" title="${acc.trang_thai_tk === 'Hoạt động' ? 'Khoá' : 'Mở khoá'}" onclick="toggleAccountStatus('${acc.id}')"><i class="fas ${lockIcon}"></i></button>
             `;
         }
@@ -1348,7 +1357,7 @@ function renderAccountsTable(list) {
             <tr>
                 <td>${acc.id}</td>
                 <td><strong>${acc.ho_va_ten}</strong><div style="font-size:12px;color:var(--text-muted);">${acc.hoc_vi||''}</div></td>
-                <td>${acc.email || '<i style="color:#ccc">Trống</i>'}</td>
+                <td>${acc.username || acc.email || '<i style="color:#ccc">Trống</i>'}</td>
                 <td>${acc.bo_mon || ''}</td>
                 <td>${statusBadge}</td>
                 <td>${actions}</td>
@@ -1362,7 +1371,7 @@ function filterAccounts() {
     const statusVal = document.getElementById('filterAccStatus')?.value || '';
     
     const filtered = allAccounts.filter(acc => {
-        const matchSearch = (acc.ho_va_ten || '').toLowerCase().includes(searchText) || (acc.email || '').toLowerCase().includes(searchText);
+        const matchSearch = (acc.ho_va_ten || '').toLowerCase().includes(searchText) || (acc.email || '').toLowerCase().includes(searchText) || (acc.username || '').toLowerCase().includes(searchText);
         let matchStatus = true;
         if (statusVal === 'co_tai_khoan') matchStatus = acc.co_tai_khoan;
         else if (statusVal === 'chua_co') matchStatus = !acc.co_tai_khoan;

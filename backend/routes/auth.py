@@ -36,7 +36,7 @@ def login():
         conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien)
-        WHERE (g.email = $username OR g.id = $username) AND g.password = $password
+        WHERE (g.username = $username OR g.email = $username OR g.id = $username) AND g.password = $password
         RETURN g.id AS id, g.ho_va_ten AS ten, g.email AS email, g.bo_mon AS bo_mon, g.anh_dai_dien AS avatar
         """
         result = conn.query_single(query, parameters={'username': username, 'password': password})

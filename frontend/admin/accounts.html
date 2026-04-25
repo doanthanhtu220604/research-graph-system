@@ -32,7 +32,7 @@
             margin-bottom: 24px;
         }
         .stat-card {
-            background: var(--surface);
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 18px 20px;
@@ -57,7 +57,7 @@
         }
         .pw-modal-overlay.active { display: flex; }
         .pw-modal {
-            background: var(--surface);
+            background: var(--bg-card);
             border-radius: 14px;
             padding: 30px;
             width: 420px;
@@ -224,7 +224,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Họ và tên</th>
-                                    <th>Email</th>
+                                    <th>Tên đăng nhập / Email</th>
                                     <th>Bộ môn</th>
                                     <th>Trạng thái TK</th>
                                     <th>Hành động</th>
@@ -246,6 +246,10 @@
             <h3 id="pwModalTitle"><i class="fas fa-key"></i> Đặt mật khẩu</h3>
             <input type="hidden" id="pwTargetId">
             <input type="hidden" id="pwTargetMode">
+            <div id="usernameContainer" style="margin-bottom: 16px; display: none;">
+                <label for="usernameInput">Tên tài khoản <span style="color:red">*</span></label>
+                <input type="text" id="usernameInput" placeholder="Nhập tên tài khoản..." autocomplete="new-password">
+            </div>
             <div style="margin-bottom: 16px;">
                 <label for="pwInput">Mật khẩu mới <span style="color:red">*</span></label>
                 <div style="position:relative;">
@@ -266,6 +270,28 @@
         </div>
     </div>
 
+    <!-- Info Modal -->
+    <div class="pw-modal-overlay" id="infoModalOverlay">
+        <div class="pw-modal">
+            <h3 style="margin-bottom: 24px;"><i class="fas fa-id-card"></i> Chi tiết tài khoản</h3>
+            <div style="margin-bottom: 12px; font-size: 14px;">
+                <span style="color: var(--text-secondary); width: 120px; display: inline-block;">Giảng viên:</span>
+                <strong id="infoName" style="color: var(--text-primary);">--</strong>
+            </div>
+            <div style="margin-bottom: 12px; font-size: 14px;">
+                <span style="color: var(--text-secondary); width: 120px; display: inline-block;">Tên đăng nhập:</span>
+                <strong id="infoUsername" style="color: var(--text-primary);">--</strong>
+            </div>
+            <div style="margin-bottom: 24px; font-size: 14px;">
+                <span style="color: var(--text-secondary); width: 120px; display: inline-block;">Email:</span>
+                <strong id="infoEmail" style="color: var(--text-primary);">--</strong>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="closeInfoModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/admin/admin_app.js"></script>
     <script>
         // ── Password Modal helpers ──────────────────────────────────
@@ -274,12 +300,23 @@
             document.getElementById('pwTargetMode').value = mode;
             document.getElementById('pwInput').value = '';
             document.getElementById('pwConfirm').value = '';
-            document.getElementById('pwModalTitle').innerHTML =
-                mode === 'set'
-                    ? '<i class="fas fa-key"></i> Tạo tài khoản'
-                    : '<i class="fas fa-redo"></i> Đặt lại mật khẩu';
+            
+            if (mode === 'set') {
+                document.getElementById('pwModalTitle').innerHTML = '<i class="fas fa-key"></i> Tạo tài khoản';
+                document.getElementById('usernameContainer').style.display = 'block';
+                document.getElementById('usernameInput').value = '';
+                document.querySelector('label[for="pwInput"]').innerHTML = 'Mật khẩu <span style="color:red">*</span>';
+                document.getElementById('pwInput').placeholder = 'Nhập mật khẩu...';
+                setTimeout(() => document.getElementById('usernameInput').focus(), 50);
+            } else {
+                document.getElementById('pwModalTitle').innerHTML = '<i class="fas fa-redo"></i> Đặt lại mật khẩu';
+                document.getElementById('usernameContainer').style.display = 'none';
+                document.querySelector('label[for="pwInput"]').innerHTML = 'Mật khẩu mới <span style="color:red">*</span>';
+                document.getElementById('pwInput').placeholder = 'Nhập mật khẩu mới...';
+                setTimeout(() => document.getElementById('pwInput').focus(), 50);
+            }
+            
             document.getElementById('pwModalOverlay').classList.add('active');
-            document.getElementById('pwInput').focus();
         }
         function closePwModal() {
             document.getElementById('pwModalOverlay').classList.remove('active');
@@ -293,8 +330,11 @@
         async function savePwModal() {
             const gvId = document.getElementById('pwTargetId').value;
             const mode = document.getElementById('pwTargetMode').value;
+            const un = document.getElementById('usernameInput') ? document.getElementById('usernameInput').value.trim() : '';
             const pw = document.getElementById('pwInput').value.trim();
             const cf = document.getElementById('pwConfirm').value.trim();
+            
+            if (mode === 'set' && !un) { alert('Vui lòng nhập tên tài khoản.'); return; }
             if (!pw) { alert('Vui lòng nhập mật khẩu.'); return; }
             if (pw !== cf) { alert('Mật khẩu xác nhận không khớp.'); return; }
             if (pw.length < 4) { alert('Mật khẩu phải có ít nhất 4 ký tự.'); return; }
@@ -302,7 +342,7 @@
             const endpoint = mode === 'set'
                 ? `/api/admin/accounts/${gvId}/set-password`
                 : `/api/admin/accounts/${gvId}/reset-password`;
-            const body = mode === 'set' ? { password: pw } : { new_password: pw };
+            const body = mode === 'set' ? { username: un, password: pw } : { new_password: pw };
             try {
                 const res = await fetch(endpoint, {
                     method: mode === 'set' ? 'POST' : 'PUT',
@@ -317,6 +357,20 @@
         // Close modal on backdrop click
         document.getElementById('pwModalOverlay').addEventListener('click', function(e) {
             if (e.target === this) closePwModal();
+        });
+        
+        // ── Info Modal helpers ──────────────────────────────────
+        function openInfoModal(name, username, email) {
+            document.getElementById('infoName').textContent = name || '--';
+            document.getElementById('infoUsername').textContent = username || 'Trống';
+            document.getElementById('infoEmail').textContent = email || 'Trống';
+            document.getElementById('infoModalOverlay').classList.add('active');
+        }
+        function closeInfoModal() {
+            document.getElementById('infoModalOverlay').classList.remove('active');
+        }
+        document.getElementById('infoModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeInfoModal();
         });
     </script>
 </body>
