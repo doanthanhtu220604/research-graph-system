@@ -380,7 +380,7 @@ function buildTooltip(node) {
     
     const keyNames = {
         'ho_va_ten': 'Họ tên', 'hoc_vi': 'Học vị', 'chuc_danh': 'Chức danh',
-        'ten_cong_trinh': 'Tên công trình', 'nam_xuat_ban': 'Năm XB', 'loai_an_pham': 'Loại',
+        'ten_cong_trinh': 'Tên công trình', 'nam_xuat_ban': 'Năm XB',
         'ten_de_tai': 'Tên đề tài', 'cap_de_tai': 'Cấp', 'nam_bat_dau': 'Từ năm', 'nam_thuc_hien': 'Năm TH', 'nam_ket_thuc': 'Đến năm',
         'ten_bo_mon': 'Bộ môn', 'ten_khoa': 'Khoa', 'email': 'Email', 'dien_thoai': 'SĐT'
     };
@@ -950,7 +950,7 @@ async function showPublicationDetail(ctId) {
         if (dataDetail.status === 'ok' && dataGraph.status === 'ok') {
             const ct = dataDetail.data;
             document.getElementById('detailTitle').textContent = ct.ten_cong_trinh || 'Công trình nghiên cứu';
-            document.getElementById('detailSubtitle').textContent = ct.loai_an_pham || 'Công trình';
+            document.getElementById('detailSubtitle').textContent = 'Công trình';
             
             const iconEl = document.getElementById('detailIcon');
             iconEl.innerHTML = '<i class="fas fa-file-alt" style="color: #10b981;"></i>';
@@ -958,7 +958,6 @@ async function showPublicationDetail(ctId) {
             
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Loại ấn phẩm</span><br><b>${ct.loai_an_pham || 'N/A'}</b></div>
             `;
             if (ct.link) {
                 fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${ct.link}" target="_blank" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem bài viết</a></div>`;
@@ -1122,8 +1121,8 @@ async function loadPublications() {
         const data = await res.json();
         if (data.status === 'ok') {
             _allPublications = data.data;
-            // Dynamically fill year filter
-            const years = [...new Set(data.data.map(ct => ct.nam_xuat_ban).filter(Boolean))].sort((a,b) => b - a);
+            // Dynamically fill year filter, enforcing Number to avoid string/int duplicates
+            const years = [...new Set(data.data.map(ct => Number(ct.nam_xuat_ban)).filter(y => !isNaN(y) && y > 0))].sort((a,b) => b - a);
             const ysel = document.getElementById('pubYearFilter');
             if (ysel) {
                 const existing = new Set([...ysel.options].map(o => o.value));
@@ -1136,14 +1135,7 @@ async function loadPublications() {
     }
 }
 
-function getTypeBadge(loai) {
-    if (!loai) return '<span class="badge badge-gray">Chưa phân loại</span>';
-    if (loai.includes('quốc tế') || loai.includes('Quốc tế')) return `<span class="badge badge-purple">${loai}</span>`;
-    if (loai.includes('Sách')) return `<span class="badge badge-teal">${loai}</span>`;
-    if (loai.includes('Bài báo')) return `<span class="badge badge-blue">${loai}</span>`;
-    if (loai.includes('Hội nghị')) return `<span class="badge badge-orange">${loai}</span>`;
-    return `<span class="badge badge-gray">${loai}</span>`;
-}
+
 
 function renderPublicationRows(list) {
     const container = document.getElementById('publicationsList');
@@ -1163,7 +1155,6 @@ function renderPublicationRows(list) {
                 <div class="data-row-body">
                     <div class="data-row-title" title="${title}">${title}</div>
                     <div class="data-row-meta">
-                        ${getTypeBadge(ct.loai_an_pham)}
                         ${ct.nam_xuat_ban ? `<span class="badge badge-gray"><i class="fas fa-calendar-alt"></i> ${ct.nam_xuat_ban}</span>` : ''}
                         ${authors ? `<span class="data-row-sub"><i class="fas fa-user"></i> ${authors}</span>` : ''}
                     </div>
@@ -1179,12 +1170,10 @@ function renderPublicationRows(list) {
 function filterUserPublications() {
     const q = (document.getElementById('pubSearchInput')?.value || '').toLowerCase();
     const year = document.getElementById('pubYearFilter')?.value || '';
-    const type = document.getElementById('pubTypeFilter')?.value || '';
     const filtered = _allPublications.filter(ct => {
         const matchQ = (ct.ten_cong_trinh || '').toLowerCase().includes(q);
         const matchYear = !year || (String(ct.nam_xuat_ban) === year);
-        const matchType = !type || (ct.loai_an_pham === type);
-        return matchQ && matchYear && matchType;
+        return matchQ && matchYear;
     });
     renderPublicationRows(filtered);
 }
@@ -1357,7 +1346,6 @@ function renderOngoingActivities(projects, publications) {
                             <div class="activity-item-title" title="${title}">${title}</div>
                             <div class="activity-item-meta">
                                 ${ct.nam_xuat_ban ? `<span class="badge-new-pub">${ct.nam_xuat_ban}</span>` : ''}
-                                ${ct.loai_an_pham ? `<span>${ct.loai_an_pham}</span>` : ''}
                                 ${authors ? `<span><i class="fas fa-user"></i> ${authors}${extra}</span>` : ''}
                             </div>
                         </div>

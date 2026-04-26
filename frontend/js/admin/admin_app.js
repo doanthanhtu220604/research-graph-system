@@ -34,7 +34,6 @@ const ENTITY_CONFIG = {
         fields: [
             { name: 'ten_cong_trinh', label: 'Tên công trình', type: 'text', required: true },
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
-            { name: 'loai_an_pham', label: 'Loại ấn phẩm', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
             { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
                 { value: 'Đang thực hiện', label: 'Đang thực hiện' },
@@ -338,10 +337,10 @@ function exportDashboardCsv() {
         });
         filename = "danh_sach_giang_vien.csv";
     } else if (document.getElementById('page-admin-publications')) {
-        csvContent += "ID,Tên công trình,Năm xuất bản,Loại ấn phẩm\n";
+        csvContent += "ID,Tên công trình,Năm xuất bản\n";
         const list = currentEntitiesData['cong-trinh'] || [];
         list.forEach(ct => {
-            csvContent += `"${ct.id || ''}","${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}","${ct.loai_an_pham || ''}"\n`;
+            csvContent += `"${ct.id || ''}","${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}"\n`;
         });
         filename = "danh_sach_cong_trinh.csv";
     } else if (document.getElementById('page-admin-projects')) {
@@ -492,13 +491,11 @@ function filterPublications() {
     const list = currentEntitiesData['cong-trinh'] || [];
     const titleFilter = (document.getElementById('filterPubTitle')?.value || '').toLowerCase();
     const yearFilter = document.getElementById('filterPubYear')?.value || '';
-    const typeFilter = document.getElementById('filterPubType')?.value || '';
     
     const filtered = list.filter(ct => {
         const matchTitle = (ct.ten_cong_trinh || '').toLowerCase().includes(titleFilter);
         const matchYear = yearFilter === '' || (ct.nam_xuat_ban == yearFilter);
-        const matchType = typeFilter === '' || (ct.loai_an_pham === typeFilter);
-        return matchTitle && matchYear && matchType;
+        return matchTitle && matchYear;
     });
     
     renderPublicationsTable(filtered);
@@ -1215,7 +1212,6 @@ async function viewPublicationStats(ctId) {
                     <p style="margin-bottom: 8px; font-size: 16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
                     <p style="margin-bottom: 5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Người tạo:</b> ${ct.nguoi_tao || 'Hệ thống / Admin'}</p>
-                    <p style="margin-bottom: 5px;"><b>Loại ấn phẩm:</b> ${ct.loai_an_pham || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
                     <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>
                 </div>
