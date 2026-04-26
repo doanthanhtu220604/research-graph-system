@@ -229,19 +229,27 @@ def extract_year(question: str) -> str:
 
 def extract_field(question: str) -> str:
     """Trích xuất từ khóa lĩnh vực từ câu hỏi."""
-    triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực", "mảng"]
     q = question.lower()
+    
+    tech_kws = CHAT_CONFIG["keywords"].get("tech_kws", [])
+    for kw in tech_kws:
+        if kw in q or fuzz.partial_ratio(kw, q) > 85:
+            return kw
+
+    triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực", "mảng"]
     for t in triggers:
         idx = q.find(t)
         if idx != -1:
             after = question[idx + len(t):].strip()
             words = after.split()
-            return " ".join(words[:3]).strip("?.,!").strip()
-
-    tech_kws = CHAT_CONFIG["keywords"].get("tech_kws", [])
-    for kw in tech_kws:
-        if kw in q or fuzz.partial_ratio(kw, q) > 85:
-            return kw
+            result = []
+            for w in words[:4]:
+                clean = w.strip("?.,!")
+                if clean.lower() in ["có", "là", "nào", "không", "gì", "đó", "nhỉ", "để", "thì"]:
+                    break
+                result.append(clean)
+            if result:
+                return " ".join(result).strip()
     return ""
 
 
@@ -586,7 +594,7 @@ def handle_search_project(question: str):
     return "Không tìm thấy đề tài nào phù hợp."
 
 
-def handle_search_by_field(question: str):
+def handle_search_by_field(question: str, include_pubs: bool = True):
     """Tìm giảng viên và công trình theo lĩnh vực."""
     conn = get_neo4j_connection()
     field = extract_field(question)
@@ -608,6 +616,7 @@ def handle_search_by_field(question: str):
         """
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         WHERE toLower(lv.ten_linh_vuc) CONTAINS toLower($field)
+           OR toLower($field) CONTAINS toLower(lv.ten_linh_vuc)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, lv.ten_linh_vuc AS linh_vuc, bm.ten_bo_mon AS bo_mon
         ORDER BY gv.ho_va_ten
@@ -616,17 +625,22 @@ def handle_search_by_field(question: str):
         {"field": field}
     )
 
-    pubs = conn.query(
-        """
-        MATCH (ct:CongTrinhNghienCuu)
-        WHERE toLower(coalesce(ct.tu_khoa,'')) CONTAINS toLower($field)
-           OR toLower(coalesce(ct.ten_cong_trinh,'')) CONTAINS toLower($field)
-        RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
-        ORDER BY ct.nam_xuat_ban DESC
-        LIMIT 5
-        """,
-        {"field": field}
-    )
+    if include_pubs:
+        pubs = conn.query(
+            """
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE toLower(coalesce(ct.tu_khoa,'')) CONTAINS toLower($field)
+               OR toLower($field) CONTAINS toLower(coalesce(ct.tu_khoa,''))
+               OR toLower(coalesce(ct.ten_cong_trinh,'')) CONTAINS toLower($field)
+               OR toLower($field) CONTAINS toLower(coalesce(ct.ten_cong_trinh,''))
+            RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
+            ORDER BY ct.nam_xuat_ban DESC
+            LIMIT 5
+            """,
+            {"field": field}
+        )
+    else:
+        pubs = []
 
     parts = []
     if lecturers:
@@ -650,6 +664,14 @@ def handle_collaboration(question: str):
     """Tìm mối quan hệ hợp tác giữa các giảng viên (qua cả công trình lẫn đề tài)."""
     conn = get_neo4j_connection()
     name = extract_name(question)
+    field = extract_field(question)
+
+    # Tránh trường hợp extract_name lấy nhầm tên lĩnh vực làm tên người
+    if name and field and name.lower() in field.lower():
+        name = ""
+
+    if field and not name:
+        return handle_search_by_field(question, include_pubs=False)
 
     if name:
         # Hợp tác qua công trình
