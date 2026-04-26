@@ -97,7 +97,7 @@
         /* ─── Charts grid ─── */
         .admin-charts-grid {
             display: grid;
-            grid-template-columns: 1.6fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 18px;
             margin-bottom: 24px;
         }
@@ -129,6 +129,7 @@
 
         .badge-blue   { background: rgba(79,142,247,0.1); color: #4F8EF7; }
         .badge-orange { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .badge-green  { background: rgba(16,185,129,0.1); color: #10b981; }
 
         /* ─── Top Lecturers compact ─── */
         .admin-bottom-grid {
@@ -346,16 +347,21 @@
 
             <!-- ─── 2 Charts ─── -->
             <div class="admin-charts-grid">
-                <div class="admin-chart-card">
+                <div class="admin-chart-card" style="grid-column: 1 / -1;">
                     <div class="adm-chart-header">
                         <div class="adm-chart-title">
                             <i class="fas fa-chart-bar" style="color:#4F8EF7;"></i>
-                            Công trình nghiên cứu theo năm xuất bản
+                            Biểu đồ thống kê Công trình và Đề tài
                         </div>
-                        <span class="adm-chart-badge badge-blue">Xu hướng</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <select id="chartYearFilter" style="padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-family: 'Inter', sans-serif; font-size: 12px; outline: none; background: var(--surface); color: var(--text-primary); cursor: pointer;">
+                                <option value="all">Tất cả các năm</option>
+                            </select>
+                            <span class="adm-chart-badge badge-blue">Tổng hợp</span>
+                        </div>
                     </div>
-                    <div style="flex:1; position:relative; min-height: 240px;">
-                        <canvas id="admChartByYear"></canvas>
+                    <div style="flex:1; position:relative; min-height: 300px;">
+                        <canvas id="admChartCombined"></canvas>
                     </div>
                 </div>
 

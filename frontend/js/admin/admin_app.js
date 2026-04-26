@@ -122,8 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ─── Admin chart instances ───
-let admChartByYear = null;
+let admChartCombined = null;
 let admChartByLevel = null;
+
+let rawCtNam = [];
+let rawDtNam = [];
 
 async function initDashboardOverview() {
     try {
@@ -137,43 +140,10 @@ async function initDashboardOverview() {
         animateAdmCard('admCountDT', data.stats.de_tai);
         animateAdmCard('admCountBM', data.stats.bo_mon);
 
-        // ── 2. Bar chart — publications by year ───────────────
-        const ctNam = data.cong_trinh_theo_nam || [];
-        const ctxBar = document.getElementById('admChartByYear');
-        if (ctxBar) {
-            if (admChartByYear) admChartByYear.destroy();
-            admChartByYear = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: ctNam.map(r => String(r.nam)),
-                    datasets: [{
-                        label: 'Số công trình',
-                        data: ctNam.map(r => r.so_luong),
-                        backgroundColor: ctNam.map((_, i) => `rgba(79,142,247,${0.4 + i / Math.max(ctNam.length - 1, 1) * 0.6})`),
-                        borderColor: '#4F8EF7',
-                        borderWidth: 1.5,
-                        borderRadius: 6,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#1e293b', titleColor: '#f1f5f9',
-                            bodyColor: '#94a3b8', padding: 10,
-                            callbacks: { label: ctx => ` ${ctx.parsed.y} công trình` }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } },
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, precision: 0 } }
-                    },
-                    animation: { duration: 800, easing: 'easeOutQuart' }
-                }
-            });
-        }
+        // ── 2. Combined Bar chart — publications & projects ───
+        rawCtNam = data.cong_trinh_theo_nam || [];
+        rawDtNam = data.de_tai_theo_nam || [];
+        renderCombinedChart('all');
 
         // ── 3. Doughnut chart — projects by level ─────────────
         const dtCap = data.de_tai_theo_cap || [];
@@ -210,12 +180,88 @@ async function initDashboardOverview() {
             });
         }
 
-        // ── 4. Top lecturers compact list ─────────────────────
+
+        // ── 5. Top lecturers compact list ─────────────────────
         renderAdmTopLecturers(data.top_giang_vien || []);
 
     } catch (err) {
         console.error('[Admin Dashboard] Error:', err);
     }
+}
+
+function renderCombinedChart(filterYear) {
+    const ctx = document.getElementById('admChartCombined');
+    if (!ctx) return;
+    
+    let allYears = new Set();
+    rawCtNam.forEach(r => allYears.add(r.nam));
+    rawDtNam.forEach(r => allYears.add(r.nam));
+    
+    let sortedYears = Array.from(allYears).sort((a,b) => a - b);
+    
+    const select = document.getElementById('chartYearFilter');
+    if (select && select.options.length === 1) {
+        sortedYears.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = 'Năm ' + y;
+            select.appendChild(opt);
+        });
+        select.addEventListener('change', (e) => {
+            renderCombinedChart(e.target.value);
+        });
+    }
+    
+    let labels = sortedYears;
+    if (filterYear !== 'all') {
+        labels = [Number(filterYear)];
+    }
+    
+    const ctData = labels.map(y => {
+        const found = rawCtNam.find(r => r.nam === y);
+        return found ? found.so_luong : 0;
+    });
+    const dtData = labels.map(y => {
+        const found = rawDtNam.find(r => r.nam === y);
+        return found ? found.so_luong : 0;
+    });
+    
+    if (admChartCombined) admChartCombined.destroy();
+    admChartCombined = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels.map(String),
+            datasets: [
+                {
+                    label: 'Công trình',
+                    data: ctData,
+                    backgroundColor: '#4F8EF7',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Đề tài',
+                    data: dtData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { color: '#64748b', font: { family: 'Inter', size: 12 }, usePointStyle: true, pointStyleWidth: 10 } },
+                tooltip: {
+                    backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8', padding: 10,
+                    mode: 'index', intersect: false
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, autoSkip: false, maxRotation: 45, minRotation: 45 } },
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, precision: 0 } }
+            },
+            animation: { duration: 800, easing: 'easeOutQuart' }
+        }
+    });
 }
 
 function animateAdmCard(id, endValue, duration = 1200) {

@@ -461,8 +461,8 @@ def get_overview_stats():
         # Thống kê công trình theo năm xuất bản (5 năm gần nhất)
         ct_theo_nam = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.nam_xuat_ban IS NOT NULL
-            RETURN ct.nam_xuat_ban AS nam, count(ct) AS so_luong
+            WHERE ct.nam_xuat_ban IS NOT NULL AND toString(ct.nam_xuat_ban) <> ''
+            RETURN toInteger(ct.nam_xuat_ban) AS nam, count(ct) AS so_luong
             ORDER BY nam ASC
         """)
 
@@ -472,6 +472,14 @@ def get_overview_stats():
             WHERE dt.cap_de_tai IS NOT NULL
             RETURN dt.cap_de_tai AS cap, count(dt) AS so_luong
             ORDER BY so_luong DESC
+        """)
+
+        # Thống kê đề tài theo năm bắt đầu
+        dt_theo_nam = conn.query("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE dt.nam_bat_dau IS NOT NULL AND toString(dt.nam_bat_dau) <> ''
+            RETURN toInteger(dt.nam_bat_dau) AS nam, count(dt) AS so_luong
+            ORDER BY nam ASC
         """)
 
         # ── Đề tài đang thực hiện ──────────────────────────────────────────
@@ -513,6 +521,7 @@ def get_overview_stats():
             },
             "top_giang_vien": top_gv,
             "cong_trinh_theo_nam": [{"nam": r["nam"], "so_luong": int(r["so_luong"])} for r in ct_theo_nam],
+            "de_tai_theo_nam": [{"nam": r["nam"], "so_luong": int(r["so_luong"])} for r in dt_theo_nam],
             "de_tai_theo_cap": [{"cap": r["cap"], "so_luong": int(r["so_luong"])} for r in dt_theo_cap],
             "de_tai_dang_thuc_hien": [
                 {
