@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dòng thời gian nghiên cứu - Knowledge Map</title>
+    <meta name="description" content="Xem toàn bộ hành trình nghiên cứu khoa học của giảng viên theo dòng thời gian.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        /* ================================================================
+           TIMELINE PAGE — STYLES
+           ================================================================ */
+
+        /* ── Sidebar nav item ── */
+        /* .nav-item .nav-link[href="timeline.html"] { active state handled via JS } */
+
+        /* ── Filter Bar ── */
+        .tl-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 28px;
+        }
+
+        .tl-filter-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .tl-filter-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border-color);
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tl-filter-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .tl-filter-btn.active {
+            color: white;
+            border-color: transparent;
+        }
+
+        .tl-filter-btn.active.all       { background: linear-gradient(135deg, #4f8ef7, #8b5cf6); }
+        .tl-filter-btn.active.pub        { background: linear-gradient(135deg, #3b82f6, #0ea5e9); }
+        .tl-filter-btn.active.proj       { background: linear-gradient(135deg, #10b981, #14b8a6); }
+
+        .tl-filter-spacer { flex: 1; }
+
+        .tl-filter-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-hover);
+            border-radius: 20px;
+            padding: 6px 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tl-filter-search input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 13px;
+            color: var(--text-primary);
+            width: 200px;
+        }
+
+        .tl-filter-search input::placeholder { color: var(--text-muted); }
+        .tl-filter-search i { color: var(--text-muted); font-size: 13px; }
+
+        /* ── Timeline Container ── */
+        .tl-container {
+            position: relative;
+            padding: 8px 0 40px;
+        }
+
+        /* Đường trục dọc */
+        .tl-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(79, 142, 247, 0.4) 5%,
+                rgba(79, 142, 247, 0.4) 95%,
+                transparent
+            );
+        }
+
+        /* ── Year marker ── */
+        .tl-year-marker {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            margin: 32px 0 20px;
+        }
+
+        .tl-year-bubble {
+            background: linear-gradient(135deg, #4f8ef7, #8b5cf6);
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 7px 22px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 16px rgba(79, 142, 247, 0.35);
+        }
+
+        /* ── Timeline Item ── */
+        .tl-item {
+            display: grid;
+            grid-template-columns: 1fr 56px 1fr;
+            gap: 0 16px;
+            align-items: start;
+            margin-bottom: 24px;
+            animation: tlFadeIn 0.4s ease both;
+        }
+
+        @keyframes tlFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Chẵn: Card bên trái, lẻ: Card bên phải */
+        .tl-item:nth-child(odd)  .tl-card { grid-column: 1; }
+        .tl-item:nth-child(odd)  .tl-dot-col { grid-column: 2; }
+        .tl-item:nth-child(odd)  .tl-spacer { grid-column: 3; }
+
+        .tl-item:nth-child(even) .tl-spacer { grid-column: 1; }
+        .tl-item:nth-child(even) .tl-dot-col { grid-column: 2; }
+        .tl-item:nth-child(even) .tl-card { grid-column: 3; }
+
+        /* ── Dot col (center icon) ── */
+        .tl-dot-col {
+            display: flex;
+            justify-content: center;
+            padding-top: 14px;
+        }
+
+        .tl-dot {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: white;
+            position: relative;
+            z-index: 5;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 4px var(--background), 0 4px 16px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .tl-dot:hover { transform: scale(1.12); }
+        .tl-dot.blue  { background: linear-gradient(135deg, #3b82f6, #0ea5e9); }
+        .tl-dot.green { background: linear-gradient(135deg, #10b981, #14b8a6); }
+
+        /* ── Card ── */
+        .tl-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tl-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .tl-card.blue::before  { background: linear-gradient(90deg, #3b82f6, #0ea5e9); }
+        .tl-card.green::before { background: linear-gradient(90deg, #10b981, #14b8a6); }
+
+        .tl-card:hover {
+            border-color: rgba(79, 142, 247, 0.35);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        .tl-card-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tl-card-type-badge.blue  { background: rgba(59,130,246,0.1);  color: #3b82f6; }
+        .tl-card-type-badge.green { background: rgba(16,185,129,0.1); color: #10b981; }
+
+        .tl-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.45;
+            margin-bottom: 10px;
+        }
+
+        .tl-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tl-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--bg-hover);
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        .tl-meta-chip i { font-size: 10px; }
+
+        .tl-card-summary {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .tl-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tl-collab-list {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .tl-collab-list i { font-size: 10px; }
+
+        .tl-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-decoration: none;
+            padding: 3px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .tl-card-link:hover { background: rgba(79,142,247,0.1); }
+
+        /* ── Empty state ── */
+        .tl-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .tl-empty i { font-size: 48px; margin-bottom: 14px; opacity: 0.3; display: block; }
+        .tl-empty p { font-size: 15px; }
+
+        /* ── Loading ── */
+        .tl-loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+
+        .tl-loading i { font-size: 28px; margin-bottom: 10px; display: block; }
+
+        /* ── Summary bar ── */
+        .tl-summary-bar {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tl-summary-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 13px;
+        }
+
+        .tl-summary-chip .chip-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+
+        .tl-summary-chip.blue .chip-icon  { background: rgba(59,130,246,0.1);  color: #3b82f6; }
+        .tl-summary-chip.green .chip-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+        .tl-summary-chip.purple .chip-icon { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+
+        .tl-summary-chip .chip-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .tl-summary-chip .chip-lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive: stack timeline on small screens */
+        @media (max-width: 900px) {
+            .tl-container::before { left: 28px; transform: none; }
+
+            .tl-item {
+                grid-template-columns: 56px 1fr;
+                gap: 0 12px;
+            }
+
+            .tl-item .tl-dot-col { grid-column: 1 !important; grid-row: 1; }
+            .tl-item .tl-card   { grid-column: 2 !important; grid-row: 1; }
+            .tl-item .tl-spacer { display: none !important; }
+
+            .tl-year-marker { justify-content: flex-start; padding-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ── Sidebar ── -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span class="logo-text">Giảng viên</span>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Tài khoản của tôi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="publications.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Công trình của tôi</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="projects.html" class="nav-link">
+                    <i class="fas fa-flask"></i>
+                    <span>Đề tài của tôi</span>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="timeline.html" class="nav-link">
+                    <i class="fas fa-stream"></i>
+                    <span>Dòng thời gian</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Về trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" onclick="logoutUser()" class="nav-link" style="color: var(--accent-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- ── Main Content ── -->
+    <main class="main-content" id="mainContent">
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Dòng thời gian nghiên cứu</h1>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+                <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 13px;"></div>
+                <div style="display:flex; align-items:center; gap: 8px; margin-left: 10px;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <span style="font-weight: 600; color: var(--text-primary); font-size:13px;" id="welcomeText">Giảng viên</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="page active" id="page-timeline">
+
+            <!-- Summary chips -->
+            <div class="tl-summary-bar" id="tlSummaryBar" style="display:none;">
+                <div class="tl-summary-chip purple">
+                    <div class="chip-icon"><i class="fas fa-stream"></i></div>
+                    <div>
+                        <div class="chip-val" id="tlTotalCount">0</div>
+                        <div class="chip-lbl">Tổng sự kiện</div>
+                    </div>
+                </div>
+                <div class="tl-summary-chip blue">
+                    <div class="chip-icon"><i class="fas fa-book-open"></i></div>
+                    <div>
+                        <div class="chip-val" id="tlPubCount">0</div>
+                        <div class="chip-lbl">Công trình</div>
+                    </div>
+                </div>
+                <div class="tl-summary-chip green">
+                    <div class="chip-icon"><i class="fas fa-flask"></i></div>
+                    <div>
+                        <div class="chip-val" id="tlProjCount">0</div>
+                        <div class="chip-lbl">Đề tài</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter bar -->
+            <div class="tl-filter-bar">
+                <span class="tl-filter-label"><i class="fas fa-filter"></i> Lọc:</span>
+                <button id="filterAll"  class="tl-filter-btn active all"  onclick="setFilter('all')">
+                    <i class="fas fa-stream"></i> Tất cả
+                </button>
+                <button id="filterPub"  class="tl-filter-btn pub"  onclick="setFilter('publication')">
+                    <i class="fas fa-book-open"></i> Công trình
+                </button>
+                <button id="filterProj" class="tl-filter-btn proj" onclick="setFilter('project')">
+                    <i class="fas fa-flask"></i> Đề tài
+                </button>
+                <div class="tl-filter-spacer"></div>
+                <div class="tl-filter-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="tlSearchInput" placeholder="Tìm kiếm theo tiêu đề..." oninput="renderTimeline()">
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="tl-container" id="tlContainer">
+                <div class="tl-loading">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    Đang tải dữ liệu dòng thời gian...
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="../js/lecturer/lecturer_app.js"></script>
+    <script src="../js/lecturer/timeline_app.js"></script>
+</body>
+</html>

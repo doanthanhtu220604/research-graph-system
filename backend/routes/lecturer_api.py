@@ -376,6 +376,154 @@ def add_my_project():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+# ============================================================
+# TIMELINE - DÒNG THỜI GIAN NGHIÊN CỨU
+# ============================================================
+
+@lecturer_api_bp.route('/timeline', methods=['GET'])
+def get_lecturer_timeline():
+    """
+    Tổng hợp toàn bộ sự kiện nghiên cứu của một giảng viên theo dòng thời gian.
+    Bao gồm: Công trình (nam_xuat_ban) + Đề tài (nam_bat_dau, nam_ket_thuc).
+    Trả về mảng events sắp xếp theo năm giảm dần (mới nhất trước).
+    """
+    gv_id = request.args.get('id', '').strip()
+    if not gv_id:
+        return jsonify({'status': 'error', 'message': 'Thiếu tham số id'}), 400
+
+    try:
+        conn = get_neo4j_connection()
+
+        # ── 1. Lấy thông tin cơ bản của GV ───────────────────────────────────
+        gv_res = conn.query_single("""
+            MATCH (g:GiangVien) WHERE g.id = $id
+            OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+            RETURN g.ho_va_ten AS ten, g.hoc_vi AS hoc_vi,
+                   g.bo_mon AS bo_mon,
+                   collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc
+        """, {'id': gv_id})
+
+        # ── 2. Lấy công trình nghiên cứu ─────────────────────────────────────
+        ct_res = conn.query("""
+            MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            WHERE g.id = $id
+            OPTIONAL MATCH (co:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            WHERE co.id <> $id
+            RETURN ct.id AS id,
+                   ct.ten_cong_trinh AS tieu_de,
+                   ct.nam_xuat_ban AS nam,
+                   ct.loai_an_pham AS loai,
+                   ct.tom_tat AS tom_tat,
+                   ct.link AS link,
+                   ct.trang_thai AS trang_thai,
+                   collect(DISTINCT co.ho_va_ten) AS dong_tac_gia
+            ORDER BY ct.nam_xuat_ban DESC
+        """, {'id': gv_id})
+
+        # ── 3. Lấy đề tài nghiên cứu ─────────────────────────────────────────
+        dt_res = conn.query("""
+            MATCH (g:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+            WHERE g.id = $id
+            OPTIONAL MATCH (tv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt)
+            WHERE tv.id <> $id
+            RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id,
+                   dt.ten_de_tai AS tieu_de,
+                   dt.nam_bat_dau AS nam,
+                   dt.nam_ket_thuc AS nam_ket_thuc,
+                   dt.cap_de_tai AS cap,
+                   dt.tom_tat AS tom_tat,
+                   dt.link AS link,
+                   dt.trang_thai AS trang_thai,
+                   type(r) AS vai_tro,
+                   collect(DISTINCT tv.ho_va_ten) AS thanh_vien
+            ORDER BY dt.nam_bat_dau DESC
+        """, {'id': gv_id})
+
+        # ── 4. Chuyển đổi thành Events Array thống nhất ───────────────────────
+        events = []
+
+        for ct in ct_res:
+            nam = ct.get('nam')
+            try:
+                nam = int(nam) if nam is not None else None
+            except (ValueError, TypeError):
+                nam = None
+
+            dong_ta = [a for a in (ct.get('dong_tac_gia') or []) if a]
+            events.append({
+                'id': ct.get('id'),
+                'type': 'publication',           # Loại: công trình
+                'icon': 'fa-book-open',
+                'color': 'blue',
+                'tieu_de': ct.get('tieu_de', 'Không có tiêu đề'),
+                'nam': nam,
+                'loai': ct.get('loai') or 'Bài báo',
+                'tom_tat': ct.get('tom_tat') or '',
+                'link': ct.get('link') or '',
+                'trang_thai': ct.get('trang_thai') or 'Đã duyệt',
+                'dong_tac_gia': dong_ta,
+                'vai_tro': 'Tác giả',
+            })
+
+        for dt in dt_res:
+            nam = dt.get('nam')
+            try:
+                nam = int(nam) if nam is not None else None
+            except (ValueError, TypeError):
+                nam = None
+
+            nam_ket_thuc = dt.get('nam_ket_thuc')
+            try:
+                nam_ket_thuc = int(nam_ket_thuc) if nam_ket_thuc is not None else None
+            except (ValueError, TypeError):
+                nam_ket_thuc = None
+
+            vai_tro_raw = dt.get('vai_tro', 'THAM_GIA')
+            vai_tro_label = 'Chủ nhiệm' if vai_tro_raw == 'CHU_NHIEM' else 'Thành viên'
+            thanh_vien = [tv for tv in (dt.get('thanh_vien') or []) if tv]
+
+            events.append({
+                'id': dt.get('id'),
+                'type': 'project',               # Loại: đề tài
+                'icon': 'fa-flask',
+                'color': 'green',
+                'tieu_de': dt.get('tieu_de', 'Không có tiêu đề'),
+                'nam': nam,
+                'nam_ket_thuc': nam_ket_thuc,
+                'cap': dt.get('cap') or 'N/A',
+                'tom_tat': dt.get('tom_tat') or '',
+                'link': dt.get('link') or '',
+                'trang_thai': dt.get('trang_thai') or 'Đã duyệt',
+                'thanh_vien': thanh_vien,
+                'vai_tro': vai_tro_label,
+            })
+
+        # ── 5. Sắp xếp theo năm giảm dần (None xếp cuối) ─────────────────────
+        events.sort(key=lambda e: (e['nam'] is None, -(e['nam'] or 0)))
+
+        # Thông tin GV để frontend render header
+        gv_info = {}
+        if gv_res:
+            gv_info = {
+                'ten': gv_res.get('ten', ''),
+                'hoc_vi': gv_res.get('hoc_vi', ''),
+                'bo_mon': gv_res.get('bo_mon', ''),
+                'linh_vuc': [lv for lv in (gv_res.get('linh_vuc') or []) if lv],
+            }
+
+        return jsonify({
+            'status': 'ok',
+            'data': events,
+            'gv_info': gv_info,
+            'total': len(events)
+        })
+
+    except Exception as e:
+        logger.error(f"Error in get_lecturer_timeline: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @lecturer_api_bp.route('/de-tai/<dt_id>', methods=['PUT', 'DELETE'])
 def update_my_project(dt_id):
     gv_id = request.args.get('gv_id') or (request.get_json() or {}).get('giang_vien_id')
