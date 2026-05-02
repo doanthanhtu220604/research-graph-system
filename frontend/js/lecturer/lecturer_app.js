@@ -7,6 +7,131 @@ let userInfo = null;
 let currentEntitiesData = {};
 let allLecturers = [];
 
+// Collaborator suggestion state
+let suggestDebounceTimer = null;
+let suggestedSelected = {}; // { gv_id: true } - người đã được thêm qua gợi ý
+
+/* ============================================================
+   CSS STYLES FOR COLLABORATOR SUGGESTIONS (injected once)
+   ============================================================ */
+(function injectSuggestionStyles() {
+    if (document.getElementById('collab-suggest-style')) return;
+    const style = document.createElement('style');
+    style.id = 'collab-suggest-style';
+    style.textContent = `
+        /* --- Suggestion Panel --- */
+        .collab-suggest-panel {
+            border: 1.5px dashed var(--border-glow, rgba(59,130,246,0.35));
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.04) 100%);
+            overflow: hidden;
+            animation: fadeInSuggest 0.3s ease;
+            height: 100%;
+        }
+        @keyframes fadeInSuggest {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .collab-suggest-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-blue, #3b82f6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(59,130,246,0.12);
+        }
+        .collab-suggest-header i { font-size: 13px; }
+        .collab-suggest-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            padding: 10px 12px 12px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .collab-card {
+            background: white;
+            border: 1px solid var(--border-color, rgba(0,0,0,0.08));
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            cursor: default;
+            position: relative;
+        }
+        .collab-card:hover {
+            border-color: rgba(59,130,246,0.4);
+            box-shadow: 0 3px 12px rgba(59,130,246,0.12);
+            transform: translateY(-1px);
+        }
+        .collab-card.collab-added {
+            border-color: rgba(16,185,129,0.5);
+            background: rgba(16,185,129,0.04);
+        }
+        .collab-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid rgba(59,130,246,0.2);
+        }
+        .collab-info { flex: 1; min-width: 0; }
+        .collab-name {
+            font-size: 13px; font-weight: 600;
+            color: var(--text-primary, #1e293b);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .collab-meta {
+            font-size: 11px; color: var(--text-muted, #94a3b8);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .collab-tags {
+            display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px;
+        }
+        .collab-tag {
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 10px; font-weight: 500;
+            background: rgba(59,130,246,0.1);
+            color: #3b82f6;
+        }
+        .collab-add-btn {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gradient-primary, linear-gradient(135deg,#3b82f6,#8b5cf6));
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .collab-add-btn:hover { transform: scale(1.15); }
+        .collab-add-btn.added {
+            background: linear-gradient(135deg,#10b981,#14b8a6);
+            cursor: default;
+        }
+        .collab-suggest-loading {
+            text-align: center; padding: 14px;
+            color: var(--text-muted, #94a3b8);
+            font-size: 13px;
+        }
+        .collab-suggest-empty {
+            text-align: center; padding: 12px;
+            color: var(--text-muted, #94a3b8);
+            font-size: 12px; font-style: italic;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     // Check Auth
     const role = localStorage.getItem('userRole');
@@ -230,6 +355,9 @@ function openLecturerModal(type, id = null) {
     const config = ENTITY_CONFIG[type];
     if (!config) return;
 
+    // Reset suggestion state khi mở modal mới
+    suggestedSelected = {};
+
     document.getElementById('formEntityType').value = type;
     document.getElementById('formEntityId').value = id || '';
     
@@ -248,7 +376,7 @@ function openLecturerModal(type, id = null) {
             } else {
                 const optionsHtml = allLecturers
                     .filter(gv => gv.id != userInfo.id)
-                    .map(gv => `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" name="${f.name}" value="${gv.id}"> ${gv.ho_va_ten} ${gv.bo_mon ? '('+gv.bo_mon+')' : ''}</label></div>`)
+                    .map(gv => `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="member-checkbox" name="${f.name}" value="${gv.id}"> ${gv.ho_va_ten} ${gv.bo_mon ? '('+gv.bo_mon+')' : ''}</label></div>`)
                     .join('');
                 inputHtml = `<div id="field_${f.name}" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white;">${optionsHtml}</div>`;
             }
@@ -277,7 +405,186 @@ function openLecturerModal(type, id = null) {
         }
     }
 
+    // Gắn listener gợi ý cộng sự khi tạo mới (không phải edit)
+    if (!id) {
+        // Tên field tiêu đề tùy theo loại
+        const titleFieldName = type === 'cong-trinh' ? 'ten_cong_trinh' : 'ten_de_tai';
+        const titleInput = document.getElementById(`field_${titleFieldName}`);
+        
+        // Thêm panel gợi ý bên cạnh field thanh_vien_ids
+        const memberFieldGroup = document.querySelector('#field_thanh_vien_ids')?.parentElement;
+        if (memberFieldGroup) {
+            // Thay vì để 150px, cho nó cao lên
+            document.getElementById('field_thanh_vien_ids').style.maxHeight = '350px';
+            document.getElementById('field_thanh_vien_ids').style.height = '100%';
+            
+            // Tạo một container bọc cả hai
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'grid';
+            wrapper.style.gridTemplateColumns = '1fr 1fr';
+            wrapper.style.gap = '20px';
+            wrapper.style.alignItems = 'start';
+            wrapper.style.marginTop = '15px';
+            wrapper.style.paddingTop = '15px';
+            wrapper.style.borderTop = '1px dashed var(--border-color)';
+            
+            // Lấy memberFieldGroup ra khỏi form và cho vào cột trái
+            memberFieldGroup.parentElement.insertBefore(wrapper, memberFieldGroup);
+            wrapper.appendChild(memberFieldGroup);
+            memberFieldGroup.style.margin = '0'; // Xóa margin gốc
+            
+            // Tạo cột phải cho gợi ý
+            const panelCol = document.createElement('div');
+            panelCol.id = 'collab-suggest-panel';
+            // Sửa CSS của panel một chút để vừa cột
+            wrapper.appendChild(panelCol);
+
+            // Bắt sự kiện gõ title
+            if (titleInput) {
+                titleInput.addEventListener('input', () => {
+                    clearTimeout(suggestDebounceTimer);
+                    const keywords = titleInput.value.trim();
+                    if (keywords.length < 3) {
+                        panelCol.innerHTML = '';
+                        return;
+                    }
+                    panelCol.innerHTML = `<div class="collab-suggest-loading"><i class="fas fa-circle-notch fa-spin"></i> Đang tìm cộng sự phù hợp...</div>`;
+                    suggestDebounceTimer = setTimeout(() => fetchSuggestions(keywords), 650);
+                });
+
+                if (titleInput.value.trim().length >= 3) {
+                    fetchSuggestions(titleInput.value.trim());
+                } else {
+                    fetchSuggestions('');
+                }
+            }
+        }
+    }
+
     document.getElementById('lecturerModalOverlay').classList.add('active');
+}
+
+/* ============================================================
+   COLLABORATOR SUGGESTION FUNCTIONS
+   ============================================================ */
+
+async function fetchSuggestions(keywords) {
+    const panel = document.getElementById('collab-suggest-panel');
+    if (!panel) return;
+
+    try {
+        const params = new URLSearchParams({ gv_id: userInfo.id, keywords });
+        const res = await fetch(`${API_LECTURER_BASE}/suggest-collaborators?${params}`);
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+            renderSuggestions(data.data, data.my_linh_vuc || []);
+        } else {
+            panel.innerHTML = '';
+        }
+    } catch (e) {
+        panel.innerHTML = '';
+        console.error('Suggest error:', e);
+    }
+}
+
+function renderSuggestions(suggestions, myLinhVuc) {
+    const panel = document.getElementById('collab-suggest-panel');
+    if (!panel) return;
+
+    if (!suggestions || suggestions.length === 0) {
+        panel.innerHTML = `
+            <div class="collab-suggest-panel">
+                <div class="collab-suggest-header"><i class="fas fa-lightbulb"></i> Gợi ý cộng sự tiềm năng</div>
+                <div class="collab-suggest-empty">Không tìm thấy cộng sự phù hợp. Thêm thủ công bên trên.</div>
+            </div>`;
+        return;
+    }
+
+    const cards = suggestions.map(s => {
+        const isAdded = !!suggestedSelected[s.id];
+        const avatar = s.anh_dai_dien
+            ? `<img src="${s.anh_dai_dien}" class="collab-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(s.ho_va_ten)}&background=3b82f6&color=fff'">`
+            : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(s.ho_va_ten)}&background=3b82f6&color=fff" class="collab-avatar">`;
+
+        // Tags: lĩnh vực chung
+        const tags = (s.ly_do.linh_vuc_chung || []).slice(0, 2)
+            .map(lv => `<span class="collab-tag">${lv}</span>`).join('');
+
+        const meta = [
+            s.hoc_vi || '',
+            s.bo_mon || ''
+        ].filter(Boolean).join(' · ');
+
+        const btnIcon = isAdded ? 'fa-check' : 'fa-plus';
+        const btnClass = isAdded ? 'added' : '';
+        const btnTitle = isAdded ? 'Hủy thêm' : 'Thêm vào danh sách';
+
+        return `
+        <div class="collab-card ${isAdded ? 'collab-added' : ''}" id="collab-card-${s.id}">
+            ${avatar}
+            <div class="collab-info">
+                <div class="collab-name" title="${s.ho_va_ten}">${s.ho_va_ten}</div>
+                <div class="collab-meta">${meta || `${s.so_cong_trinh} CT · ${s.so_de_tai} ĐT`}</div>
+                ${tags ? `<div class="collab-tags">${tags}</div>` : ''}
+            </div>
+            <button type="button" class="collab-add-btn ${btnClass}" title="${btnTitle}"
+                onclick="toggleSuggestedCollaborator('${s.id}')">
+                <i class="fas ${btnIcon}"></i>
+            </button>
+        </div>`;
+    }).join('');
+
+    panel.innerHTML = `
+        <div class="collab-suggest-panel">
+            <div class="collab-suggest-header">
+                <i class="fas fa-user-friends"></i>
+                Gợi ý cộng sự tiềm năng
+                <span style="margin-left: auto; font-size: 10px; font-weight: 400; color: var(--text-muted); text-transform: none; letter-spacing: 0;">
+                    ${myLinhVuc.length > 0 ? 'Dựa trên lĩnh vực: ' + myLinhVuc.slice(0,2).join(', ') : 'Dựa trên từ khóa đề tài'}
+                </span>
+            </div>
+            <div class="collab-suggest-grid">${cards}</div>
+        </div>`;
+}
+
+function toggleSuggestedCollaborator(gvId) {
+    const isCurrentlyAdded = !!suggestedSelected[gvId];
+    
+    // Toggle trạng thái checkbox
+    const checkbox = document.querySelector(`input.member-checkbox[value="${gvId}"]`);
+    if (checkbox) {
+        checkbox.checked = !isCurrentlyAdded;
+        if (!isCurrentlyAdded) {
+            checkbox.closest('div')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    // Toggle state
+    suggestedSelected[gvId] = !isCurrentlyAdded;
+
+    // Cập nhật UI thẻ
+    const card = document.getElementById(`collab-card-${gvId}`);
+    if (card) {
+        const btn = card.querySelector('.collab-add-btn');
+        if (!isCurrentlyAdded) {
+            // Đang từ chưa thêm -> Đã thêm
+            card.classList.add('collab-added');
+            if (btn) {
+                btn.classList.add('added');
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.title = 'Hủy thêm';
+            }
+        } else {
+            // Đang từ đã thêm -> Hủy thêm
+            card.classList.remove('collab-added');
+            if (btn) {
+                btn.classList.remove('added');
+                btn.innerHTML = '<i class="fas fa-plus"></i>';
+                btn.title = 'Thêm vào danh sách';
+            }
+        }
+    }
 }
 
 function closeLecturerModal() {

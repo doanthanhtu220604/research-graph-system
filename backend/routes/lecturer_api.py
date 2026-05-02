@@ -5,6 +5,131 @@ from backend.services.neo4j_connection import get_neo4j_connection
 logger = logging.getLogger(__name__)
 lecturer_api_bp = Blueprint('lecturer_api', __name__)
 
+
+# ============================================================
+# GỢI Ý CỘNG SỰ TIỀM NĂNG
+# ============================================================
+
+@lecturer_api_bp.route('/suggest-collaborators', methods=['GET'])
+def suggest_collaborators():
+    """
+    Gợi ý cộng sự dựa trên:
+    1. Lĩnh vực nghiên cứu tương đồng (ưu tiên cao nhất)
+    2. Từ khóa xuất hiện trong tên đề tài/công trình của người đó (matching keywords)
+    Loại trừ: bản thân GV, và những người đã từng hợp tác trực tiếp.
+    """
+    gv_id = request.args.get('gv_id', '').strip()
+    keywords_raw = request.args.get('keywords', '').strip()
+
+    if not gv_id:
+        return jsonify({'status': 'error', 'message': 'Thiếu tham số gv_id'}), 400
+
+    keywords = [kw.strip().lower() for kw in keywords_raw.split() if len(kw.strip()) >= 2] if keywords_raw else []
+
+    try:
+        conn = get_neo4j_connection()
+
+        # ── Bước 1: Lấy lĩnh vực nghiên cứu của GV hiện tại ──────────────────
+        linh_vuc_res = conn.query("""
+            MATCH (me:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+            WHERE me.id = $gv_id
+            RETURN lv.ten_linh_vuc AS lv
+        """, {'gv_id': gv_id})
+        my_linh_vuc = [r['lv'] for r in linh_vuc_res if r.get('lv')]
+
+        # ── Bước 2: Lấy danh sách ID những người đã từng hợp tác ─────────────
+        da_hop_tac_res = conn.query("""
+            MATCH (me:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(work)
+            <-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]-(other:GiangVien)
+            WHERE me.id = $gv_id AND other.id <> $gv_id
+            RETURN DISTINCT other.id AS id
+        """, {'gv_id': gv_id})
+        da_hop_tac_ids = {r['id'] for r in da_hop_tac_res if r.get('id')}
+
+        # ── Bước 3: Tìm tất cả giảng viên khác (chưa hợp tác) ───────────────
+        all_others_res = conn.query("""
+            MATCH (other:GiangVien)
+            WHERE other.id <> $gv_id
+            OPTIONAL MATCH (other)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+            OPTIONAL MATCH (other)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (other)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            OPTIONAL MATCH (other)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+            RETURN other.id AS id,
+                   other.ho_va_ten AS ho_va_ten,
+                   other.hoc_vi AS hoc_vi,
+                   other.anh_dai_dien AS anh_dai_dien,
+                   collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc,
+                   bm.ten_bo_mon AS bo_mon,
+                   count(DISTINCT ct) AS so_cong_trinh,
+                   count(DISTINCT dt) AS so_de_tai,
+                   collect(DISTINCT ct.ten_cong_trinh) AS ten_ct_list,
+                   collect(DISTINCT dt.ten_de_tai) AS ten_dt_list
+        """, {'gv_id': gv_id})
+
+        # ── Bước 4: Tính điểm gợi ý cho từng người ───────────────────────────
+        suggestions = []
+        for r in all_others_res:
+            other_id = r.get('id')
+            if not other_id:
+                continue
+            # Bỏ qua người đã hợp tác
+            if other_id in da_hop_tac_ids:
+                continue
+
+            other_linh_vuc = [lv for lv in (r.get('linh_vuc') or []) if lv]
+            other_ten_ct = ' '.join(r.get('ten_ct_list') or []).lower()
+            other_ten_dt = ' '.join(r.get('ten_dt_list') or []).lower()
+            all_text = other_ten_ct + ' ' + other_ten_dt
+
+            score = 0
+            matched_linh_vuc = []
+            matched_keywords = []
+
+            # Điểm theo lĩnh vực chung
+            for lv in my_linh_vuc:
+                if lv in other_linh_vuc:
+                    score += 3
+                    matched_linh_vuc.append(lv)
+
+            # Điểm theo từ khóa trong tên công trình/đề tài
+            for kw in keywords:
+                if kw in all_text:
+                    score += 1
+                    matched_keywords.append(kw)
+
+            # Chỉ gợi ý nếu có điểm tương đồng
+            if score > 0:
+                suggestions.append({
+                    'id': other_id,
+                    'ho_va_ten': r.get('ho_va_ten', ''),
+                    'hoc_vi': r.get('hoc_vi', ''),
+                    'bo_mon': r.get('bo_mon', ''),
+                    'anh_dai_dien': r.get('anh_dai_dien', ''),
+                    'linh_vuc': other_linh_vuc,
+                    'so_cong_trinh': r.get('so_cong_trinh', 0),
+                    'so_de_tai': r.get('so_de_tai', 0),
+                    'score': score,
+                    'ly_do': {
+                        'linh_vuc_chung': matched_linh_vuc,
+                        'tu_khoa_khop': list(set(matched_keywords))
+                    }
+                })
+
+        # Sắp xếp theo điểm giảm dần, lấy top 6
+        suggestions.sort(key=lambda x: x['score'], reverse=True)
+        top_suggestions = suggestions[:6]
+
+        return jsonify({
+            'status': 'ok',
+            'data': top_suggestions,
+            'my_linh_vuc': my_linh_vuc,
+            'da_hop_tac': len(da_hop_tac_ids)
+        })
+
+    except Exception as e:
+        logger.error(f"Error in suggest_collaborators: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @lecturer_api_bp.route('/me', methods=['GET'])
 def get_me():
     gv_id = request.args.get('id')
