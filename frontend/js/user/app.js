@@ -246,7 +246,7 @@ function renderTopLecturers(lecturers, containerId) {
                 
                 <div style="padding-left: 43px;">
                     <div class="rank-progress-bar" style="height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden;">
-                        <div class="rank-progress-fill" style="height: 100%; width: ${percent}%; background: ${i === 0 ? 'var(--gradient-primary)' : (i === 1 ? 'linear-gradient(135deg, #9ca3af, #d1d5db)' : (i === 2 ? '#f59e0b' : 'var(--gradient-primary)'))}; border-radius: 3px; transition: width 1s ease-in-out;"></div>
+                        <div class="rank-progress-fill" style="height: 100%; width: ${percent}%; background: var(--gradient-primary); border-radius: 3px; transition: width 1s ease-in-out;"></div>
                     </div>
                 </div>
             </div>

@@ -4,6 +4,7 @@ Cung cấp endpoints để frontend truy vấn dữ liệu từ Neo4j.
 """
 
 from flask import Blueprint, jsonify, request
+import unicodedata
 from backend.services.neo4j_connection import get_neo4j_connection
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -212,14 +213,25 @@ def get_all_linh_vuc():
         linh_vuc_list.append(lv)
     return jsonify({"status": "ok", "data": linh_vuc_list})
 
+def remove_accents(input_str):
+    if not input_str:
+        return ""
+    s = str(input_str)
+    s = unicodedata.normalize('NFD', s)
+    s = "".join(c for c in s if unicodedata.category(c) != 'Mn')
+    s = s.replace('đ', 'd').replace('Đ', 'D')
+    return s.lower()
+
 @api_bp.route("/search")
 def search():
-    """Tìm kiếm tổng hợp theo từ khóa với bộ lọc loại thực thể."""
+    """Tìm kiếm tổng hợp theo từ khóa với bộ lọc loại thực thể (không phân biệt dấu)."""
     q = request.args.get("q", "").strip()
     search_type = request.args.get("type", "all").strip().lower()
     
     if not q:
         return jsonify({"status": "ok", "data": []})
+
+    q_normalized = remove_accents(q)
 
     # Bản đồ mapping giữa search_type và label trong Neo4j
     type_to_label = {
@@ -234,40 +246,45 @@ def search():
 
     try:
         conn = get_neo4j_connection()
-        # Xây dựng câu truy vấn động dựa trên label_filter
+        # Lấy tất cả các node phù hợp (không filter text bằng Cypher)
         query = f"""
             MATCH (n{label_filter})
             WHERE NOT (n:TacGiaNgoai AND EXISTS {{
                 MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
             }})
-              AND (toLower(coalesce(n.ho_va_ten, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.ten_cong_trinh, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.ten_de_tai, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.ten_bo_mon, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.ten_khoa, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.email, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.hoc_vi, '')) CONTAINS toLower($q)
-               OR toLower(coalesce(n.chuc_danh, '')) CONTAINS toLower($q))
             RETURN n, labels(n) AS labels
-            LIMIT 30
         """
         
-        results = conn.query(query, {"q": q})
+        results = conn.query(query)
 
         data = []
         for r in results:
             item = dict(r["n"])
-            item["_labels"] = r["labels"]
-            data.append(item)
+            
+            # Tính chuỗi tổng hợp của các thuộc tính để tìm kiếm
+            search_text = " ".join([
+                str(item.get("ho_va_ten") or ""),
+                str(item.get("ten_cong_trinh") or ""),
+                str(item.get("ten_de_tai") or ""),
+                str(item.get("ten_bo_mon") or ""),
+                str(item.get("ten_khoa") or ""),
+                str(item.get("email") or ""),
+                str(item.get("hoc_vi") or ""),
+                str(item.get("chuc_danh") or "")
+            ])
+            
+            normalized_search_text = remove_accents(search_text)
+            
+            if q_normalized in normalized_search_text:
+                item["_labels"] = r["labels"]
+                data.append(item)
+                
+                # Giới hạn 30 kết quả
+                if len(data) >= 30:
+                    break
+
         return jsonify({"status": "ok", "data": data, "query": q, "type": search_type})
 
-        data = []
-        for r in results:
-            item = dict(r["n"])
-            item["id"] = r["node_id"]
-            item["_labels"] = r["labels"]
-            data.append(item)
-        return jsonify({"status": "ok", "data": data, "query": q})
     except Exception as e:
         print(f"[SEARCH ERROR] {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
