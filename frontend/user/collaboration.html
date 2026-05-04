@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Phân tích mạng lưới hợp tác nghiên cứu - Khoa CNTT, Trường Đại học Nha Trang">
+    <title>Mạng lưới hợp tác - Knowledge Map | ĐH Nha Trang</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        /* ─── Layout ─── */
+        .collab-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .collab-layout { grid-template-columns: 1fr; }
+        }
+
+        /* ─── Overview Cards ─── */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .overview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .overview-card:hover {
+            border-color: rgba(79, 142, 247, 0.4);
+            box-shadow: 0 4px 15px rgba(79, 142, 247, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .ov-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 16px; color: white;
+        }
+
+        .ov-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .ov-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        /* ─── Filter Panel ─── */
+        .filter-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-panel h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group {
+            margin-bottom: 14px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .filter-group select,
+        .filter-group input[type="range"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .filter-group input[type="range"] {
+            padding: 4px 0;
+            cursor: pointer;
+            accent-color: var(--accent-blue);
+        }
+
+        .range-value {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-left: 8px;
+        }
+
+        .btn-apply-filter {
+            width: 100%;
+            padding: 10px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-apply-filter:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* ─── Rank List (Sidebar) ─── */
+        .rank-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .rank-section-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rank-section-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .rank-tab {
+            flex: 1;
+            padding: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-family: inherit;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .rank-tab.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            background: rgba(79, 142, 247, 0.04);
+        }
+
+        .rank-tab:hover:not(.active) { color: var(--text-primary); }
+
+        .rank-tab-panel { display: none; }
+        .rank-tab-panel.active { display: block; }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 18px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .rank-item:last-child { border-bottom: none; }
+        .rank-item:hover { background: rgba(79, 142, 247, 0.04); }
+
+        .rank-num {
+            width: 24px; height: 24px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .rank-num.top-1 { background: linear-gradient(135deg, #FFD700, #FFA000); color: white; }
+        .rank-num.top-2 { background: linear-gradient(135deg, #C0C0C0, #9E9E9E); color: white; }
+        .rank-num.top-3 { background: linear-gradient(135deg, #CD7F32, #8D5524); color: white; }
+
+        .rank-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: var(--gradient-primary);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 14px;
+        }
+
+        .rank-info { flex: 1; min-width: 0; }
+
+        .rank-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .rank-badge {
+            flex-shrink: 0;
+            background: rgba(79, 142, 247, 0.1);
+            color: var(--accent-blue);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ─── Bridge tag ─── */
+        .bridge-bm-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .bridge-bm-tag {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: rgba(26, 188, 156, 0.1);
+            color: #1abc9c;
+            font-weight: 600;
+        }
+
+        /* ─── Graph Area ─── */
+        .graph-area-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .graph-area-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .graph-area-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .graph-area-title i { color: var(--accent-blue); }
+
+        .graph-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .graph-ctrl-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .graph-ctrl-btn:hover {
+            background: rgba(79, 142, 247, 0.06);
+            color: var(--accent-blue);
+            border-color: rgba(79, 142, 247, 0.4);
+        }
+
+        #collaborationGraph {
+            width: 100%;
+            height: 560px;
+            background: rgba(0,0,0,0.01);
+            position: relative;
+        }
+
+        .graph-legend-area {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .graph-legend-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .legend-dot-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ─── Empty/Loading States ─── */
+        .loading-block {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .loading-block i { margin-right: 8px; }
+
+        /* ─── Tooltip nổi trong graph ─── */
+        .collab-tooltip-box {
+            font-family: Inter, sans-serif;
+            padding: 10px 14px;
+            max-width: 260px;
+            font-size: 13px;
+            line-height: 1.5;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .collab-tooltip-box strong { color: #4F8EF7; }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="main-content" id="mainContent">
+        <div class="page-header">
+            <h1 class="page-title">Mạng lưới Hợp tác Nghiên cứu</h1>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
+                Phân tích cấu trúc mạng lưới hợp tác nghiên cứu giữa các giảng viên Khoa CNTT
+            </p>
+        </div>
+
+        <section class="page active" style="display: block;">
+
+            <!-- ─── Thống kê tổng quan ─── -->
+            <div class="overview-grid" id="overviewGrid">
+                <div class="overview-card">
+                    <div class="ov-icon" style="background: linear-gradient(135deg,#4F8EF7,#3b6fd4);"><i class="fas fa-users"></i></div>
+                    <div class="ov-value" id="ov-active">—</div>
+                    <div class="ov-label">GV Tham gia HT</div>
+                </div>
+                <div class="overview-card">
+                    <div class="ov-icon" style="background: linear-gradient(135deg,#2ECC71,#27ae60);"><i class="fas fa-handshake"></i></div>
+                    <div class="ov-value" id="ov-pairs-ct">—</div>
+                    <div class="ov-label">Cặp HT qua CT</div>
+                </div>
+                <div class="overview-card">
+                    <div class="ov-icon" style="background: linear-gradient(135deg,#F39C12,#e67e22);"><i class="fas fa-flask"></i></div>
+                    <div class="ov-value" id="ov-pairs-dt">—</div>
+                    <div class="ov-label">Cặp HT qua ĐT</div>
+                </div>
+                <div class="overview-card">
+                    <div class="ov-icon" style="background: linear-gradient(135deg,#9B59B6,#8e44ad);"><i class="fas fa-star"></i></div>
+                    <div class="ov-value" id="ov-max-authors">—</div>
+                    <div class="ov-label">Tác giả Max/CT</div>
+                </div>
+            </div>
+
+            <!-- ─── Main Layout ─── -->
+            <div class="collab-layout">
+
+                <!-- ─── Sidebar trái ─── -->
+                <div>
+                    <!-- Filter -->
+                    <div class="filter-panel">
+                        <h3><i class="fas fa-sliders-h"></i> Bộ lọc đồ thị</h3>
+
+                        <div class="filter-group">
+                            <label>Bộ môn</label>
+                            <select id="filterBoMon">
+                                <option value="">Tất cả bộ môn</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>
+                                Số hợp tác tối thiểu: <span class="range-value" id="minCollabValue">1</span>
+                            </label>
+                            <input type="range" id="minCollabRange" min="1" max="10" value="1"
+                                   oninput="document.getElementById('minCollabValue').textContent = this.value">
+                        </div>
+
+                        <button class="btn-apply-filter" onclick="loadCollaborationGraph()">
+                            <i class="fas fa-sync-alt"></i> Cập nhật đồ thị
+                        </button>
+                    </div>
+
+                    <!-- Bảng xếp hạng -->
+                    <div class="rank-section">
+                        <div class="rank-section-header">
+                            <i class="fas fa-trophy" style="color:#F39C12;"></i> Xếp hạng hợp tác
+                        </div>
+                        <div class="rank-section-tabs">
+                            <button class="rank-tab active" onclick="switchRankTab('connectors', this)">
+                                <i class="fas fa-link"></i> Kết nối nhiều nhất
+                            </button>
+                            <button class="rank-tab" onclick="switchRankTab('bridges', this)">
+                                <i class="fas fa-bridge"></i> Cầu nối BM
+                            </button>
+                            <button class="rank-tab" onclick="switchRankTab('pairs', this)">
+                                <i class="fas fa-user-friends"></i> Cặp đôi
+                            </button>
+                        </div>
+
+                        <!-- Tab: Top kết nối -->
+                        <div class="rank-tab-panel active" id="tab-connectors">
+                            <div class="loading-block" id="loadingConnectors">
+                                <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                            </div>
+                        </div>
+
+                        <!-- Tab: Bridge connectors -->
+                        <div class="rank-tab-panel" id="tab-bridges">
+                            <div class="loading-block" id="loadingBridges">
+                                <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                            </div>
+                        </div>
+
+                        <!-- Tab: Top cặp -->
+                        <div class="rank-tab-panel" id="tab-pairs">
+                            <div class="loading-block" id="loadingPairs">
+                                <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── Phần đồ thị ─── -->
+                <div class="graph-area-card">
+                    <div class="graph-area-header">
+                        <div class="graph-area-title">
+                            <i class="fas fa-project-diagram"></i>
+                            Đồ thị mạng lưới hợp tác
+                            <span id="graphNodeCount" style="font-size:12px; font-weight:500; color:var(--text-muted); margin-left:4px;"></span>
+                        </div>
+                        <div class="graph-controls">
+                            <button class="graph-ctrl-btn" onclick="fitGraph()" title="Vừa khít màn hình">
+                                <i class="fas fa-compress-arrows-alt"></i> Fit
+                            </button>
+                            <button class="graph-ctrl-btn" onclick="togglePhysics()" id="physicsBtn" title="Bật/tắt vật lý">
+                                <i class="fas fa-atom"></i> Physics
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="collaborationGraph">
+                        <div class="loading-block" id="graphLoading" style="padding-top: 200px;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 24px; display:block; margin-bottom: 12px;"></i>
+                            Đang tải mạng lưới hợp tác...
+                        </div>
+                    </div>
+
+                    <div class="graph-legend-area" id="graphLegendArea">
+                        <span class="graph-legend-label">Bộ môn:</span>
+                        <!-- legend items injected by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <div id="modal-placeholder"></div>
+
+    <script src="../js/user/layout.js"></script>
+    <script src="../js/user/app.js"></script>
+    <script src="../js/user/collaboration_app.js"></script>
+</body>
+</html>

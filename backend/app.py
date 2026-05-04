@@ -26,6 +26,7 @@ from backend.routes.auth import auth_bp
 from backend.routes.lecturer_api import lecturer_api_bp
 from backend.routes.chat_api import chat_api_bp
 from backend.routes.admin_external_authors import admin_external_authors_bp
+from backend.routes.collaboration_api import collaboration_bp
 
 
 def create_app():
@@ -48,6 +49,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(lecturer_api_bp, url_prefix='/api/lecturer')
     app.register_blueprint(chat_api_bp, url_prefix='/api/chat')
+    app.register_blueprint(collaboration_bp)
 
 
     # ============================

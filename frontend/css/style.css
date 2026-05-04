@@ -674,6 +674,68 @@ body::before {
     position: relative;
 }
 
+/* ---------- Graph Download Button ---------- */
+.graph-download-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 20px;
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+}
+
+.graph-download-btn i {
+    font-size: 12px;
+}
+
+/* Hiển thị nút khi hover vào vùng chứa đồ thị */
+.graph-container:hover .graph-download-btn,
+.detail-graph-container:hover .graph-download-btn,
+.chat-graph-wrapper:hover .graph-download-btn,
+.explore-graph-wrapper:hover .graph-download-btn {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.graph-download-btn:hover {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px) scale(1.03);
+}
+
+.graph-download-btn:active {
+    transform: scale(0.97);
+}
+
+/* Animation "downloaded" feedback */
+.graph-download-btn.downloading {
+    background: var(--accent-green, #10b981);
+    color: white;
+    border-color: transparent;
+    pointer-events: none;
+}
+
 .graph-legend {
     display: flex;
     flex-wrap: wrap;

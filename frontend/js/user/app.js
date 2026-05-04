@@ -274,6 +274,79 @@ async function loadKnowledgeGraph() {
     }
 }
 
+// ============================================================
+// GRAPH DOWNLOAD UTILITY
+// ============================================================
+
+/**
+ * Xuất đồ thị Vis.js đang hiển thị thành file ảnh PNG.
+ * @param {vis.Network} network  - Đối tượng Network của Vis.js
+ * @param {string}      filename - Tên file tải về (không cần đuôi .png)
+ */
+function downloadGraphImage(network, filename = 'knowledge_graph') {
+    // 1. Lấy canvas gốc mà Vis.js vẽ lên
+    const originalCanvas = network.canvas.frame.canvas;
+
+    // 2. Tạo canvas tạm để đổ nền trắng trước khi ghép ảnh
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width  = originalCanvas.width;
+    tempCanvas.height = originalCanvas.height;
+    const ctx = tempCanvas.getContext('2d');
+
+    // 3. Tô màu nền trắng sạch
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    // 4. Vẽ đồ thị lên trên lớp nền
+    ctx.drawImage(originalCanvas, 0, 0);
+
+    // 5. Chuyển thành URL base64 và kích hoạt tải về
+    const dataURL = tempCanvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href     = dataURL;
+    link.download = filename + '.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Tạo và nhúng nút "Tải ảnh đồ thị" vào trong container.
+ * Nút sẽ hiện ra khi user hover vào khung đồ thị.
+ * @param {HTMLElement}  container - Phần tử cha chứa canvas
+ * @param {vis.Network}  network   - Đối tượng Network của Vis.js
+ * @param {string}       filename  - Tên file tải về
+ */
+function injectDownloadButton(container, network, filename) {
+    // Xóa nút cũ nếu đã tồn tại (tránh duplicate khi render lại)
+    const existing = container.querySelector('.graph-download-btn');
+    if (existing) existing.remove();
+
+    // Đảm bảo container có position: relative để nút định vị tuyệt đối được
+    if (getComputedStyle(container).position === 'static') {
+        container.style.position = 'relative';
+    }
+
+    const btn = document.createElement('button');
+    btn.className = 'graph-download-btn';
+    btn.title = 'Tải ảnh đồ thị về máy';
+    btn.innerHTML = '<i class="fas fa-camera"></i> Tải ảnh';
+
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Hiệu ứng phản hồi
+        btn.classList.add('downloading');
+        btn.innerHTML = '<i class="fas fa-check"></i> Đã tải!';
+        downloadGraphImage(network, filename);
+        setTimeout(() => {
+            btn.classList.remove('downloading');
+            btn.innerHTML = '<i class="fas fa-camera"></i> Tải ảnh';
+        }, 2000);
+    });
+
+    container.appendChild(btn);
+}
+
 function renderGraph(containerId, nodes, edges, callback) {
     const container = document.getElementById(containerId);
 
@@ -351,6 +424,19 @@ function renderGraph(containerId, nodes, edges, callback) {
                 }
             }
         }
+    });
+
+    // Nhúng nút tải ảnh vào sau khi đồ thị đã ổn định
+    network.once('stabilized', () => {
+        // Đặt tên file theo containerId để phân biệt đồ thị
+        const filenameMap = {
+            'knowledge-graph':        'tong_quan_do_thi',
+            'explore-graph':          'kham_pha_do_thi',
+            'detail-graph-container': 'chi_tiet_do_thi',
+            'chat-graph-container':   'chatbot_do_thi',
+        };
+        const filename = filenameMap[containerId] || ('do_thi_' + containerId);
+        injectDownloadButton(container, network, filename);
     });
 
     if (callback) callback(network);
