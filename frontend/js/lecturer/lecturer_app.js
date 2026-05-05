@@ -252,7 +252,6 @@ const ENTITY_CONFIG = {
         fields: [
             { name: 'ten_cong_trinh', label: 'Tên công trình', type: 'text', required: true },
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
-            { name: 'loai_an_pham', label: 'Loại ấn phẩm', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
             { name: 'link', label: 'Link bài viết', type: 'url' },
             { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' }

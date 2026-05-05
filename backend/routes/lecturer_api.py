@@ -213,7 +213,6 @@ def add_my_publication():
         CREATE (ct:CongTrinhNghienCuu {
             ten_cong_trinh: $ten_ct,
             nam_xuat_ban: toInteger($nam_xb),
-            loai_an_pham: $loai,
             tom_tat: $tom_tat,
             link: $link,
             trang_thai: 'Chờ duyệt',
@@ -237,7 +236,6 @@ def add_my_publication():
             'thanh_vien_ids': thanh_vien_ids,
             'ten_ct': data.get('ten_cong_trinh', ''),
             'nam_xb': data.get('nam_xuat_ban'),
-            'loai': data.get('loai_an_pham', ''),
             'tom_tat': data.get('tom_tat', ''),
             'link': data.get('link', '')
         })
@@ -275,7 +273,6 @@ def update_my_publication(ct_id):
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
             SET ct.ten_cong_trinh = $ten_ct,
                 ct.nam_xuat_ban = toInteger($nam_xb),
-                ct.loai_an_pham = $loai,
                 ct.tom_tat = $tom_tat,
                 ct.link = $link
             RETURN ct
@@ -284,7 +281,6 @@ def update_my_publication(ct_id):
                 'ct_id': ct_id,
                 'ten_ct': data.get('ten_cong_trinh', ''),
                 'nam_xb': data.get('nam_xuat_ban'),
-                'loai': data.get('loai_an_pham', ''),
                 'tom_tat': data.get('tom_tat', ''),
                 'link': data.get('link', '')
             })

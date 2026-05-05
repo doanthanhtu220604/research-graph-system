@@ -101,8 +101,7 @@ def create_cong_trinh():
         result = conn.write("""
             CREATE (ct:CongTrinhNghienCuu {
                 ten_cong_trinh: $ten_cong_trinh,
-                nam_xuat_ban: $nam_xuat_ban,
-                loai_an_pham: $loai_an_pham
+                nam_xuat_ban: $nam_xuat_ban
             })
             RETURN id(ct) AS id
         """, data)
@@ -118,8 +117,7 @@ def update_cong_trinh(id):
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE id(ct) = $id
             SET ct.ten_cong_trinh = $ten_cong_trinh,
-                ct.nam_xuat_ban = $nam_xuat_ban,
-                ct.loai_an_pham = $loai_an_pham
+                ct.nam_xuat_ban = $nam_xuat_ban
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
