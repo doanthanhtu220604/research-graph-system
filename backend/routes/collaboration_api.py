@@ -282,8 +282,8 @@ def get_collaboration_graph():
 
         # Màu theo bộ môn
         bm_colors = {
-            "Bộ môn Công nghệ Phần mềm": "#4F8EF7",
-            "Bộ môn Mạng máy tính": "#2ECC71",
+            "Bộ môn Công nghệ phần mềm": "#4F8EF7",
+            "Bộ môn Mạng máy tính và truyền thông": "#2ECC71",
             "Bộ môn Hệ thống thông tin": "#F39C12",
             "Bộ môn Khoa học máy tính": "#E74C3C",
             "Bộ môn Kỹ thuật máy tính": "#9B59B6",
