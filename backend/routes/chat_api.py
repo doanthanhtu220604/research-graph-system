@@ -393,7 +393,7 @@ def handle_search_lecturer(question: str):
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-            RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
+            RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh, gv.chuc_vu AS chuc_vu,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh,
                    count(DISTINCT dt) AS so_de_tai
             ORDER BY gv.ho_va_ten
@@ -408,6 +408,8 @@ def handle_search_lecturer(question: str):
                 if r.get("hoc_vi"): info += f" ({r['hoc_vi']})"
                 if r.get("chuc_danh") and r["chuc_danh"] != r.get("hoc_vi"):
                     info += f", {r['chuc_danh']}"
+                if r.get("chuc_vu"):
+                    info += f", {r['chuc_vu']}"
                 if r.get("bo_mon"): info += f"\n  🏢 {r['bo_mon']}"
                 extras = []
                 if r.get("so_cong_trinh"): extras.append(f"📄 {r['so_cong_trinh']} công trình")
@@ -426,6 +428,7 @@ def handle_search_lecturer(question: str):
                 MATCH (gv:GiangVien)
                 WHERE toLower(coalesce(gv.hoc_vi,'')) CONTAINS $hv
                    OR toLower(coalesce(gv.chuc_danh,'')) CONTAINS $hv
+                   OR toLower(coalesce(gv.chuc_vu,'')) CONTAINS $hv
                 OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
                 RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
                 ORDER BY gv.ho_va_ten
@@ -986,7 +989,7 @@ def handle_lecturer_info(question: str):
         OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
-        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh,
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh, gv.chuc_vu AS chuc_vu,
                gv.email AS email, bm.ten_bo_mon AS bo_mon,
                collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc,
                count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt_cn
@@ -1003,6 +1006,7 @@ def handle_lecturer_info(question: str):
         card = [f"👨‍🏫 **[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"]
         if r.get("hoc_vi"): card.append(f"📚 Học vị: **{r['hoc_vi']}**")
         if r.get("chuc_danh"): card.append(f"🎓 Chức danh: **{r['chuc_danh']}**")
+        if r.get("chuc_vu"): card.append(f"💼 Chức vụ: **{r['chuc_vu']}**")
         if r.get("bo_mon"): card.append(f"🏢 Bộ môn: **{r['bo_mon']}**")
         if r.get("email"): card.append(f"📧 Email: {r['email']}")
         lvs = [lv for lv in (r.get("linh_vuc") or []) if lv][:4]

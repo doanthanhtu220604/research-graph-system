@@ -15,6 +15,7 @@ const ENTITY_CONFIG = {
             { name: 'ho_va_ten', label: 'Họ và tên', type: 'text', required: true },
             { name: 'hoc_vi', label: 'Học vị', type: 'text' },
             { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
+            { name: 'chuc_vu', label: 'Chức vụ', type: 'text' },
             { name: 'bo_mon', label: 'Tên Bộ môn', type: 'select', options: [
                 { value: '', label: '-- Chọn Bộ môn --' },
                 { value: 'Bộ môn Công nghệ phần mềm', label: 'Bộ môn Công nghệ phần mềm' },
@@ -76,6 +77,7 @@ const ENTITY_CONFIG = {
             { name: 'don_vi_cong_tac', label: 'Đơn vị công tác', type: 'text' },
             { name: 'hoc_vi', label: 'Học vị', type: 'text' },
             { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
+            { name: 'chuc_vu', label: 'Chức vụ', type: 'text' },
             { name: 'email', label: 'Email', type: 'email' }
         ]
     }
@@ -330,10 +332,10 @@ function exportDashboardCsv() {
         csvContent += "Mạng máy tính,8,3\n";
         filename = "thong_ke_he_thong.csv";
     } else if (document.getElementById('page-admin-lecturers')) {
-        csvContent += "ID,Họ và tên,Học vị,Chức danh,Bộ môn,Email\n";
+        csvContent += "ID,Họ và tên,Học vị,Chức danh,Chức vụ,Bộ môn,Email\n";
         const list = currentEntitiesData['giang-vien'] || [];
         list.forEach(gv => {
-            csvContent += `"${gv.id || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.bo_mon || ''}","${gv.email || ''}"\n`;
+            csvContent += `"${gv.id || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.bo_mon || ''}","${gv.email || ''}"\n`;
         });
         filename = "danh_sach_giang_vien.csv";
     } else if (document.getElementById('page-admin-publications')) {
@@ -1147,7 +1149,9 @@ async function viewLecturerStats(gvId) {
                 <div style="margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
                     <p style="margin-bottom: 5px;"><b>Học vị:</b> ${gv.hoc_vi || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Chức danh:</b> ${gv.chuc_danh || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Chức vụ:</b> ${gv.chuc_vu || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Bộ môn:</b> ${gv.bo_mon || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Chuyên môn:</b> ${gv.chuyen_mon || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Email:</b> ${gv.email || 'N/A'}</p>
                     <p style="margin-bottom: 0;"><b>Lĩnh vực nghiên cứu:</b> ${
                         (gv.linh_vuc && gv.linh_vuc.length > 0)

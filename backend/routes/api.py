@@ -270,7 +270,8 @@ def search():
                 str(item.get("ten_khoa") or ""),
                 str(item.get("email") or ""),
                 str(item.get("hoc_vi") or ""),
-                str(item.get("chuc_danh") or "")
+                str(item.get("chuc_danh") or ""),
+                str(item.get("chuc_vu") or "")
             ])
             
             normalized_search_text = remove_accents(search_text)
