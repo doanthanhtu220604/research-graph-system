@@ -26,6 +26,12 @@ const ENTITY_CONFIG = {
             { name: 'email', label: 'Email', type: 'email' },
             { name: 'dien_thoai', label: 'Điện thoại', type: 'text' },
             { name: 'chuyen_nganh', label: 'Chuyên ngành', type: 'text' },
+            { name: 'trang_thai_cong_tac', label: 'Trạng thái công tác', type: 'select', default: 'Đang công tác', options: [
+                { value: 'Đang công tác', label: 'Đang công tác' },
+                { value: 'Nghỉ hưu', label: 'Nghỉ hưu' },
+                { value: 'Chuyển công tác', label: 'Chuyển công tác' },
+                { value: 'Nghiên cứu sinh', label: 'Nghiên cứu sinh' }
+            ]},
             { name: 'anh_dai_dien', label: 'Link ảnh đại diện', type: 'url' }
         ]
     },
@@ -333,10 +339,10 @@ function exportDashboardCsv() {
         csvContent += "Mạng máy tính,8,3\n";
         filename = "thong_ke_he_thong.csv";
     } else if (document.getElementById('page-admin-lecturers')) {
-        csvContent += "ID,Mã GV,Họ và tên,Học vị,Chức danh,Chức vụ,Bộ môn,Email\n";
+        csvContent += "ID,Mã GV,Họ và tên,Học vị,Chức danh,Chức vụ,Bộ môn,Trạng thái công tác,Email\n";
         const list = currentEntitiesData['giang-vien'] || [];
         list.forEach(gv => {
-            csvContent += `"${gv.id || ''}","${gv.ma_gv || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.bo_mon || ''}","${gv.email || ''}"\n`;
+            csvContent += `"${gv.id || ''}","${gv.ma_gv || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.bo_mon || ''}","${gv.trang_thai_cong_tac || ''}","${gv.email || ''}"\n`;
         });
         filename = "danh_sach_giang_vien.csv";
     } else if (document.getElementById('page-admin-publications')) {
@@ -401,7 +407,7 @@ function renderLecturersTable(dataList) {
     if (!tbody) return;
     
     if (dataList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy giảng viên phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy giảng viên phù hợp.</td></tr>';
         return;
     }
     
@@ -418,6 +424,13 @@ function renderLecturersTable(dataList) {
             </td>
             <td>${gv.hoc_vi || ''}</td>
             <td>${gv.bo_mon || ''}</td>
+            <td>
+                ${gv.trang_thai_cong_tac === 'Đang công tác' ? '<span class="badge" style="background:#10b981;color:white;">Đang công tác</span>' : 
+                  gv.trang_thai_cong_tac === 'Nghỉ hưu' ? '<span class="badge badge-gray">Nghỉ hưu</span>' : 
+                  gv.trang_thai_cong_tac === 'Chuyển công tác' ? '<span class="badge" style="background:#f59e0b;color:white;">Chuyển công tác</span>' : 
+                  gv.trang_thai_cong_tac === 'Nghiên cứu sinh' ? '<span class="badge badge-blue">Nghiên cứu sinh</span>' : 
+                  '<span class="badge" style="background:#10b981;color:white;">Đang công tác</span>'}
+            </td>
             <td>
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewLecturerStats('${gv.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('giang-vien', '${gv.id}', null)"><i class="fas fa-edit"></i></button>

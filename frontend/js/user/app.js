@@ -465,7 +465,7 @@ function buildTooltip(node) {
     };
     
     const keyNames = {
-        'ma_gv': 'Mã GV', 'ho_va_ten': 'Họ tên', 'hoc_vi': 'Học vị', 'chuc_danh': 'Chức danh',
+        'ma_gv': 'Mã GV', 'trang_thai_cong_tac': 'Trạng thái', 'ho_va_ten': 'Họ tên', 'hoc_vi': 'Học vị', 'chuc_danh': 'Chức danh',
         'ten_cong_trinh': 'Tên công trình', 'nam_xuat_ban': 'Năm XB',
         'ten_de_tai': 'Tên đề tài', 'cap_de_tai': 'Cấp', 'nam_bat_dau': 'Từ năm', 'nam_thuc_hien': 'Năm TH', 'nam_ket_thuc': 'Đến năm',
         'ten_bo_mon': 'Bộ môn', 'ten_khoa': 'Khoa', 'email': 'Email', 'dien_thoai': 'SĐT'
@@ -857,7 +857,7 @@ function renderLecturerPage(page) {
                 <div class="profile-dept">${deptShort || '&mdash;'}</div>
                 <div class="profile-badges">
                     ${gv.hoc_vi ? `<span class="badge ${degreeCls}">${gv.hoc_vi}</span>` : ''}
-                    ${gv.id ? '' : '<span class="badge badge-gray">No ID</span>'}
+                    ${gv.trang_thai_cong_tac && gv.trang_thai_cong_tac !== 'Đang công tác' ? `<span class="badge badge-gray">${gv.trang_thai_cong_tac}</span>` : ''}
                 </div>
             </div>
         `;
@@ -951,6 +951,7 @@ async function showLecturerDetail(gvId) {
                 <div><span style="color:var(--text-muted);font-size:12px;">Chức vụ</span><br><b>${gv.chuc_vu || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Chuyên ngành</span><br><b>${gv.chuyen_nganh || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Bộ môn</span><br><b>${gv.bo_mon || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Trạng thái</span><br><b>${gv.trang_thai_cong_tac || 'Đang công tác'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Email</span><br><b>${gv.email || 'N/A'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Điện thoại</span><br><b>${gv.dien_thoai || 'N/A'}</b></div>
                 <div style="grid-column: 1 / -1;"><span style="color:var(--text-muted);font-size:12px;">Lĩnh vực nghiên cứu</span><br>${linhVucHtml}</div>

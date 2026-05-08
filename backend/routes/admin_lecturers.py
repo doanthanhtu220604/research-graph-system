@@ -23,6 +23,7 @@ def create_giang_vien():
                 email: $email,
                 dien_thoai: $dien_thoai,
                 chuyen_nganh: $chuyen_nganh,
+                trang_thai_cong_tac: coalesce($trang_thai_cong_tac, 'Đang công tác'),
                 anh_dai_dien: $anh_dai_dien
             })
             SET gv.id = 'gv_' + toString(id(gv))
@@ -66,6 +67,7 @@ def update_giang_vien(id):
                 gv.email = $email,
                 gv.dien_thoai = $dien_thoai,
                 gv.chuyen_nganh = $chuyen_nganh,
+                gv.trang_thai_cong_tac = coalesce($trang_thai_cong_tac, 'Đang công tác'),
                 gv.anh_dai_dien = $anh_dai_dien
         """, {"id": id, **data})
 
