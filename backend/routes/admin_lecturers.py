@@ -21,7 +21,7 @@ def create_giang_vien():
                 chuc_vu: $chuc_vu,
                 email: $email,
                 dien_thoai: $dien_thoai,
-                chuyen_mon: $chuyen_mon,
+                chuyen_nganh: $chuyen_nganh,
                 anh_dai_dien: $anh_dai_dien
             })
             SET gv.id = 'gv_' + toString(id(gv))
@@ -63,7 +63,7 @@ def update_giang_vien(id):
                 gv.chuc_vu = $chuc_vu,
                 gv.email = $email,
                 gv.dien_thoai = $dien_thoai,
-                gv.chuyen_mon = $chuyen_mon,
+                gv.chuyen_nganh = $chuyen_nganh,
                 gv.anh_dai_dien = $anh_dai_dien
         """, {"id": id, **data})
 

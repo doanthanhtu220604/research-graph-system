@@ -1,4 +1,4 @@
-﻿neo4j_id,id,ho_va_ten,password,dien_thoai,chuc_danh,hoc_vi,chuc_vu,anh_dai_dien,email,chuyen_mon
+﻿neo4j_id,id,ho_va_ten,password,dien_thoai,chuc_danh,hoc_vi,chuc_vu,anh_dai_dien,email,chuyen_nganh
 3,gv_3,Nguyễn Thanh Quỳnh Châu,123456,0905218343,GV HDTH,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/297,ntqchau@ntu.edu.vn,
 4,gv_4,Lê Thị Bích Hằng,123456,0987899140,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/306,hangltb@ntu.edu.vn,
 5,gv_5,Nguyễn Đình Hưng,123456,0974000233,Giảng viên,Tiến sĩ,Trưởng Bộ môn,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/302,hungnd@ntu.edu.vn,

@@ -24,7 +24,7 @@ const ENTITY_CONFIG = {
             ]},
             { name: 'email', label: 'Email', type: 'email' },
             { name: 'dien_thoai', label: 'Điện thoại', type: 'text' },
-            { name: 'chuyen_mon', label: 'Chuyên môn', type: 'text' },
+            { name: 'chuyen_nganh', label: 'Chuyên ngành', type: 'text' },
             { name: 'anh_dai_dien', label: 'Link ảnh đại diện', type: 'url' }
         ]
     },
@@ -1151,7 +1151,7 @@ async function viewLecturerStats(gvId) {
                     <p style="margin-bottom: 5px;"><b>Chức danh:</b> ${gv.chuc_danh || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Chức vụ:</b> ${gv.chuc_vu || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Bộ môn:</b> ${gv.bo_mon || 'N/A'}</p>
-                    <p style="margin-bottom: 5px;"><b>Chuyên môn:</b> ${gv.chuyen_mon || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Chuyên ngành:</b> ${gv.chuyen_nganh || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Email:</b> ${gv.email || 'N/A'}</p>
                     <p style="margin-bottom: 0;"><b>Lĩnh vực nghiên cứu:</b> ${
                         (gv.linh_vuc && gv.linh_vuc.length > 0)

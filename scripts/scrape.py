@@ -63,7 +63,7 @@ def scrape_chuyengia():
                 info = {
                     'ho_va_ten': name,
                     'anh_dai_dien': el.find('img')['src'] if el.find('img') else '',
-                    'chuyen_mon': '',
+                    'chuyen_nganh': '',
                     'chuc_danh': '',
                     'chuc_vu': '',
                     'email': ''
@@ -78,7 +78,7 @@ def scrape_chuyengia():
                 for part in parts[1:]:
                     part = part.strip()
                     if part.startswith('Ch.ngành:'):
-                        info['chuyen_mon'] = part.replace('Ch.ngành:', '').strip()
+                        info['chuyen_nganh'] = part.replace('Ch.ngành:', '').strip()
                     elif part.startswith('Chức danh:'):
                         cd = part.replace('Chức danh:', '').strip()
                         if cd == 'GV' or cd.lower() == 'giảng viên':
@@ -129,7 +129,7 @@ def update_data():
         
         for ex_name, ex_info in expert_map.items():
             if ex_name == name_lower:
-                for col in ['chuyen_mon', 'chuc_danh', 'chuc_vu', 'email', 'anh_dai_dien', 'hoc_vi']:
+                for col in ['chuyen_nganh', 'chuc_danh', 'chuc_vu', 'email', 'anh_dai_dien', 'hoc_vi']:
                     if ex_info.get(col):
                         df_gv.at[index, col] = ex_info[col]
                 break
@@ -167,7 +167,7 @@ def update_data():
                 'chuc_vu': ex_info['chuc_vu'],
                 'anh_dai_dien': ex_info['anh_dai_dien'],
                 'email': ex_info['email'],
-                'chuyen_mon': ex_info['chuyen_mon']
+                'chuyen_nganh': ex_info['chuyen_nganh']
             }
             df_gv = pd.concat([df_gv, pd.DataFrame([new_row])], ignore_index=True)
             

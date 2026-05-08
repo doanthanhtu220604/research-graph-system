@@ -25,7 +25,7 @@ def create_giang_vien():
                 chuc_danh: $chuc_danh,
                 email: $email,
                 dien_thoai: $dien_thoai,
-                chuyen_mon: $chuyen_mon
+                chuyen_nganh: $chuyen_nganh
             })
             RETURN id(gv) AS id
         """, data)
@@ -55,7 +55,7 @@ def update_giang_vien(id):
                 gv.chuc_danh = $chuc_danh,
                 gv.email = $email,
                 gv.dien_thoai = $dien_thoai,
-                gv.chuyen_mon = $chuyen_mon
+                gv.chuyen_nganh = $chuyen_nganh
         """, {"id": id, **data})
 
         if "bo_mon" in data:
