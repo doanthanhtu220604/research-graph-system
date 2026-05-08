@@ -12,6 +12,7 @@ const ENTITY_CONFIG = {
         apiUrl: `${API_BASE}/giang-vien`,
         adminApiUrl: `${ADMIN_API_BASE}/giang-vien`,
         fields: [
+            { name: 'ma_gv', label: 'Mã giảng viên', type: 'text', required: true },
             { name: 'ho_va_ten', label: 'Họ và tên', type: 'text', required: true },
             { name: 'hoc_vi', label: 'Học vị', type: 'text' },
             { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
@@ -332,10 +333,10 @@ function exportDashboardCsv() {
         csvContent += "Mạng máy tính,8,3\n";
         filename = "thong_ke_he_thong.csv";
     } else if (document.getElementById('page-admin-lecturers')) {
-        csvContent += "ID,Họ và tên,Học vị,Chức danh,Chức vụ,Bộ môn,Email\n";
+        csvContent += "ID,Mã GV,Họ và tên,Học vị,Chức danh,Chức vụ,Bộ môn,Email\n";
         const list = currentEntitiesData['giang-vien'] || [];
         list.forEach(gv => {
-            csvContent += `"${gv.id || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.bo_mon || ''}","${gv.email || ''}"\n`;
+            csvContent += `"${gv.id || ''}","${gv.ma_gv || ''}","${gv.ho_va_ten || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.bo_mon || ''}","${gv.email || ''}"\n`;
         });
         filename = "danh_sach_giang_vien.csv";
     } else if (document.getElementById('page-admin-publications')) {
@@ -400,13 +401,14 @@ function renderLecturersTable(dataList) {
     if (!tbody) return;
     
     if (dataList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy giảng viên phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy giảng viên phù hợp.</td></tr>';
         return;
     }
     
     tbody.innerHTML = dataList.map((gv) => `
         <tr>
             <td>${gv.id || 'N/A'}</td>
+            <td>${gv.ma_gv || 'N/A'}</td>
             <td>
                 ${gv.anh_dai_dien
                     ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`

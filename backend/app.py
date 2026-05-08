@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from flask import Flask, jsonify, send_from_directory
-from flask_cors import CORS
+from flask_cors import CORS  # type: ignore
 from backend.services.neo4j_connection import (
     get_neo4j_connection,
     close_neo4j_connection,

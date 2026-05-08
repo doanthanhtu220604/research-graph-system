@@ -15,6 +15,7 @@ def create_giang_vien():
         # Tạo Node GiangVien
         result = conn.write("""
             CREATE (gv:GiangVien {
+                ma_gv: $ma_gv,
                 ho_va_ten: $ho_va_ten,
                 hoc_vi: $hoc_vi,
                 chuc_danh: $chuc_danh,
@@ -57,7 +58,8 @@ def update_giang_vien(id):
     try:
         conn.write("""
             MATCH (gv:GiangVien) WHERE gv.id = $id
-            SET gv.ho_va_ten = $ho_va_ten,
+            SET gv.ma_gv = $ma_gv,
+                gv.ho_va_ten = $ho_va_ten,
                 gv.hoc_vi = $hoc_vi,
                 gv.chuc_danh = $chuc_danh,
                 gv.chuc_vu = $chuc_vu,
