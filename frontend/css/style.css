@@ -39,6 +39,7 @@
     --shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
     --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
 
+    --admin-header-height: 70px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1509,11 +1510,12 @@ body::before {
 }
 
 .sidebar-header {
-    height: 70px; 
+    height: var(--admin-header-height); 
     display: flex;
     align-items: center;
     padding: 0 24px;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .sidebar .nav-menu {
@@ -1561,7 +1563,7 @@ body:has(.sidebar) .main-content {
 }
 
 .top-header {
-    height: 70px;
+    height: var(--admin-header-height);
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -1571,6 +1573,7 @@ body:has(.sidebar) .main-content {
     position: sticky;
     top: 0;
     z-index: 900;
+    box-sizing: border-box;
 }
 
 body:has(.sidebar) .page {
