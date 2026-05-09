@@ -25,7 +25,8 @@ def soft_delete(entity_type, id):
         "cong-trinh": "CongTrinhNghienCuu",
         "de-tai":     "DeTaiNghienCuu",
         "linh-vuc":   "LinhVucNghienCuu",
-        "tac-gia-ngoai": "TacGiaNgoai"
+        "tac-gia-ngoai": "TacGiaNgoai",
+        "bo-mon": "BoMon"
     }
     label = label_map.get(entity_type)
     if not label:
@@ -155,6 +156,25 @@ def list_trash():
                 "note":       r["note"] or "",
             })
 
+        # Bộ môn
+        bm_list = conn.query("""
+            MATCH (n:BoMon) WHERE n.is_deleted = true
+            RETURN n.id AS id, n.ten_bo_mon AS ten,
+                   n.deleted_at AS deleted_at, n.deleted_note AS note,
+                   'bo-mon' AS type
+            ORDER BY n.deleted_at DESC
+        """)
+        for r in bm_list:
+            items.append({
+                "id":         r["id"],
+                "ten":        r["ten"] or "N/A",
+                "sub":        "Bộ môn",
+                "type":       "bo-mon",
+                "type_label": "Bộ môn",
+                "deleted_at": r["deleted_at"],
+                "note":       r["note"] or "",
+            })
+
         # Sắp xếp tổng hợp theo thời gian xóa (mới nhất trước)
         items.sort(key=lambda x: x["deleted_at"] or 0, reverse=True)
 
@@ -174,7 +194,8 @@ def restore(entity_type, id):
         "cong-trinh": "CongTrinhNghienCuu",
         "de-tai":     "DeTaiNghienCuu",
         "linh-vuc":   "LinhVucNghienCuu",
-        "tac-gia-ngoai": "TacGiaNgoai"
+        "tac-gia-ngoai": "TacGiaNgoai",
+        "bo-mon": "BoMon"
     }
     label = label_map.get(entity_type)
     if not label:
@@ -211,7 +232,8 @@ def permanent_delete(entity_type, id):
         "cong-trinh": "CongTrinhNghienCuu",
         "de-tai":     "DeTaiNghienCuu",
         "linh-vuc":   "LinhVucNghienCuu",
-        "tac-gia-ngoai": "TacGiaNgoai"
+        "tac-gia-ngoai": "TacGiaNgoai",
+        "bo-mon": "BoMon"
     }
     label = label_map.get(entity_type)
     if not label:
@@ -244,7 +266,7 @@ def empty_trash():
     conn = get_neo4j_connection()
     try:
         total = 0
-        labels = ["GiangVien", "CongTrinhNghienCuu", "DeTaiNghienCuu", "LinhVucNghienCuu", "TacGiaNgoai"]
+        labels = ["GiangVien", "CongTrinhNghienCuu", "DeTaiNghienCuu", "LinhVucNghienCuu", "TacGiaNgoai", "BoMon"]
         for label in labels:
             result = conn.write(f"""
                 MATCH (n:{label}) WHERE n.is_deleted = true
@@ -269,7 +291,7 @@ def trash_count():
     conn = get_neo4j_connection()
     try:
         total = 0
-        labels = ["GiangVien", "CongTrinhNghienCuu", "DeTaiNghienCuu", "LinhVucNghienCuu", "TacGiaNgoai"]
+        labels = ["GiangVien", "CongTrinhNghienCuu", "DeTaiNghienCuu", "LinhVucNghienCuu", "TacGiaNgoai", "BoMon"]
         for label in labels:
             result = conn.query(f"""
                 MATCH (n:{label}) WHERE n.is_deleted = true

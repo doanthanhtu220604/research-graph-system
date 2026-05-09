@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Quản trị Bản đồ tri thức">
-    <title>Quản lý Công trình - Knowledge Map Admin</title>
+    <title>Quản lý Bộ môn - Knowledge Map Admin</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
                     <span>QL Giảng viên</span>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a href="departments.html" class="nav-link">
                     <i class="fas fa-building"></i>
                     <span>QL Bộ môn</span>
@@ -46,7 +46,7 @@
                     <span>QL Tác giả ngoài</span>
                 </a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a href="publications.html" class="nav-link">
                     <i class="fas fa-file-alt"></i>
                     <span>QL Công trình</span>
@@ -102,7 +102,7 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title" id="pageTitle">Quản lý Công trình</h1>
+            <h1 class="page-title" id="pageTitle">Quản lý Bộ môn</h1>
             <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
                 <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 14px;"></div>
                 <button id="exportCsvBtn" class="btn" style="background: #28a745; color: white; border: none; padding: 6px 12px; font-size: 14px;"><i class="fas fa-file-csv"></i> Xuất CSV</button>
@@ -110,42 +110,29 @@
             </div>
         </header>
 
-        <!-- PUBLICATIONS SECTION -->
-        <section class="page active" id="page-admin-publications" style="display: block;">
+        <!-- DEPARTMENTS SECTION -->
+        <section class="page active" id="page-admin-departments" style="display: block;">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-file-alt"></i> Quản lý Công trình</h2>
+                    <h2><i class="fas fa-building"></i> Danh sách Bộ môn</h2>
                     <div class="card-actions">
-                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('cong-trinh')">
+                        <button class="btn btn-primary btn-sm" onclick="openAdminModal('bo-mon')">
                             <i class="fas fa-plus"></i> Thêm mới
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="filter-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
-                        <div class="search-box" style="width: 250px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="filterPubTitle" placeholder="Tìm tên công trình..." style="font-size: 14px;" onkeyup="filterPublications()">
-                        </div>
-                        <div class="search-box" style="width: 150px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
-                            <i class="fas fa-calendar-alt"></i>
-                            <input type="number" id="filterPubYear" placeholder="Năm XB..." style="font-size: 14px;" onkeyup="filterPublications()" onchange="filterPublications()">
-                        </div>
-
-                    </div>
                     <div class="table-responsive">
-                        <table class="data-table" id="adminPublicationsTable">
+                        <table class="data-table" id="adminDepartmentsTable">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Tên công trình</th>
-                                    <th>Năm XB</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
+                                    <th style="width: 15%;">ID</th>
+                                    <th>Tên Bộ môn</th>
+                                    <th style="width: 20%;">Hành động</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminPublicationsBody">
-                                <tr><td colspan="5" class="loading-cell">Đang tải...</td></tr>
+                            <tbody id="adminDepartmentsBody">
+                                <tr><td colspan="3" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>

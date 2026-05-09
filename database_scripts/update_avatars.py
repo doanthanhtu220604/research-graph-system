@@ -12,9 +12,9 @@ import json
 if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-import requests
-from bs4 import BeautifulSoup
-import urllib3
+import requests  # type: ignore
+from bs4 import BeautifulSoup, Tag  # type: ignore
+import urllib3  # type: ignore
 
 # Thêm thư mục gốc của project vào path để import backend module
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -44,17 +44,25 @@ def scrape_experts():
     # Mỗi chuyên gia nằm trong một div.card-body
     cards = soup.find_all('div', class_='card-body')
     for card in cards:
+        if not isinstance(card, Tag):
+            continue
+            
         img = card.find('img', src=lambda s: s and 'PersonelImage' in s)
         if not img:
             continue
 
         # Tên nằm trong thẻ h4
         h4 = card.find('h4')
-        if not h4:
+        if not h4 or not isinstance(h4, Tag):
             continue
 
         raw_name = h4.get_text(strip=True)
-        image_src = img.get('src', '')
+        
+        img = card.find('img', src=lambda s: s and 'PersonelImage' in s)
+        if not img or not isinstance(img, Tag):
+            continue
+
+        image_src = str(img.get('src', ''))
         image_url = f"{BASE_URL}{image_src}" if image_src.startswith('/') else image_src
 
         experts.append({

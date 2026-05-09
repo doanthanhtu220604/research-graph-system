@@ -29,6 +29,7 @@ from backend.routes.admin_external_authors import admin_external_authors_bp
 from backend.routes.collaboration_api import collaboration_bp
 from backend.routes.scholar_api import scholar_bp
 from backend.routes.admin_trash import admin_trash_bp
+from backend.routes.admin_departments import admin_departments_bp
 
 
 def create_app():
@@ -54,6 +55,7 @@ def create_app():
     app.register_blueprint(collaboration_bp)
     app.register_blueprint(scholar_bp)
     app.register_blueprint(admin_trash_bp, url_prefix='/api/admin')
+    app.register_blueprint(admin_departments_bp, url_prefix='/api/admin')
 
 
     # ============================

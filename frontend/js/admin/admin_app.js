@@ -17,12 +17,7 @@ const ENTITY_CONFIG = {
             { name: 'hoc_vi', label: 'Học vị', type: 'text' },
             { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
             { name: 'chuc_vu', label: 'Chức vụ', type: 'text' },
-            { name: 'bo_mon', label: 'Tên Bộ môn', type: 'select', options: [
-                { value: '', label: '-- Chọn Bộ môn --' },
-                { value: 'Bộ môn Công nghệ phần mềm', label: 'Bộ môn Công nghệ phần mềm' },
-                { value: 'Bộ môn Hệ thống thông tin', label: 'Bộ môn Hệ thống thông tin' },
-                { value: 'Bộ môn Mạng máy tính và truyền thông', label: 'Bộ môn Mạng máy tính và truyền thông' }
-            ]},
+            { name: 'bo_mon', label: 'Tên Bộ môn', type: 'select', options: [] },
             { name: 'email', label: 'Email', type: 'email' },
             { name: 'dien_thoai', label: 'Điện thoại', type: 'text' },
             { name: 'chuyen_nganh', label: 'Chuyên ngành', type: 'text' },
@@ -87,6 +82,14 @@ const ENTITY_CONFIG = {
             { name: 'chuc_vu', label: 'Chức vụ', type: 'text' },
             { name: 'email', label: 'Email', type: 'email' }
         ]
+    },
+    'bo-mon': {
+        title: 'Bộ môn',
+        apiUrl: `${ADMIN_API_BASE}/bo-mon`, // Admin can see all departments
+        adminApiUrl: `${ADMIN_API_BASE}/bo-mon`,
+        fields: [
+            { name: 'ten_bo_mon', label: 'Tên Bộ môn', type: 'text', required: true }
+        ]
     }
 };
 
@@ -110,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadExternalAuthors();
     } else if (document.getElementById('page-admin-overview')) {
         initDashboardOverview();
+    } else if (document.getElementById('page-admin-departments')) {
+        loadDepartments();
     }
     
     // Khởi tạo Clock toàn cục
@@ -411,6 +416,7 @@ async function loadLecturers() {
         if (data.status === 'ok') {
             currentEntitiesData['giang-vien'] = data.data;
             renderLecturersTable(data.data);
+            loadFilterDepartments(); // Tải danh sách bộ môn vào bộ lọc
         }
     } catch (err) {
         console.error(err);
@@ -469,6 +475,25 @@ function filterLecturers() {
     });
     
     renderLecturersTable(filtered);
+}
+
+async function loadFilterDepartments() {
+    const select = document.getElementById('filterDepartment');
+    if (!select) return;
+    
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/bo-mon`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+            let html = '<option value="">-- Chọn Bộ môn --</option>';
+            data.data.forEach(bm => {
+                html += `<option value="${bm.ten_bo_mon}">${bm.ten_bo_mon}</option>`;
+            });
+            select.innerHTML = html;
+        }
+    } catch (e) {
+        console.error('Lỗi tải bộ môn cho bộ lọc:', e);
+    }
 }
 
 async function loadPublications() {
@@ -709,6 +734,32 @@ function filterExternalAuthors() {
     renderExternalAuthorsTable(filtered);
 }
 
+async function loadDepartments() {
+    try {
+        const res = await fetch(ENTITY_CONFIG['bo-mon'].apiUrl);
+        const data = await res.json();
+        const tbody = document.getElementById('adminDepartmentsBody');
+        
+        if (data.status === 'ok') {
+            currentEntitiesData['bo-mon'] = data.data;
+            if (tbody) {
+                tbody.innerHTML = data.data.map((bm, i) => `
+                    <tr>
+                        <td>${bm.id || i+1}</td>
+                        <td><strong>${bm.ten_bo_mon || 'N/A'}</strong></td>
+                        <td>
+                            <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('bo-mon', '${bm.id}', ${i})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('bo-mon', '${bm.id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 // ============================================================
 // MODAL FORMS
 // ============================================================
@@ -729,7 +780,13 @@ async function openAdminModal(type, id = null, index = null) {
             inputHtml = `<textarea id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''} style="min-height: 100px; width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);"></textarea>`;
         } else if (f.type === 'select') {
             const defaultVal = (!id && f.default) ? f.default : null;
-            const optionsHtml = f.options.map(opt => `<option value="${opt.value}"${defaultVal === opt.value ? ' selected' : ''}>${opt.label}</option>`).join('');
+            let optionsHtml = f.options.map(opt => `<option value="${opt.value}"${defaultVal === opt.value ? ' selected' : ''}>${opt.label}</option>`).join('');
+            
+            // Nếu là trường bộ môn và chưa có options (do fetch động)
+            if (f.name === 'bo_mon' && f.options.length === 0) {
+                optionsHtml = '<option value="">-- Đang tải bộ môn... --</option>';
+            }
+            
             inputHtml = `<select id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>${optionsHtml}</select>`;
         } else {
             inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>`;
@@ -784,6 +841,28 @@ async function openAdminModal(type, id = null, index = null) {
             <input type="text" id="field_linh_vuc_text" name="linh_vuc_text" value="${currentLVText}" placeholder="VD: Trí tuệ nhân tạo, Học máy, Xử lý ngôn ngữ tự nhiên">
         </div>`;
         container.insertAdjacentHTML('beforeend', lvHtml);
+    }
+
+    // Tải bộ môn động cho Giảng viên
+    if (type === 'giang-vien') {
+        try {
+            const res = await fetch(`${ADMIN_API_BASE}/bo-mon`);
+            const data = await res.json();
+            const selectBM = document.getElementById('field_bo_mon');
+            if (selectBM && data.status === 'ok') {
+                let html = '<option value="">-- Chọn Bộ môn --</option>';
+                data.data.forEach(bm => {
+                    html += `<option value="${bm.ten_bo_mon}">${bm.ten_bo_mon}</option>`;
+                });
+                selectBM.innerHTML = html;
+                
+                // Khôi phục giá trị nếu đang edit
+                if (id) {
+                    let item = currentEntitiesData[type].find(x => x.id == id);
+                    if (item) selectBM.value = item.bo_mon || '';
+                }
+            }
+        } catch (e) { console.error('Lỗi tải bộ môn:', e); }
     }
 
     // Thêm phần chọn Tác giả cho Công trình khi THÊM MỚI
@@ -962,6 +1041,7 @@ async function handleFormSubmit(e) {
             else if (type === 'de-tai') loadProjects();
             else if (type === 'linh-vuc') loadResearchFields();
             else if (type === 'tac-gia-ngoai') loadExternalAuthors();
+            else if (type === 'bo-mon') loadDepartments();
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -1067,6 +1147,7 @@ async function deleteEntity(type, id) {
                 else if (type === 'de-tai') loadProjects();
                 else if (type === 'linh-vuc') loadResearchFields();
                 else if (type === 'tac-gia-ngoai') loadExternalAuthors();
+                else if (type === 'bo-mon') loadDepartments();
                 // Cập nhật badge thùng rác
                 updateTrashBadge();
             } else {
