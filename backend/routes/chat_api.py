@@ -168,7 +168,7 @@ def extract_name(question: str) -> str:
     # 2. Database Fuzzy Matching
     try:
         conn = get_neo4j_connection()
-        results = conn.query("MATCH (gv:GiangVien) RETURN gv.ho_va_ten AS ten")
+        results = conn.query("MATCH (gv:GiangVien) WHERE coalesce(gv.is_deleted, false) = false RETURN gv.ho_va_ten AS ten")
         if results:
             names = [r['ten'] for r in results if r.get('ten')]
             # Ưu tiên các tên dài (tránh trường hợp tên ngắn khớp một phần trong từ khác)
@@ -323,7 +323,7 @@ def handle_statistics(question: str):
     year = extract_year(question)
 
     if "giảng viên" in q or "gv" in q or "giáo viên" in q:
-        r = conn.query_single("MATCH (n:GiangVien) RETURN count(n) AS count")
+        r = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
         count = int(r["count"]) if r else 0
         return f"Hệ thống hiện có **{count} giảng viên** đang hoạt động nghiên cứu."
 
@@ -340,26 +340,26 @@ def handle_statistics(question: str):
     if "công trình" in q or "bài báo" in q or "xuất bản" in q:
         if year:
             r = conn.query_single(
-                "MATCH (n:CongTrinhNghienCuu) WHERE n.nam_xuat_ban = $year RETURN count(n) AS count",
+                "MATCH (n:CongTrinhNghienCuu) WHERE n.nam_xuat_ban = $year AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
                 {"year": int(year)}
             )
             count = int(r["count"]) if r else 0
             return f"Năm **{year}**, khoa CNTT có **{count} công trình nghiên cứu** được xuất bản."
         else:
-            r = conn.query_single("MATCH (n:CongTrinhNghienCuu) RETURN count(n) AS count")
+            r = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
             count = int(r["count"]) if r else 0
             return f"Tổng cộng hệ thống có **{count} công trình nghiên cứu** đã xuất bản."
 
     if "đề tài" in q or "dự án" in q or "nckh" in q:
         if year:
             r = conn.query_single(
-                "MATCH (n:DeTaiNghienCuu) WHERE n.nam_bat_dau = $year OR n.nam_ket_thuc = $year RETURN count(n) AS count",
+                "MATCH (n:DeTaiNghienCuu) WHERE (n.nam_bat_dau = $year OR n.nam_ket_thuc = $year) AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
                 {"year": int(year)}
             )
             count = int(r["count"]) if r else 0
             return f"Năm **{year}**, khoa có **{count} đề tài nghiên cứu** liên quan."
         else:
-            r = conn.query_single("MATCH (n:DeTaiNghienCuu) RETURN count(n) AS count")
+            r = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
             count = int(r["count"]) if r else 0
             return f"Tổng cộng hệ thống có **{count} đề tài nghiên cứu**."
 
@@ -389,10 +389,10 @@ def handle_search_lecturer(question: str):
         results = conn.query(
             """
             MATCH (gv:GiangVien)
-            WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
+            WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name) AND coalesce(gv.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
             RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh, gv.chuc_vu AS chuc_vu,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh,
                    count(DISTINCT dt) AS so_de_tai
@@ -426,9 +426,10 @@ def handle_search_lecturer(question: str):
             results = conn.query(
                 """
                 MATCH (gv:GiangVien)
-                WHERE toLower(coalesce(gv.hoc_vi,'')) CONTAINS $hv
+                WHERE (toLower(coalesce(gv.hoc_vi,'')) CONTAINS $hv
                    OR toLower(coalesce(gv.chuc_danh,'')) CONTAINS $hv
-                   OR toLower(coalesce(gv.chuc_vu,'')) CONTAINS $hv
+                   OR toLower(coalesce(gv.chuc_vu,'')) CONTAINS $hv)
+                   AND coalesce(gv.is_deleted, false) = false
                 OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
                 RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
                 ORDER BY gv.ho_va_ten
@@ -468,6 +469,8 @@ def handle_search_publication(question: str):
             """
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
+              AND coalesce(gv.is_deleted, false) = false
+              AND coalesce(ct.is_deleted, false) = false
             RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
                    ct.tap_chi AS tap_chi, ct.loai_cong_trinh AS loai
             ORDER BY ct.nam_xuat_ban DESC
@@ -493,8 +496,9 @@ def handle_search_publication(question: str):
         results = conn.query(
             """
             MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.nam_xuat_ban = $year
+            WHERE ct.nam_xuat_ban = $year AND coalesce(ct.is_deleted, false) = false
             OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            WHERE coalesce(gv.is_deleted, false) = false
             RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, collect(gv.ho_va_ten) AS tac_gia
             LIMIT 8
             """,
@@ -536,6 +540,8 @@ def handle_search_project(question: str):
             """
             MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
+              AND coalesce(gv.is_deleted, false) = false
+              AND coalesce(dt.is_deleted, false) = false
             RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, type(r) AS vai_tro,
                    dt.nam_bat_dau AS nam_bd, dt.nam_ket_thuc AS nam_kt
             ORDER BY dt.nam_bat_dau DESC
@@ -1164,7 +1170,7 @@ def ask():
             "intent": "error",
         }), 500
 
-def build_graph_for_answer(answer: str) -> dict:
+def build_graph_for_answer(answer: str) -> dict | None:
     """
     Parse entity IDs from answer text (javascript:showXxxDetail links),
     then fetch their 1-hop subgraph from Neo4j.

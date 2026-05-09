@@ -25,8 +25,11 @@ def get_collaboration_overview():
 
         # Tổng số mối quan hệ hợp tác qua công trình
         collab_ct = conn.query_single("""
-            MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
-            WHERE id(gv1) < id(gv2)
+            MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            WHERE coalesce(gv1.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+            WITH gv1, ct
+            MATCH (ct)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
+            WHERE id(gv1) < id(gv2) AND coalesce(gv2.is_deleted, false) = false
             RETURN count(DISTINCT [gv1.id, gv2.id]) AS total
         """)
 
@@ -80,7 +83,10 @@ def get_top_pairs():
 
         results = conn.query("""
             MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
-            WHERE id(gv1) < id(gv2)
+            WHERE id(gv1) < id(gv2) 
+              AND coalesce(gv1.is_deleted, false) = false 
+              AND coalesce(gv2.is_deleted, false) = false
+              AND coalesce(ct.is_deleted, false) = false
             WITH gv1, gv2, count(DISTINCT ct) AS so_ct
             OPTIONAL MATCH (gv1)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2)
             WITH gv1, gv2, so_ct, count(DISTINCT dt) AS so_dt
@@ -129,8 +135,9 @@ def get_top_connectors():
 
         results = conn.query("""
             MATCH (gv:GiangVien)
+            WHERE coalesce(gv.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
-            WHERE gv <> gv2
+            WHERE gv <> gv2 AND coalesce(gv2.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
             WITH gv, count(DISTINCT gv2) AS cong_su_ct
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv3:GiangVien)
             WHERE gv <> gv3
@@ -233,6 +240,9 @@ def get_collaboration_graph():
         pairs_ct = conn.query("""
             MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
             WHERE id(gv1) < id(gv2)
+              AND coalesce(gv1.is_deleted, false) = false
+              AND coalesce(gv2.is_deleted, false) = false
+              AND coalesce(ct.is_deleted, false) = false
             WITH gv1, gv2, count(DISTINCT ct) AS so_ct
             WHERE so_ct >= $min_collab
             RETURN gv1.id AS id1, gv2.id AS id2, so_ct, 0 AS so_dt

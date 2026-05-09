@@ -16,10 +16,11 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 @api_bp.route("/giang-vien")
 def get_all_giang_vien():
-    """Lấy danh sách tất cả giảng viên."""
+    """Lấy danh sách tất cả giảng viên (không bao gồm đã xóa mềm)."""
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (gv:GiangVien)
+        WHERE coalesce(gv.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
         RETURN gv, bm.ten_bo_mon AS bo_mon
         ORDER BY gv.ho_va_ten
@@ -39,7 +40,8 @@ def get_giang_vien_detail(gv_id):
 
     # Thông tin cơ bản
     gv = conn.query_single("""
-        MATCH (gv:GiangVien) WHERE gv.id = $id
+        MATCH (gv:GiangVien) 
+        WHERE gv.id = $id AND coalesce(gv.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
         RETURN gv, bm.ten_bo_mon AS bo_mon
     """, {"id": gv_id})
@@ -50,7 +52,7 @@ def get_giang_vien_detail(gv_id):
     # Công trình nghiên cứu
     cong_trinh = conn.query("""
         MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-        WHERE gv.id = $id
+        WHERE gv.id = $id AND coalesce(ct.is_deleted, false) = false
         RETURN ct
         ORDER BY ct.nam_xuat_ban DESC
     """, {"id": gv_id})
@@ -58,7 +60,7 @@ def get_giang_vien_detail(gv_id):
     # Đề tài nghiên cứu
     de_tai = conn.query("""
         MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-        WHERE gv.id = $id
+        WHERE gv.id = $id AND coalesce(dt.is_deleted, false) = false
         RETURN dt, type(r) AS vai_tro
     """, {"id": gv_id})
 
@@ -98,10 +100,11 @@ def get_giang_vien_detail(gv_id):
 
 @api_bp.route("/cong-trinh")
 def get_all_cong_trinh():
-    """Lấy danh sách công trình nghiên cứu."""
+    """Lấy danh sách công trình nghiên cứu (không bao gồm đã xóa mềm)."""
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
+        WHERE coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
         RETURN ct, collect(gv.ho_va_ten) AS tac_gia
         ORDER BY ct.nam_xuat_ban DESC, coalesce(ct.created_at, 0) DESC, id(ct) DESC
@@ -119,8 +122,10 @@ def get_cong_trinh_detail(ct_id):
     """Lấy chi tiết công trình nghiên cứu."""
     conn = get_neo4j_connection()
     result = conn.query_single("""
-        MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
+        MATCH (ct:CongTrinhNghienCuu) 
+        WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        WHERE coalesce(gv.is_deleted, false) = false
         RETURN ct, collect(gv.ho_va_ten) AS tac_gia
     """, {"id": ct_id})
 
@@ -147,10 +152,11 @@ def get_cong_trinh_detail(ct_id):
 
 @api_bp.route("/de-tai")
 def get_all_de_tai():
-    """Lấy danh sách đề tài nghiên cứu."""
+    """Lấy danh sách đề tài nghiên cứu (không bao gồm đã xóa mềm)."""
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (dt:DeTaiNghienCuu)
+        WHERE coalesce(dt.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
         RETURN dt, collect(gv.ho_va_ten) AS chu_nhiem
         ORDER BY coalesce(dt.created_at, 0) DESC, id(dt) DESC
@@ -168,8 +174,10 @@ def get_de_tai_detail(dt_id):
     """Lấy chi tiết đề tài nghiên cứu."""
     conn = get_neo4j_connection()
     result = conn.query_single("""
-        MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
+        MATCH (dt:DeTaiNghienCuu) 
+        WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
+        WHERE coalesce(gv.is_deleted, false) = false
         RETURN dt, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS thanh_vien
     """, {"id": dt_id})
 
@@ -249,7 +257,8 @@ def search():
         # Lấy tất cả các node phù hợp (không filter text bằng Cypher)
         query = f"""
             MATCH (n{label_filter})
-            WHERE NOT (n:TacGiaNgoai AND EXISTS {{
+            WHERE coalesce(n.is_deleted, false) = false
+              AND NOT (n:TacGiaNgoai AND EXISTS {{
                 MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
             }})
             RETURN n, labels(n) AS labels
@@ -303,7 +312,7 @@ def get_full_graph():
     # Lấy tất cả nodes
     nodes_result = conn.query("""
         MATCH (n)
-        WHERE n.id IS NOT NULL
+        WHERE n.id IS NOT NULL AND coalesce(n.is_deleted, false) = false
         RETURN n.id AS id, labels(n) AS labels, properties(n) AS props
     """)
 
@@ -311,6 +320,8 @@ def get_full_graph():
     edges_result = conn.query("""
         MATCH (a)-[r]->(b)
         WHERE a.id IS NOT NULL AND b.id IS NOT NULL
+          AND coalesce(a.is_deleted, false) = false
+          AND coalesce(b.is_deleted, false) = false
         RETURN a.id AS source, b.id AS target, type(r) AS type,
                properties(r) AS props
     """)
@@ -463,14 +474,15 @@ def get_overview_stats():
     try:
         conn = get_neo4j_connection()
 
-        gv_count = conn.query_single("MATCH (n:GiangVien) RETURN count(n) AS count")
-        ct_count = conn.query_single("MATCH (n:CongTrinhNghienCuu) RETURN count(n) AS count")
-        dt_count = conn.query_single("MATCH (n:DeTaiNghienCuu) RETURN count(n) AS count")
-        bm_count = conn.query_single("MATCH (n:BoMon) RETURN count(n) AS count")
+        gv_count = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+        ct_count = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+        dt_count = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+        bm_count = conn.query_single("MATCH (n:BoMon) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
 
         # Top giảng viên theo số công trình
         top_gv = conn.query("""
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
             RETURN gv.ho_va_ten AS ten, gv.id AS id, count(ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC
             LIMIT 10
@@ -479,7 +491,7 @@ def get_overview_stats():
         # Thống kê công trình theo năm xuất bản (5 năm gần nhất)
         ct_theo_nam = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.nam_xuat_ban IS NOT NULL AND toString(ct.nam_xuat_ban) <> ''
+            WHERE ct.nam_xuat_ban IS NOT NULL AND toString(ct.nam_xuat_ban) <> '' AND coalesce(ct.is_deleted, false) = false
             RETURN toInteger(ct.nam_xuat_ban) AS nam, count(ct) AS so_luong
             ORDER BY nam ASC
         """)
@@ -487,7 +499,7 @@ def get_overview_stats():
         # Thống kê đề tài theo cấp
         dt_theo_cap = conn.query("""
             MATCH (dt:DeTaiNghienCuu)
-            WHERE dt.cap_de_tai IS NOT NULL
+            WHERE dt.cap_de_tai IS NOT NULL AND coalesce(dt.is_deleted, false) = false
             RETURN dt.cap_de_tai AS cap, count(dt) AS so_luong
             ORDER BY so_luong DESC
         """)

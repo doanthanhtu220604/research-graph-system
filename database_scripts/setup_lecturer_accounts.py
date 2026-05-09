@@ -2,7 +2,8 @@ import os
 import sys
 
 # Đảm bảo in unicode ra console
-sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 # Thêm path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

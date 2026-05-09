@@ -4,7 +4,8 @@ Xóa các node TacGiaNgoai trùng tên với GiangVien.
 Trước khi xóa, chuyển toàn bộ quan hệ sang node GiangVien tương ứng.
 """
 import sys, os
-sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from backend.services.neo4j_connection import get_neo4j_connection

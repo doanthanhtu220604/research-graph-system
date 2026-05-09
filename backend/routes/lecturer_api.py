@@ -42,6 +42,8 @@ def suggest_collaborators():
             MATCH (me:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(work)
             <-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]-(other:GiangVien)
             WHERE me.id = $gv_id AND other.id <> $gv_id
+              AND coalesce(work.is_deleted, false) = false
+              AND coalesce(other.is_deleted, false) = false
             RETURN DISTINCT other.id AS id
         """, {'gv_id': gv_id})
         da_hop_tac_ids = {r['id'] for r in da_hop_tac_res if r.get('id')}
@@ -49,7 +51,7 @@ def suggest_collaborators():
         # ── Bước 3: Tìm tất cả giảng viên khác (chưa hợp tác) ───────────────
         all_others_res = conn.query("""
             MATCH (other:GiangVien)
-            WHERE other.id <> $gv_id
+            WHERE other.id <> $gv_id AND coalesce(other.is_deleted, false) = false
             OPTIONAL MATCH (other)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
             OPTIONAL MATCH (other)-[:THUOC_BO_MON]->(bm:BoMon)
             OPTIONAL MATCH (other)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
@@ -139,10 +141,10 @@ def get_me():
     try:
         conn = get_neo4j_connection()
         query = """
-        MATCH (g:GiangVien) WHERE g.id = $id
+        MATCH (g:GiangVien) WHERE g.id = $id AND coalesce(g.is_deleted, false) = false
         OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        OPTIONAL MATCH (g)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-        OPTIONAL MATCH (g)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        OPTIONAL MATCH (g)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+        OPTIONAL MATCH (g)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
         RETURN 
             g {.*} as info,
             collect(DISTINCT lv.ten_linh_vuc) as linh_vuc,
@@ -176,7 +178,7 @@ def get_my_publications():
         conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-        WHERE g.id = $id
+        WHERE g.id = $id AND coalesce(ct.is_deleted, false) = false
         RETURN ct {.*} as cong_trinh
         ORDER BY ct.nam_xuat_ban DESC
         """
@@ -296,7 +298,8 @@ def get_my_projects():
         conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-        WHERE (g.id IS NOT NULL AND toString(g.id) = toString($id)) OR (g.id IS NULL AND toString(id(g)) = toString($id))
+        WHERE ((g.id IS NOT NULL AND toString(g.id) = toString($id)) OR (g.id IS NULL AND toString(id(g)) = toString($id)))
+          AND coalesce(dt.is_deleted, false) = false
         RETURN dt {.*, id: coalesce(dt.id, 'dt_' + toString(id(dt))), vai_tro: type(r)} as de_tai
         ORDER BY dt.nam_bat_dau DESC
         """
@@ -403,9 +406,9 @@ def get_lecturer_timeline():
         # ── 2. Lấy công trình nghiên cứu ─────────────────────────────────────
         ct_res = conn.query("""
             MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
-            WHERE g.id = $id
+            WHERE g.id = $id AND coalesce(ct.is_deleted, false) = false
             OPTIONAL MATCH (co:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-            WHERE co.id <> $id
+            WHERE co.id <> $id AND coalesce(co.is_deleted, false) = false
             RETURN ct.id AS id,
                    ct.ten_cong_trinh AS tieu_de,
                    ct.nam_xuat_ban AS nam,
@@ -420,9 +423,9 @@ def get_lecturer_timeline():
         # ── 3. Lấy đề tài nghiên cứu ─────────────────────────────────────────
         dt_res = conn.query("""
             MATCH (g:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-            WHERE g.id = $id
+            WHERE g.id = $id AND coalesce(dt.is_deleted, false) = false
             OPTIONAL MATCH (tv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt)
-            WHERE tv.id <> $id
+            WHERE tv.id <> $id AND coalesce(tv.is_deleted, false) = false
             RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id,
                    dt.ten_de_tai AS tieu_de,
                    dt.nam_bat_dau AS nam,

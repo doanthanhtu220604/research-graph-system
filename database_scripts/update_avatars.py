@@ -8,8 +8,9 @@ import sys
 import os
 import json
 
-# Fix unicode output on Windows console
-sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+# Fix lỗi in tiếng Việt trên Windows
+if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 import requests
 from bs4 import BeautifulSoup

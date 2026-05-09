@@ -87,7 +87,17 @@ def approve_cong_trinh(id):
 def delete_cong_trinh(id):
     conn = get_neo4j_connection()
     try:
-        conn.write("MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id DETACH DELETE ct", {"id": id})
-        return jsonify({"status": "ok", "message": "Xóa thành công"})
+        from flask import request as _req
+        note = _req.json.get("note", "") if _req.is_json else ""
+        result = conn.write("""
+            MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
+            SET ct.is_deleted   = true,
+                ct.deleted_at   = timestamp(),
+                ct.deleted_note = $note
+            RETURN ct.id AS id
+        """, {"id": id, "note": note})
+        if not result:
+            return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
+        return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

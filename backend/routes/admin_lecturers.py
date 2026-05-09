@@ -112,10 +112,17 @@ def update_giang_vien(id):
 def delete_giang_vien(id):
     conn = get_neo4j_connection()
     try:
-        conn.write("""
-            MATCH (gv:GiangVien) WHERE gv.id = $id
-            DETACH DELETE gv
-        """, {"id": id})
-        return jsonify({"status": "ok", "message": "Xóa thành công"})
+        from flask import request as _req
+        note = _req.json.get("note", "") if _req.is_json else ""
+        result = conn.write("""
+            MATCH (gv:GiangVien) WHERE gv.id = $id AND coalesce(gv.is_deleted, false) = false
+            SET gv.is_deleted   = true,
+                gv.deleted_at   = timestamp(),
+                gv.deleted_note = $note
+            RETURN gv.id AS id
+        """, {"id": id, "note": note})
+        if not result:
+            return jsonify({"status": "error", "message": "Không tìm thấy giảng viên"}), 404
+        return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

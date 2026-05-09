@@ -39,13 +39,26 @@ def update_linh_vuc(id):
 
 @admin_research_fields_bp.route("/linh-vuc/<id>", methods=["DELETE"])
 def delete_linh_vuc(id):
+    """Xóa mềm lĩnh vực nghiên cứu."""
+    data = request.json or {}
+    note = data.get('note', '')
     conn = get_neo4j_connection()
-    try:
-        conn.write("""
-            MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $id
-            DETACH DELETE lv
-        """, {"id": id})
-        return jsonify({"status": "ok", "message": "Xóa thành công"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    
+    # Ở đây chúng ta hỗ trợ cả id nội bộ (integer) và id chuỗi (lv_...)
+    query_match = "WHERE lv.id = $id"
+    if id.isdigit():
+        query_match = "WHERE id(lv) = toInteger($id)"
 
+    result = conn.write(f"""
+        MATCH (lv:LinhVucNghienCuu)
+        {query_match}
+        SET lv.is_deleted = true,
+            lv.deleted_at = timestamp(),
+            lv.deleted_note = $note
+        RETURN lv
+    """, {"id": id, "note": note})
+    
+    if not result:
+        return jsonify({"status": "error", "message": "Không tìm thấy lĩnh vực"}), 404
+
+    return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})

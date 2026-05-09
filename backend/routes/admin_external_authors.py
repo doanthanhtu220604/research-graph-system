@@ -13,6 +13,7 @@ def get_all_tac_gia_ngoai():
     try:
         results = conn.query("""
             MATCH (tgn:TacGiaNgoai)
+            WHERE coalesce(tgn.is_deleted, false) = false
             RETURN tgn
             ORDER BY tgn.ho_va_ten
         """)
@@ -61,9 +62,17 @@ def update_tac_gia_ngoai(id):
 
 @admin_external_authors_bp.route("/tac-gia-ngoai/<id>", methods=["DELETE"])
 def delete_tac_gia_ngoai(id):
+    """Xóa mềm tác giả ngoài."""
+    data = request.json or {}
+    note = data.get('note', '')
     conn = get_neo4j_connection()
     try:
-        conn.write("MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id DETACH DELETE tgn", {"id": id})
-        return jsonify({"status": "ok", "message": "Xóa thành công"})
+        conn.write("""
+            MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id
+            SET tgn.is_deleted = true,
+                tgn.deleted_at = timestamp(),
+                tgn.deleted_note = $note
+        """, {"id": id, "note": note})
+        return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

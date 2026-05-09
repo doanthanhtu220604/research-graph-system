@@ -2,7 +2,7 @@ import sys
 import os
 
 # Fix lỗi in tiếng Việt trên Windows
-if sys.stdout.encoding != 'utf-8':
+if hasattr(sys.stdout, 'reconfigure') and sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 
 # Thêm thư mục gốc vào sys.path để có thể import từ backend
@@ -24,18 +24,15 @@ def create_database_indexes():
             # Tối ưu tìm kiếm Giảng Viên theo tên
             "CREATE INDEX giangvien_ten_idx IF NOT EXISTS FOR (n:GiangVien) ON (n.ho_va_ten)",
             
-            # (Gợi ý thêm) Nếu Giảng Viên có mã GV và nó là duy nhất, bạn nên dùng CONSTRAINT
-            # "CREATE CONSTRAINT giangvien_ma_unique IF NOT EXISTS FOR (n:GiangVien) REQUIRE n.ma_gv IS UNIQUE",
+            # Tối ưu tìm kiếm Công Trình Nghiên Cứu (Bài báo) theo tên
+            "CREATE INDEX congtrinh_ten_idx IF NOT EXISTS FOR (n:CongTrinhNghienCuu) ON (n.ten_cong_trinh)",
             
-            # Tối ưu tìm kiếm Bài Báo theo tên
-            "CREATE INDEX baibao_ten_idx IF NOT EXISTS FOR (n:BaiBao) ON (n.ten_bai_bao)",
+            # Tối ưu tìm kiếm Đề Tài Nghiên Cứu theo tên
+            "CREATE INDEX detai_nghiencuu_ten_idx IF NOT EXISTS FOR (n:DeTaiNghienCuu) ON (n.ten_de_tai)",
             
-            # Tối ưu tìm kiếm Đề Tài theo tên
-            "CREATE INDEX detai_ten_idx IF NOT EXISTS FOR (n:DeTai) ON (n.ten_de_tai)",
-            
-            # (Tùy chọn) Tối ưu tìm kiếm theo năm xuất bản/thực hiện
-            "CREATE INDEX baibao_nam_idx IF NOT EXISTS FOR (n:BaiBao) ON (n.nam_xuat_ban)",
-            "CREATE INDEX detai_nam_idx IF NOT EXISTS FOR (n:DeTai) ON (n.nam_bat_dau)"
+            # Tối ưu tìm kiếm theo năm
+            "CREATE INDEX congtrinh_nam_idx IF NOT EXISTS FOR (n:CongTrinhNghienCuu) ON (n.nam_xuat_ban)",
+            "CREATE INDEX detai_nghiencuu_nam_idx IF NOT EXISTS FOR (n:DeTaiNghienCuu) ON (n.nam_bat_dau)"
         ]
         
         for query in cypher_queries:

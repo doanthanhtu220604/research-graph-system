@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thùng rác - Quản lý dữ liệu đã xóa">
+    <title>Thùng rác - Knowledge Map Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        /* ─── Trash page styles ─── */
+        .trash-hero {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 28px 30px;
+            background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.02) 100%);
+            border: 1px solid rgba(239,68,68,0.18);
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+        .trash-hero-icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; color: white;
+            box-shadow: 0 8px 20px rgba(239,68,68,0.3);
+            flex-shrink: 0;
+        }
+        .trash-hero-text h2 {
+            font-size: 20px; font-weight: 700;
+            color: var(--text-primary); margin: 0 0 4px;
+        }
+        .trash-hero-text p {
+            font-size: 13px; color: var(--text-muted); margin: 0;
+        }
+        .trash-stats {
+            margin-left: auto;
+            display: flex; gap: 20px;
+        }
+        .trash-stat-chip {
+            text-align: center;
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+        .trash-stat-chip .num {
+            font-size: 22px; font-weight: 800;
+            color: #ef4444; line-height: 1;
+        }
+        .trash-stat-chip .lbl {
+            font-size: 11px; color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ─── Filters bar ─── */
+        .trash-toolbar {
+            display: flex; gap: 12px; align-items: center;
+            flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .trash-filter-btn {
+            padding: 7px 18px;
+            border-radius: 30px;
+            border: 1.5px solid var(--border-color);
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .trash-filter-btn:hover {
+            border-color: #ef4444; color: #ef4444;
+        }
+        .trash-filter-btn.active {
+            background: #ef4444; border-color: #ef4444;
+            color: white;
+        }
+        .trash-filter-btn .cnt {
+            background: rgba(255,255,255,0.25);
+            padding: 1px 7px; border-radius: 10px;
+            font-size: 11px; font-weight: 700;
+        }
+        .trash-filter-btn:not(.active) .cnt {
+            background: rgba(239,68,68,0.1); color: #ef4444;
+        }
+
+        .trash-search-box {
+            flex: 1; max-width: 300px;
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 14px;
+        }
+        .trash-search-box i { color: var(--text-muted); font-size: 13px; }
+        .trash-search-box input {
+            border: none; background: none; outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px; color: var(--text-primary);
+            width: 100%;
+        }
+
+        .btn-empty-trash {
+            margin-left: auto;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white; border: none; border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+        }
+        .btn-empty-trash:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(239,68,68,0.4);
+        }
+        .btn-empty-trash:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none;
+        }
+
+        /* ─── Trash items grid ─── */
+        .trash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .trash-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px 20px;
+            position: relative;
+            transition: box-shadow 0.2s, transform 0.2s;
+            overflow: hidden;
+        }
+        .trash-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            border-radius: 16px 0 0 16px;
+        }
+        .trash-card[data-type="giang-vien"]::before { background: #4F8EF7; }
+        .trash-card[data-type="cong-trinh"]::before { background: #10b981; }
+        .trash-card[data-type="de-tai"]::before { background: #f59e0b; }
+
+        .trash-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .trash-card-header {
+            display: flex; align-items: flex-start; gap: 12px;
+            margin-bottom: 12px;
+        }
+        .trash-card-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .trash-card[data-type="giang-vien"] .trash-card-icon {
+            background: rgba(79,142,247,0.1); color: #4F8EF7;
+        }
+        .trash-card[data-type="cong-trinh"] .trash-card-icon {
+            background: rgba(16,185,129,0.1); color: #10b981;
+        }
+        .trash-card[data-type="de-tai"] .trash-card-icon {
+            background: rgba(245,158,11,0.1); color: #f59e0b;
+        }
+
+        .trash-card-info { flex: 1; min-width: 0; }
+        .trash-card-type {
+            font-size: 10px; font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+        .trash-card[data-type="giang-vien"] .trash-card-type { color: #4F8EF7; }
+        .trash-card[data-type="cong-trinh"] .trash-card-type { color: #10b981; }
+        .trash-card[data-type="de-tai"] .trash-card-type { color: #f59e0b; }
+
+        .trash-card-name {
+            font-size: 14px; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+        .trash-card-sub {
+            font-size: 12px; color: var(--text-muted);
+        }
+
+        .trash-card-meta {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        .trash-card-time {
+            font-size: 11px; color: var(--text-muted);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .trash-card-actions {
+            display: flex; gap: 8px;
+        }
+        .btn-restore {
+            padding: 5px 14px;
+            border-radius: 8px;
+            background: rgba(16,185,129,0.1);
+            color: #10b981;
+            border: 1px solid rgba(16,185,129,0.3);
+            font-size: 12px; font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .btn-restore:hover {
+            background: #10b981; color: white;
+        }
+        .btn-del-perm {
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(239,68,68,0.08);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.2);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-del-perm:hover {
+            background: #ef4444; color: white;
+        }
+
+        /* ─── Empty state ─── */
+        .trash-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+        .trash-empty i {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        .trash-empty p { font-size: 14px; margin: 0; }
+
+        /* ─── Toast notification ─── */
+        .toast-container {
+            position: fixed; bottom: 24px; right: 24px;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 13px; font-weight: 500;
+            color: white;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            animation: slideInRight 0.3s ease;
+            min-width: 260px;
+        }
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error   { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.info    { background: linear-gradient(135deg, #4F8EF7, #3b82f6); }
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; } to { opacity: 0; }
+        }
+
+        /* ─── Loading skeleton ─── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-hover) 25%, rgba(0,0,0,0.04) 50%, var(--bg-hover) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeleton-loading {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-card {
+            height: 120px;
+            border-radius: 16px;
+        }
+
+        /* confirm dialog */
+        .confirm-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 8000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .confirm-overlay.active {
+            opacity: 1; pointer-events: auto;
+        }
+        .confirm-box {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 420px; width: 90%;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            text-align: center;
+            transform: scale(0.92);
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .confirm-overlay.active .confirm-box { transform: scale(1); }
+        .confirm-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; color: #ef4444;
+            margin: 0 auto 18px;
+        }
+        .confirm-box h3 { font-size: 17px; margin: 0 0 8px; }
+        .confirm-box p  { font-size: 13px; color: var(--text-muted); margin: 0 0 24px; }
+        .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+        .confirm-actions .btn-cancel {
+            padding: 10px 24px; border-radius: 10px;
+            background: var(--bg-hover); border: 1px solid var(--border-color);
+            font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+            color: var(--text-secondary); cursor: pointer;
+        }
+        .confirm-actions .btn-confirm-del {
+            padding: 10px 24px; border-radius: 10px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none; color: white;
+            font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .trash-stats { display: none; }
+            .trash-grid  { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-user-shield"></i>
+                <span class="logo-text">KnowledgeMap Admin</span>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tổng quan hệ thống</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="lecturers.html" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <span>QL Giảng viên</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="external_authors.html" class="nav-link">
+                    <i class="fas fa-user-friends"></i>
+                    <span>QL Tác giả ngoài</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="publications.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>QL Công trình</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="projects.html" class="nav-link">
+                    <i class="fas fa-flask"></i>
+                    <span>QL Đề tài</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="research_fields.html" class="nav-link">
+                    <i class="fas fa-layer-group"></i>
+                    <span>QL Lĩnh vực NG</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="accounts.html" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <span>QL Tài khoản</span>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="trash.html" class="nav-link" style="color: #ef4444;">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Thùng rác <span id="sidebarTrashBadge" style="background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none;"></span></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Về trang chủ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" onclick="logoutAdmin()" class="nav-link" style="color: var(--accent-red);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Thùng rác</h1>
+            <div class="header-actions" style="display:flex; align-items:center; gap:12px;">
+                <div id="realtimeClock" style="font-weight:600;color:var(--accent-blue);background:var(--bg-hover);padding:5px 12px;border-radius:6px;font-size:13px;"></div>
+                <span style="font-weight:500;color:var(--text-secondary);">Xin chào, Admin</span>
+            </div>
+        </header>
+
+        <section id="page-trash" style="display:block;">
+
+            <!-- Hero banner -->
+            <div class="trash-hero">
+                <div class="trash-hero-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <div class="trash-hero-text">
+                    <h2>Thùng rác hệ thống</h2>
+                    <p>Các mục đã xóa được lưu tại đây. Bạn có thể khôi phục hoặc xóa vĩnh viễn. <br>Dữ liệu trong thùng rác <strong>không hiển thị</strong> trên trang công khai.</p>
+                </div>
+                <div class="trash-stats">
+                    <div class="trash-stat-chip">
+                        <div class="num" id="statGV">—</div>
+                        <div class="lbl">Giảng viên</div>
+                    </div>
+                    <div class="trash-stat-chip">
+                        <div class="num" id="statCT">—</div>
+                        <div class="lbl">Công trình</div>
+                    </div>
+                    <div class="trash-stat-chip">
+                        <div class="num" id="statDT">—</div>
+                        <div class="lbl">Đề tài</div>
+                    </div>
+                    <div class="trash-stat-chip">
+                        <div class="num" id="statLV">—</div>
+                        <div class="lbl">Lĩnh vực</div>
+                    </div>
+                    <div class="trash-stat-chip">
+                        <div class="num" id="statTGN">—</div>
+                        <div class="lbl">Tác giả ngoài</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="trash-toolbar">
+                <button class="trash-filter-btn active" id="filterAll" onclick="setFilter('all')">
+                    <i class="fas fa-layer-group"></i> Tất cả <span class="cnt" id="cntAll">0</span>
+                </button>
+                <button class="trash-filter-btn" id="filterGV" onclick="setFilter('giang-vien')">
+                    <i class="fas fa-user-tie"></i> Giảng viên <span class="cnt" id="cntGV">0</span>
+                </button>
+                <button class="trash-filter-btn" id="filterCT" onclick="setFilter('cong-trinh')">
+                    <i class="fas fa-file-alt"></i> Công trình <span class="cnt" id="cntCT">0</span>
+                </button>
+                <button class="trash-filter-btn" id="filterDT" onclick="setFilter('de-tai')">
+                    <i class="fas fa-flask"></i> Đề tài <span class="cnt" id="cntDT">0</span>
+                </button>
+                <button class="trash-filter-btn" id="filterLV" onclick="setFilter('linh-vuc')">
+                    <i class="fas fa-layer-group"></i> Lĩnh vực <span class="cnt" id="cntLV">0</span>
+                </button>
+                <button class="trash-filter-btn" id="filterTGN" onclick="setFilter('tac-gia-ngoai')">
+                    <i class="fas fa-user-friends"></i> Tác giả ngoài <span class="cnt" id="cntTGN">0</span>
+                </button>
+
+                <div class="trash-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="trashSearch" placeholder="Tìm trong thùng rác..." oninput="renderTrash()">
+                </div>
+
+                <button class="btn-empty-trash" id="btnEmptyTrash" onclick="confirmEmptyTrash()" disabled>
+                    <i class="fas fa-fire-alt"></i> Dọn sạch thùng rác
+                </button>
+            </div>
+
+            <!-- Trash grid -->
+            <div class="trash-grid" id="trashGrid">
+                <!-- Skeleton loading -->
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Confirm dialog -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon" id="confirmIcon">
+                <i class="fas fa-fire-alt"></i>
+            </div>
+            <h3 id="confirmTitle">Xác nhận xóa vĩnh viễn</h3>
+            <p id="confirmMessage">Hành động này không thể hoàn tác.</p>
+            <div class="confirm-actions">
+                <button class="btn-cancel" onclick="closeConfirm()">Hủy bỏ</button>
+                <button class="btn-confirm-del" id="confirmBtn" onclick="executeConfirm()">Xóa vĩnh viễn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="../js/admin/admin_app.js"></script>
+    <script src="../js/admin/trash_app.js"></script>
+</body>
+</html>

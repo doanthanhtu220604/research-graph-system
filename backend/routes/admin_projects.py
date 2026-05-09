@@ -101,7 +101,17 @@ def approve_de_tai(id):
 def delete_de_tai(id):
     conn = get_neo4j_connection()
     try:
-        conn.write("MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id DETACH DELETE dt", {"id": id})
-        return jsonify({"status": "ok", "message": "Xóa thành công"})
+        from flask import request as _req
+        note = _req.json.get("note", "") if _req.is_json else ""
+        result = conn.write("""
+            MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
+            SET dt.is_deleted   = true,
+                dt.deleted_at   = timestamp(),
+                dt.deleted_note = $note
+            RETURN dt.id AS id
+        """, {"id": id, "note": note})
+        if not result:
+            return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
+        return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
