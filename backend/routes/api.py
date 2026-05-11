@@ -64,10 +64,9 @@ def get_giang_vien_detail(gv_id):
         RETURN dt, type(r) AS vai_tro
     """, {"id": gv_id})
 
-    # Lĩnh vực nghiên cứu
     linh_vuc = conn.query("""
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        WHERE gv.id = $id
+        WHERE gv.id = $id AND coalesce(lv.is_deleted, false) = false
         RETURN lv.ten_linh_vuc AS ten_linh_vuc
     """, {"id": gv_id})
 
@@ -212,6 +211,7 @@ def get_all_linh_vuc():
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (lv:LinhVucNghienCuu)
+        WHERE coalesce(lv.is_deleted, false) = false
         RETURN lv
         ORDER BY lv.ten_linh_vuc
     """)

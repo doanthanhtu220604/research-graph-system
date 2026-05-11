@@ -36,6 +36,8 @@ def create_giang_vien():
             conn.write("""
                 MATCH (gv:GiangVien) WHERE gv.id = $gv_id
                 MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                ON CREATE SET bm.id = 'bm_' + toString(id(bm)),
+                             bm.created_at = timestamp()
                 MERGE (gv)-[:THUOC_BO_MON]->(bm)
             """, {"gv_id": gv_id, "bo_mon": data.get("bo_mon")})
 
@@ -47,6 +49,15 @@ def create_giang_vien():
                     MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $lv_id
                     MERGE (gv)-[:NGHIEN_CUU]->(lv)
                 """, {"gv_id": gv_id, "lv_id": lv_id})
+        
+        if data.get("linh_vuc_names"):
+            for lv_name in data["linh_vuc_names"]:
+                conn.write("""
+                    MATCH (gv:GiangVien) WHERE gv.id = $gv_id
+                    MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
+                    ON CREATE SET lv.id = 'lv_' + toString(id(lv))
+                    MERGE (gv)-[:NGHIEN_CUU]->(lv)
+                """, {"gv_id": gv_id, "lv_name": lv_name})
 
         return jsonify({"status": "ok", "message": "Thêm giảng viên thành công", "id": gv_id})
     except Exception as e:
@@ -84,11 +95,13 @@ def update_giang_vien(id):
                 conn.write("""
                     MATCH (gv:GiangVien) WHERE gv.id = $id
                     MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                    ON CREATE SET bm.id = 'bm_' + toString(id(bm)),
+                                 bm.created_at = timestamp()
                     MERGE (gv)-[:THUOC_BO_MON]->(bm)
                 """, {"id": id, "bo_mon": data.get("bo_mon")})
 
         # Cập nhật quan hệ Lĩnh vực nghiên cứu
-        if "linh_vuc_ids" in data:
+        if "linh_vuc_ids" in data or "linh_vuc_names" in data:
             # Xóa quan hệ lĩnh vực cũ
             conn.write("""
                 MATCH (gv:GiangVien)-[r:NGHIEN_CUU]->(:LinhVucNghienCuu)
@@ -96,13 +109,24 @@ def update_giang_vien(id):
                 DELETE r
             """, {"id": id})
 
-            # Tạo quan hệ lĩnh vực mới
-            for lv_id in data["linh_vuc_ids"]:
-                conn.write("""
-                    MATCH (gv:GiangVien) WHERE gv.id = $id
-                    MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $lv_id
-                    MERGE (gv)-[:NGHIEN_CUU]->(lv)
-                """, {"id": id, "lv_id": lv_id})
+            # Tạo quan hệ lĩnh vực mới theo IDs
+            if "linh_vuc_ids" in data:
+                for lv_id in data["linh_vuc_ids"]:
+                    conn.write("""
+                        MATCH (gv:GiangVien) WHERE gv.id = $id
+                        MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $lv_id
+                        MERGE (gv)-[:NGHIEN_CUU]->(lv)
+                    """, {"id": id, "lv_id": lv_id})
+            
+            # Tạo quan hệ lĩnh vực mới theo Tên
+            if "linh_vuc_names" in data:
+                for lv_name in data["linh_vuc_names"]:
+                    conn.write("""
+                        MATCH (gv:GiangVien) WHERE gv.id = $id
+                        MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
+                        ON CREATE SET lv.id = 'lv_' + toString(id(lv))
+                        MERGE (gv)-[:NGHIEN_CUU]->(lv)
+                    """, {"id": id, "lv_name": lv_name})
 
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
