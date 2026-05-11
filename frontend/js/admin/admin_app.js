@@ -527,6 +527,7 @@ function renderPublicationsTable(dataList) {
         if (trangThai === 'Hoàn thành')        { statusColor = '#28a745'; statusBg = 'rgba(40,167,69,0.1)'; }
         else if (trangThai === 'Đang thực hiện') { statusColor = '#007bff'; statusBg = 'rgba(0,123,255,0.1)'; }
         else if (trangThai === 'Chờ duyệt')     { statusColor = '#fd7e14'; statusBg = 'rgba(253,126,20,0.1)'; }
+        else if (trangThai === 'Yêu cầu xóa')  { statusColor = '#e74c3c'; statusBg = 'rgba(231,76,60,0.1)'; }
         return `
         <tr>
             <td>${ct.id || 'N/A'}</td>
@@ -535,6 +536,7 @@ function renderPublicationsTable(dataList) {
             <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td>
                 ${trangThai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication('${ct.id}')"><i class="fas fa-check"></i></button>` : ''}
+                ${trangThai === 'Yêu cầu xóa' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Duyệt XÓA công trình" onclick="approveDeleteEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats('${ct.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', '${ct.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', '${ct.id}', \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
@@ -594,6 +596,25 @@ async function approveProject(id) {
     }
 }
 
+async function approveDeleteEntity(type, id) {
+    if (!confirm('Bạn có chắc muốn phê duyệt yêu cầu XÓA của giảng viên? Mục này sẽ được chuyển vào Thùng rác của hệ thống.')) return;
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/${type}/${id}/approve-delete`, {
+            method: 'PUT'
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            if (type === 'cong-trinh') loadPublications();
+            else if (type === 'de-tai') loadProjects();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi phê duyệt xóa.');
+    }
+}
+
 async function loadProjects() {
     try {
         const res = await fetch(ENTITY_CONFIG['de-tai'].apiUrl);
@@ -628,6 +649,7 @@ function renderProjectsTable(dataList) {
         if (trangThai === 'Hoàn thành') { statusColor = '#28a745'; statusBg = 'rgba(40,167,69,0.1)'; }
         else if (trangThai === 'Đang thực hiện') { statusColor = '#007bff'; statusBg = 'rgba(0,123,255,0.1)'; }
         else if (trangThai === 'Chờ duyệt')     { statusColor = '#fd7e14'; statusBg = 'rgba(253,126,20,0.1)'; }
+        else if (trangThai === 'Yêu cầu xóa')  { statusColor = '#e74c3c'; statusBg = 'rgba(231,76,60,0.1)'; }
         return `
         <tr>
             <td>${dt.id || 'N/A'}</td>
@@ -637,6 +659,7 @@ function renderProjectsTable(dataList) {
             <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td>
                 ${trangThai === 'Chờ duyệt' ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt đề tài" onclick="approveProject('${dt.id}')"><i class="fas fa-check"></i></button>` : ''}
+                ${trangThai === 'Yêu cầu xóa' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Duyệt XÓA đề tài" onclick="approveDeleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}', \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}

@@ -294,7 +294,9 @@ async function loadPublications() {
                 return;
             }
             tbody.innerHTML = data.data.map((ct) => {
-                const statusClass = ct.trang_thai === 'Hoàn thành' ? 'status-completed' : (ct.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : '');
+                const statusClass = ct.trang_thai === 'Hoàn thành' ? 'status-completed' : (ct.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : (ct.trang_thai === 'Yêu cầu xóa' ? 'status-request' : ''));
+                const isPending = ct.trang_thai === 'Yêu cầu xóa';
+                
                 return `
                 <tr>
                     <td>${ct.id}</td>
@@ -303,8 +305,8 @@ async function loadPublications() {
                     <td style="text-align: center;"><span class="status-badge ${statusClass}">${ct.trang_thai || 'Đã duyệt'}</span></td>
                     <td style="text-align: center;">
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewPublicationDetail('${ct.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa bỏ liên kết/công trình" onclick="deleteLecturerEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="requestDeleteLecturerEntity('cong-trinh', '${ct.id}')" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `}).join('');
@@ -327,7 +329,9 @@ async function loadProjects() {
                 return;
             }
             tbody.innerHTML = data.data.map((dt) => {
-                const statusClass = dt.trang_thai === 'Hoàn thành' ? 'status-completed' : (dt.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : '');
+                const statusClass = dt.trang_thai === 'Hoàn thành' ? 'status-completed' : (dt.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : (dt.trang_thai === 'Yêu cầu xóa' ? 'status-request' : ''));
+                const isPending = dt.trang_thai === 'Yêu cầu xóa';
+
                 return `
                 <tr>
                     <td>${dt.id}</td>
@@ -337,8 +341,8 @@ async function loadProjects() {
                     <td style="text-align: center;"><span class="status-badge ${statusClass}">${dt.trang_thai || 'Đã duyệt'}</span></td>
                     <td style="text-align: center;">
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewProjectDetail('${dt.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('de-tai', '${dt.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa bỏ liên kết/đề tài" onclick="deleteLecturerEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('de-tai', '${dt.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="requestDeleteLecturerEntity('de-tai', '${dt.id}')" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `}).join('');
@@ -644,18 +648,112 @@ async function handleFormSubmit(e) {
     }
 }
 
-async function deleteLecturerEntity(type, id) {
-    if (!confirm('Bạn có chắc muốn xóa dữ liệu này?')) return;
+// Hàm Gửi yêu cầu xóa tới Admin
+async function requestDeleteLecturerEntity(type, id) {
+    if (!confirm('Bạn có chắc muốn xóa mục này? Yêu cầu sẽ được gửi tới Admin phê duyệt.')) return;
 
     try {
         const res = await fetch(`${API_LECTURER_BASE}/${type}/${id}?gv_id=${userInfo.id}`, {
             method: 'DELETE'
         });
-        
         const data = await res.json();
         if (data.status === 'ok') {
+            alert('Đã gửi yêu cầu xóa tới Admin. Vui lòng chờ phê duyệt.');
             if (type === 'cong-trinh') loadPublications();
             else if (type === 'de-tai') loadProjects();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Có lỗi xảy ra.');
+    }
+}
+
+async function loadLecturerTrash() {
+    const tbody = document.getElementById('lecturerTrashBody');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_LECTURER_BASE}/trash?id=${userInfo.id}`);
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+            if (data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="trash-empty-state"><div><i class="fas fa-trash-alt"></i><p>Thùng rác trống</p></div></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.data.map(item => {
+                const date = new Date(item.deleted_at).toLocaleString('vi-VN');
+                const typeLabel = item.type === 'cong-trinh' ? 'Công trình' : 'Đề tài';
+                const title = item.ten_cong_trinh || item.ten_de_tai || 'N/A';
+                
+                let statusHtml = '';
+                let isPendingRestore = item.trang_thai === 'Yêu cầu khôi phục';
+
+                if (isPendingRestore) {
+                    statusHtml = '<span class="status-badge status-request"><i class="fas fa-clock"></i> Đang chờ Admin duyệt khôi phục</span>';
+                } else {
+                    statusHtml = '<span class="status-badge status-trash"><i class="fas fa-trash"></i> Trong thùng rác</span>';
+                }
+
+                const actionButtons = isPendingRestore 
+                    ? `<button class="btn btn-sm" disabled style="opacity:0.6; cursor:not-allowed;"><i class="fas fa-hourglass-half"></i> Chờ duyệt</button>`
+                    : `
+                        <button class="btn btn-sm" onclick="restoreLecturerEntity('${item.type}', '${item.id}')" style="background:#2ecc71; color:#fff; border:none; margin-right:5px;" title="Yêu cầu khôi phục">
+                            <i class="fas fa-undo"></i> Khôi phục
+                        </button>
+                    `;
+
+                return `
+                    <tr>
+                        <td><span style="font-size:12px; font-weight:600; color:var(--accent-blue);">${typeLabel}</span></td>
+                        <td><strong style="color:var(--text-primary);">${title}</strong></td>
+                        <td><span style="font-size:13px; color:var(--text-muted);">${date}</span></td>
+                        <td style="text-align:center;">${statusHtml}</td>
+                        <td style="text-align:center;">${actionButtons}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi khi tải dữ liệu thùng rác.</td></tr>';
+    }
+}
+
+async function restoreLecturerEntity(type, id) {
+    if (!confirm('Bạn có muốn yêu cầu khôi phục mục này? Admin sẽ duyệt yêu cầu của bạn.')) return;
+
+    try {
+        const res = await fetch(`${API_LECTURER_BASE}/trash/${type}/${id}/restore?gv_id=${userInfo.id}`, {
+            method: 'PUT'
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            alert('Đã gửi yêu cầu khôi phục tới Admin.');
+            loadLecturerTrash();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Có lỗi xảy ra.');
+    }
+}
+
+async function requestPermanentDelete(type, id) {
+    if (!confirm('Yêu cầu này sẽ được gửi tới Admin để phê duyệt xóa vĩnh viễn. Bạn chắc chắn chứ?')) return;
+
+    try {
+        const res = await fetch(`${API_LECTURER_BASE}/trash/${type}/${id}/request-delete?gv_id=${userInfo.id}`, {
+            method: 'PUT'
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            alert(data.message);
+            loadLecturerTrash();
         } else {
             alert('Lỗi: ' + data.message);
         }

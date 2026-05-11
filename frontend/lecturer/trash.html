@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công trình của tôi - Knowledge Map</title>
+    <title>Thùng rác - Knowledge Map</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,41 +34,24 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        .filter-controls {
-            display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;
+        .trash-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
         }
 
-        .search-box {
-            position: relative; flex: 1; min-width: 200px;
-        }
-
-        .search-box i {
-            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-            color: var(--text-muted); font-size: 14px;
-        }
-
-        .search-box input {
-            width: 100%; padding: 10px 12px 10px 35px;
-            border: 1px solid var(--border-color); border-radius: 8px;
-            font-size: 14px; outline: none; transition: border-color 0.2s;
-        }
-
-        .search-box input:focus { border-color: var(--accent-blue); }
-
-        .filter-select {
-            padding: 10px 12px; border: 1px solid var(--border-color);
-            border-radius: 8px; font-size: 14px; outline: none;
-            background: var(--surface); color: var(--text-primary);
-            min-width: 150px;
+        .trash-empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.3;
         }
 
         .status-badge {
             padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
             white-space: nowrap; display: inline-block;
         }
-        .status-ongoing { background: rgba(79, 142, 247, 0.1); color: #4F8EF7; }
-        .status-completed { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-        .status-request { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+        .status-trash { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
+        .status-request { background: rgba(253, 126, 20, 0.1); color: #fd7e14; }
     </style>
 </head>
 <body>
@@ -87,7 +70,7 @@
                     <span>Tài khoản của tôi</span>
                 </a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a href="publications.html" class="nav-link">
                     <i class="fas fa-file-alt"></i>
                     <span>Công trình của tôi</span>
@@ -105,7 +88,7 @@
                     <span>Dòng thời gian</span>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a href="trash.html" class="nav-link">
                     <i class="fas fa-trash-alt"></i>
                     <span>Thùng rác</span>
@@ -131,7 +114,7 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1 class="page-title" id="pageTitle">Công trình của tôi</h1>
+            <h1 class="page-title" id="pageTitle">Thùng rác của tôi</h1>
             <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
                 <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 13px;"></div>
                 <div style="display:flex; align-items:center; gap: 8px; margin-left: 10px;">
@@ -143,45 +126,30 @@
             </div>
         </header>
 
-        <section class="page active" id="page-lecturer-publications">
+        <section class="page active" id="page-lecturer-trash">
             <div class="admin-panel">
                 <div class="admin-panel-header">
                     <div class="admin-panel-title">
-                        <i class="fas fa-file-alt" style="color: #4F8EF7;"></i>
-                        Danh sách Công trình Nghiên cứu
+                        <i class="fas fa-trash-alt" style="color: #e74c3c;"></i>
+                        Dữ liệu đã xóa (Xóa mềm)
                     </div>
-                    <button class="btn btn-primary btn-sm" onclick="openLecturerModal('cong-trinh')">
-                        <i class="fas fa-plus"></i> Thêm mới
-                    </button>
-                </div>
-
-                <div class="filter-controls">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="filterPubName" placeholder="Tìm tên công trình..." onkeyup="filterPublications()">
+                    <div style="font-size: 13px; color: var(--text-muted);">
+                        Các mục ở đây không hiển thị công khai. Bạn có thể khôi phục hoặc yêu cầu xóa vĩnh viễn.
                     </div>
-                    <select id="filterPubYear" class="filter-select" onchange="filterPublications()">
-                        <option value="">-- Năm xuất bản --</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                        <option value="2020">2020</option>
-                    </select>
                 </div>
-
+                
                 <div class="table-responsive">
-                    <table class="data-table" id="lecturerPublicationsTable">
+                    <table class="data-table" id="lecturerTrashTable">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Tên công trình</th>
-                                <th style="width: 100px;">Năm XB</th>
+                                <th style="width: 80px;">Loại</th>
+                                <th>Tiêu đề / Tên</th>
+                                <th>Ngày xóa</th>
                                 <th style="width: 150px; text-align: center;">Trạng thái</th>
-                                <th style="width: 150px; text-align: center;">Hành động</th>
+                                <th style="width: 180px; text-align: center;">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="lecturerPublicationsBody">
+                        <tbody id="lecturerTrashBody">
                             <tr><td colspan="5" style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
                         </tbody>
                     </table>
@@ -190,45 +158,13 @@
         </section>
     </main>
 
-    <!-- Modal thêm/sửa -->
-    <div class="modal-overlay" id="lecturerModalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="lecturerModalTitle">Thêm mới Công trình</h2>
-                <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeLecturerModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="lecturerForm">
-                    <input type="hidden" id="formEntityType">
-                    <input type="hidden" id="formEntityId">
-                    
-                    <div id="formFieldsContainer"></div>
-                    
-                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" class="btn" onclick="closeLecturerModal()">Hủy</button>
-                        <button type="submit" class="btn btn-primary" style="background: var(--accent-blue);">Lưu thay đổi</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Chi tiết -->
-    <div class="modal-overlay" id="lecturerStatsModalOverlay">
-        <div class="modal" style="max-width: 650px;">
-            <div class="modal-header">
-                <h2 id="lecturerStatsModalTitle">Thông tin Chi tiết</h2>
-                <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeStatsModal()">&times;</button>
-            </div>
-            <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
-                <div id="statsFormBody" style="min-height: 100px; padding: 10px 0; color: var(--text-primary);"></div>
-                <div style="margin-top: 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top:15px;">
-                    <button type="button" class="btn" onclick="closeStatsModal()">Đóng</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="../js/lecturer/lecturer_app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('page-lecturer-trash')) {
+                loadLecturerTrash();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -264,10 +264,11 @@ def update_my_publication(ct_id):
         if request.method == 'DELETE':
             query = """
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id
-            DETACH DELETE ct
+            SET ct.trang_thai = 'Yêu cầu xóa'
+            RETURN ct
             """
             conn.write(query, parameters={'ct_id': ct_id})
-            return jsonify({'status': 'ok'})
+            return jsonify({'status': 'ok', 'message': 'Đã gửi yêu cầu xóa tới Admin'})
             
         elif request.method == 'PUT':
             data = request.get_json()
@@ -610,10 +611,11 @@ def update_my_project(dt_id):
         if request.method == 'DELETE':
             query = """
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
-            DETACH DELETE dt
+            SET dt.trang_thai = 'Yêu cầu xóa'
+            RETURN dt
             """
             conn.write(query, parameters={'dt_id': dt_id})
-            return jsonify({'status': 'ok'})
+            return jsonify({'status': 'ok', 'message': 'Đã gửi yêu cầu xóa tới Admin'})
             
         elif request.method == 'PUT':
             data = request.get_json()
@@ -654,3 +656,61 @@ def update_my_project(dt_id):
             return jsonify({'status': 'ok'})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ============================================================
+# THÙNG RÁC GIẢNG VIÊN (LECTURER TRASH)
+# ============================================================
+
+@lecturer_api_bp.route('/trash', methods=['GET'])
+def get_my_trash():
+    gv_id = request.args.get('id')
+    if not gv_id:
+        return jsonify({'status': 'error', 'message': 'Thiếu gv_id'}), 400
+    
+    try:
+        conn = get_neo4j_connection()
+        # Lấy công trình đã xóa
+        ct_query = """
+        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        WHERE g.id = $id AND ct.is_deleted = true
+        RETURN ct {.*, type: 'cong-trinh'} as item
+        """
+        # Lấy đề tài đã xóa
+        dt_query = """
+        MATCH (g:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        WHERE g.id = $id AND dt.is_deleted = true
+        RETURN dt {.*, type: 'de-tai'} as item
+        """
+        
+        ct_results = conn.query(ct_query, parameters={'id': gv_id})
+        dt_results = conn.query(dt_query, parameters={'id': gv_id})
+        
+        items = [r['item'] for r in ct_results] + [r['item'] for r in dt_results]
+        items.sort(key=lambda x: x.get('deleted_at', 0), reverse=True)
+        
+        return jsonify({'status': 'ok', 'data': items})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@lecturer_api_bp.route('/trash/<type>/<id>/restore', methods=['PUT'])
+def restore_my_item(type, id):
+    gv_id = request.args.get('gv_id')
+    if not gv_id:
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+    
+    label = "CongTrinhNghienCuu" if type == 'cong-trinh' else "DeTaiNghienCuu"
+    try:
+        conn = get_neo4j_connection()
+        query = f"""
+        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(n:{label})
+        WHERE g.id = $gv_id AND n.id = $id AND n.is_deleted = true
+        SET n.trang_thai = 'Yêu cầu khôi phục'
+        RETURN n
+        """
+        result = conn.write(query, parameters={'gv_id': gv_id, 'id': id})
+        if result:
+            return jsonify({'status': 'ok', 'message': 'Đã gửi yêu cầu khôi phục tới Admin'})
+        return jsonify({'status': 'error', 'message': 'Không tìm thấy mục cần khôi phục'}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500

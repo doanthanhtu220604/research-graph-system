@@ -66,6 +66,7 @@ def list_trash():
             MATCH (n:GiangVien) WHERE n.is_deleted = true
             RETURN n.id AS id, n.ho_va_ten AS ten, n.hoc_vi AS hoc_vi,
                    n.deleted_at AS deleted_at, n.deleted_note AS note,
+                   n.trang_thai AS trang_thai,
                    'giang-vien' AS type
             ORDER BY n.deleted_at DESC
         """)
@@ -78,6 +79,7 @@ def list_trash():
                 "type_label": "Giảng viên",
                 "deleted_at": r["deleted_at"],
                 "note":       r["note"] or "",
+                "trang_thai": r["trang_thai"] or ""
             })
 
         # Công trình
@@ -85,6 +87,7 @@ def list_trash():
             MATCH (n:CongTrinhNghienCuu) WHERE n.is_deleted = true
             RETURN n.id AS id, n.ten_cong_trinh AS ten, n.nam_xuat_ban AS nam,
                    n.deleted_at AS deleted_at, n.deleted_note AS note,
+                   n.trang_thai AS trang_thai,
                    'cong-trinh' AS type
             ORDER BY n.deleted_at DESC
         """)
@@ -97,6 +100,7 @@ def list_trash():
                 "type_label": "Công trình",
                 "deleted_at": r["deleted_at"],
                 "note":       r["note"] or "",
+                "trang_thai": r["trang_thai"] or ""
             })
 
         # Đề tài
@@ -104,6 +108,7 @@ def list_trash():
             MATCH (n:DeTaiNghienCuu) WHERE n.is_deleted = true
             RETURN n.id AS id, n.ten_de_tai AS ten, n.cap_de_tai AS cap,
                    n.deleted_at AS deleted_at, n.deleted_note AS note,
+                   n.trang_thai AS trang_thai,
                    'de-tai' AS type
             ORDER BY n.deleted_at DESC
         """)
@@ -116,6 +121,7 @@ def list_trash():
                 "type_label": "Đề tài",
                 "deleted_at": r["deleted_at"],
                 "note":       r["note"] or "",
+                "trang_thai": r["trang_thai"] or ""
             })
 
         # Lĩnh vực nghiên cứu
@@ -210,6 +216,7 @@ def restore(entity_type, id):
         result = conn.write(f"""
             {query}
             REMOVE n.is_deleted, n.deleted_at, n.deleted_note
+            SET n.trang_thai = 'Hoàn thành'
             RETURN n
         """, {"id": id})
 
@@ -220,6 +227,14 @@ def restore(entity_type, id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+# ─────────────────────────────────────────────────────────────
+# APPROVE RESTORE (duyệt khôi phục từ yêu cầu giảng viên)
+# ─────────────────────────────────────────────────────────────
+
+@admin_trash_bp.route("/trash/<entity_type>/<id>/approve-restore", methods=["PUT"])
+def approve_restore(entity_type, id):
+    return restore(entity_type, id) # Logic giống hệt restore thông thường nhưng dùng route khác để rõ ràng
 
 # ─────────────────────────────────────────────────────────────
 # PERMANENT DELETE  (xóa vĩnh viễn)

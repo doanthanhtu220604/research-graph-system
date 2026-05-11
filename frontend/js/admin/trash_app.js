@@ -169,6 +169,20 @@ function buildCard(item) {
            </span>`
         : '';
 
+    const requestBadge = item.trang_thai === 'Yêu cầu xóa'
+        ? `<div style="margin-top:8px; padding:6px 10px; background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; border-radius:4px;">
+               <span style="font-size:11px; color:#e74c3c; font-weight:700; display:flex; align-items:center; gap:5px;">
+                   <i class="fas fa-exclamation-circle"></i> GIẢNG VIÊN YÊU CẦU XÓA VĨNH VIỄN
+               </span>
+           </div>`
+        : (item.trang_thai === 'Yêu cầu khôi phục'
+            ? `<div style="margin-top:8px; padding:6px 10px; background:rgba(46,204,113,0.1); border-left:3px solid #2ecc71; border-radius:4px;">
+                   <span style="font-size:11px; color:#2ecc71; font-weight:700; display:flex; align-items:center; gap:5px;">
+                       <i class="fas fa-undo"></i> GIẢNG VIÊN YÊU CẦU KHÔI PHỤC
+                   </span>
+               </div>`
+            : '');
+
     const safeId   = escHtml(item.id);
     const safeType = escHtml(item.type);
     const safeTen  = escHtml(item.ten);
@@ -185,6 +199,7 @@ function buildCard(item) {
                 <div class="trash-card-name" title="${safeTen}">${safeTen}</div>
                 <div class="trash-card-sub">${safeSub}</div>
                 ${noteBadge}
+                ${requestBadge}
             </div>
         </div>
         <div class="trash-card-meta">
@@ -192,9 +207,14 @@ function buildCard(item) {
                 <i class="far fa-clock"></i> Xóa lúc ${timeStr}
             </div>
             <div class="trash-card-actions">
-                <button class="btn-restore" onclick="restoreItem('${safeType}','${safeId}')">
-                    <i class="fas fa-undo-alt"></i> Khôi phục
-                </button>
+                ${item.trang_thai === 'Yêu cầu khôi phục'
+                    ? `<button class="btn-restore" style="background:#2ecc71;" onclick="approveRestoreItem('${safeType}','${safeId}')">
+                         <i class="fas fa-check"></i> Duyệt khôi phục
+                       </button>`
+                    : `<button class="btn-restore" onclick="restoreItem('${safeType}','${safeId}')">
+                         <i class="fas fa-undo-alt"></i> Khôi phục
+                       </button>`
+                }
                 <button class="btn-del-perm" title="Xóa vĩnh viễn" onclick="confirmPermanentDelete('${safeType}','${safeId}','${safeTen}')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -234,6 +254,26 @@ async function restoreItem(type, id) {
     } catch (err) {
         showToast('Lỗi kết nối server', 'error');
         if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
+    }
+}
+
+async function approveRestoreItem(type, id) {
+    if (!confirm('Bạn có chắc muốn phê duyệt yêu cầu khôi phục này?')) return;
+    
+    try {
+        const res  = await fetch(`${TRASH_API}/${type}/${id}/approve-restore`, { method: 'PUT' });
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+            showToast('✅ Đã phê duyệt khôi phục!', 'success');
+            allTrashItems = allTrashItems.filter(i => i.id !== id);
+            updateCounts();
+            renderTrash();
+        } else {
+            showToast('Lỗi: ' + data.message, 'error');
+        }
+    } catch (err) {
+        showToast('Lỗi kết nối server', 'error');
     }
 }
 

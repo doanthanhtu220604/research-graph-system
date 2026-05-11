@@ -115,3 +115,17 @@ def delete_de_tai(id):
         return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@admin_projects_bp.route("/de-tai/<id>/approve-delete", methods=["PUT"])
+def approve_delete_de_tai(id):
+    conn = get_neo4j_connection()
+    try:
+        conn.write("""
+            MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
+            SET dt.is_deleted = true,
+                dt.deleted_at = timestamp(),
+                dt.trang_thai = 'Đã vào thùng rác'
+        """, {"id": id})
+        return jsonify({"status": "ok", "message": "Đã phê duyệt xóa đề tài. Đề tài đã được chuyển vào thùng rác."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

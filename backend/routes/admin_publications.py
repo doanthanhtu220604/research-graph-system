@@ -101,3 +101,17 @@ def delete_cong_trinh(id):
         return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@admin_publications_bp.route("/cong-trinh/<id>/approve-delete", methods=["PUT"])
+def approve_delete_cong_trinh(id):
+    conn = get_neo4j_connection()
+    try:
+        conn.write("""
+            MATCH (n:CongTrinhNghienCuu) WHERE n.id = $id
+            SET n.is_deleted = true,
+                n.deleted_at = timestamp(),
+                n.trang_thai = 'Đã vào thùng rác'
+        """, {"id": id})
+        return jsonify({"status": "ok", "message": "Đã phê duyệt xóa công trình. Công trình đã được chuyển vào thùng rác."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
