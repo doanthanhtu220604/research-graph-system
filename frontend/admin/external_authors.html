@@ -172,6 +172,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Detail Modal (used for External Author Details) -->
+        <div class="modal-overlay" id="adminStatsModalOverlay">
+            <div class="modal" style="max-width: 650px;">
+                <div class="modal-header">
+                    <h2 id="adminStatsModalTitle" style="font-size:18px;">Thông tin Chi tiết</h2>
+                    <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeStatsModal()">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+                    <div id="statsFormBody" style="min-height: 100px; padding: 10px 0; color: var(--text-primary);"></div>
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top:15px;">
+                        <button type="button" class="btn" onclick="closeStatsModal()">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script src="../js/admin/admin_app.js?v=1.1"></script>

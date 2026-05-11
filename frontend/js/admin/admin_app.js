@@ -739,6 +739,7 @@ function renderExternalAuthorsTable(dataList) {
             <td>${tgn.don_vi_cong_tac || ''}</td>
             <td>${[tgn.hoc_vi, tgn.chuc_danh].filter(Boolean).join(' / ')}</td>
             <td>
+                <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết tham gia" onclick="viewExternalAuthorDetail('${tgn.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('tac-gia-ngoai', '${tgn.id}', ${index})"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('tac-gia-ngoai', '${tgn.id}')"><i class="fas fa-trash"></i></button>
             </td>
@@ -1565,6 +1566,92 @@ async function viewProjectStats(dtId) {
                 html += `</ul>`;
             } else {
                 html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Không có tác giả ngoài.</p>`;
+            }
+            
+            body.innerHTML = html;
+        } else {
+            body.innerHTML = `<p style="color:red">Lỗi tải dữ liệu: ${data.message}</p>`;
+        }
+    } catch (e) {
+        body.innerHTML = `<p style="color:red">Lỗi mạng: ${e.message}</p>`;
+    }
+}
+
+// ============================================================
+// EXTERNAL AUTHOR DETAIL VIEW
+// ============================================================
+async function viewExternalAuthorDetail(tgnId) {
+    if (!document.getElementById('adminStatsModalOverlay')) {
+        createStatsModalHtml();
+    }
+    document.getElementById('adminStatsModalOverlay').classList.add('active');
+    const body = document.getElementById('statsFormBody');
+    body.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</p>';
+    
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/tac-gia-ngoai/${tgnId}/detail`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+            const detail = data.data;
+            const info = detail.info;
+            document.getElementById('adminStatsModalTitle').textContent = `Chi tiết Tác giả ngoài: ${info.ho_va_ten}`;
+            
+            let html = `
+                <div style="margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
+                    <p style="margin-bottom: 5px;"><b>Họ và tên:</b> ${info.ho_va_ten || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Đơn vị công tác:</b> ${info.don_vi_cong_tac || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Học vị:</b> ${info.hoc_vi || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Chức danh:</b> ${info.chuc_danh || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Email:</b> ${info.email || 'N/A'}</p>
+                </div>
+            `;
+            
+            // Công trình tham gia
+            html += `<h4 style="margin-top:20px; color:var(--accent-blue); padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${detail.publications.length})</h4>`;
+            if (detail.publications.length > 0) {
+                html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
+                detail.publications.forEach(ct => {
+                    html += `<li style="margin-bottom: 4px;"><b>${ct.ten_cong_trinh}</b> <span style="color:var(--text-muted); font-size:12px;">(${ct.nam_xuat_ban || '?'})</span></li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa tham gia công trình nào.</p>`;
+            }
+            
+            // Đề tài tham gia
+            html += `<h4 style="margin-top:20px; color:var(--accent-orange); padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-flask"></i> Đề tài nghiên cứu (${detail.projects.length})</h4>`;
+            if (detail.projects.length > 0) {
+                html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
+                detail.projects.forEach(dt => {
+                    html += `<li style="margin-bottom: 4px;"><b>${dt.ten_de_tai}</b> <span style="color:var(--text-muted); font-size:12px;">(${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'})</span></li>`;
+                });
+                html += `</ul>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa tham gia đề tài nào.</p>`;
+            }
+
+            // Giảng viên cộng tác
+            html += `<h4 style="margin-top:20px; color:#2ecc71; padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-handshake"></i> Giảng viên cộng tác trong trường (${detail.collaborators.length})</h4>`;
+            if (detail.collaborators.length > 0) {
+                html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">`;
+                detail.collaborators.forEach(gv => {
+                    const avatar = gv.anh_dai_dien 
+                        ? `<img src="${gv.anh_dai_dien}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">`
+                        : `<div style="width:30px;height:30px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-muted);"><i class="fas fa-user"></i></div>`;
+                    
+                    html += `
+                        <div style="display:flex; align-items:center; gap:10px; background:white; padding:8px 12px; border-radius:10px; border:1px solid var(--border-color); cursor:pointer;" onclick="viewLecturerStats('${gv.id}')" title="Xem chi tiết giảng viên">
+                            ${avatar}
+                            <div style="min-width:0;">
+                                <div style="font-size:13px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${gv.ho_va_ten}</div>
+                                <div style="font-size:11px; color:var(--accent-blue); font-weight:600;">${gv.count} chung</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else {
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có lịch sử cộng tác với giảng viên trong trường.</p>`;
             }
             
             body.innerHTML = html;
