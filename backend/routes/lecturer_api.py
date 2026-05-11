@@ -523,6 +523,75 @@ def get_lecturer_timeline():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@lecturer_api_bp.route('/de-tai/<dt_id>/detail', methods=['GET'])
+def get_project_detail(dt_id):
+    """
+    Trả về thông tin chi tiết của một đề tài nghiên cứu,
+    bao gồm tất cả thành viên và vai trò của GV hiện tại.
+    """
+    gv_id = request.args.get('gv_id', '').strip()
+    if not gv_id:
+        return jsonify({'status': 'error', 'message': 'Thiếu tham số gv_id'}), 400
+
+    try:
+        conn = get_neo4j_connection()
+
+        # Lấy thông tin đề tài
+        dt_res = conn.query_single("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+               OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
+            RETURN dt {.*, id: coalesce(dt.id, 'dt_' + toString(id(dt)))} AS de_tai
+        """, {'dt_id': dt_id})
+
+        if not dt_res or not dt_res.get('de_tai'):
+            return jsonify({'status': 'error', 'message': 'Không tìm thấy đề tài'}), 404
+
+        dt = dict(dt_res['de_tai'])
+
+        # Lấy vai trò của GV hiện tại với đề tài này
+        vai_tro_res = conn.query_single("""
+            MATCH (g:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+            WHERE ((g.id IS NOT NULL AND toString(g.id) = toString($gv_id))
+                OR (g.id IS NULL AND toString(id(g)) = toString($gv_id)))
+              AND ((dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+                OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id)))
+            RETURN type(r) AS vai_tro
+        """, {'gv_id': gv_id, 'dt_id': dt_id})
+        dt['vai_tro'] = vai_tro_res.get('vai_tro', 'THAM_GIA') if vai_tro_res else 'THAM_GIA'
+
+        # Lấy danh sách thành viên
+        members_res = conn.query("""
+            MATCH (tv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+            WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+               OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
+            OPTIONAL MATCH (tv)-[:THUOC_BO_MON]->(bm:BoMon)
+            RETURN tv.id AS id,
+                   tv.ho_va_ten AS ho_va_ten,
+                   tv.hoc_vi AS hoc_vi,
+                   coalesce(bm.ten_bo_mon, tv.bo_mon) AS bo_mon,
+                   type(r) AS vai_tro
+            ORDER BY CASE WHEN type(r) = 'CHU_NHIEM' THEN 0 ELSE 1 END, tv.ho_va_ten
+        """, {'dt_id': dt_id})
+
+        dt['thanh_vien'] = [
+            {
+                'id': m.get('id', ''),
+                'ho_va_ten': m.get('ho_va_ten', ''),
+                'hoc_vi': m.get('hoc_vi', ''),
+                'bo_mon': m.get('bo_mon', ''),
+                'vai_tro': m.get('vai_tro', 'THAM_GIA')
+            }
+            for m in members_res
+        ]
+
+        return jsonify({'status': 'ok', 'data': dt})
+
+    except Exception as e:
+        logger.error(f"Error in get_project_detail: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @lecturer_api_bp.route('/de-tai/<dt_id>', methods=['PUT', 'DELETE'])
 def update_my_project(dt_id):
     gv_id = request.args.get('gv_id') or (request.get_json() or {}).get('giang_vien_id')
