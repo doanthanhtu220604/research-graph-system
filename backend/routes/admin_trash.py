@@ -216,7 +216,12 @@ def restore(entity_type, id):
         result = conn.write(f"""
             {query}
             REMOVE n.is_deleted, n.deleted_at, n.deleted_note
-            SET n.trang_thai = 'Hoàn thành'
+            // Restore status based on label: Publication -> 'Đã duyệt', Project -> 'Đang thực hiện'
+            SET n.trang_thai = CASE 
+                WHEN 'CongTrinhNghienCuu' IN labels(n) THEN 'Đã duyệt'
+                WHEN 'DeTaiNghienCuu' IN labels(n) THEN 'Đang thực hiện'
+                ELSE n.trang_thai
+            END
             RETURN n
         """, {"id": id})
 

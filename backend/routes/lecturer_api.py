@@ -262,6 +262,11 @@ def update_my_publication(ct_id):
 
     try:
         if request.method == 'DELETE':
+            # Check if status is "Đang thực hiện"
+            status_res = conn.query_single("MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id RETURN ct.trang_thai AS status", {'ct_id': ct_id})
+            if status_res and status_res.get('status') == 'Đang thực hiện':
+                return jsonify({'status': 'error', 'message': 'Không thể xóa công trình đang thực hiện. Vui lòng gửi yêu cầu đổi trạng thái trước.'}), 400
+
             query = """
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id
             SET ct.trang_thai = 'Yêu cầu xóa'
@@ -609,6 +614,11 @@ def update_my_project(dt_id):
 
     try:
         if request.method == 'DELETE':
+            # Check if status is "Đang thực hiện"
+            status_res = conn.query_single("MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id)) RETURN dt.trang_thai AS status", {'dt_id': dt_id})
+            if status_res and status_res.get('status') == 'Đang thực hiện':
+                return jsonify({'status': 'error', 'message': 'Không thể xóa đề tài đang thực hiện. Vui lòng gửi yêu cầu đổi trạng thái trước.'}), 400
+
             query = """
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
             SET dt.trang_thai = 'Yêu cầu xóa'
@@ -712,5 +722,39 @@ def restore_my_item(type, id):
         if result:
             return jsonify({'status': 'ok', 'message': 'Đã gửi yêu cầu khôi phục tới Admin'})
         return jsonify({'status': 'error', 'message': 'Không tìm thấy mục cần khôi phục'}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@lecturer_api_bp.route('/<type>/<id>/request-status-change', methods=['PUT'])
+def request_status_change(type, id):
+    """
+    Yêu cầu thay đổi trạng thái của công trình/đề tài.
+    """
+    gv_id = request.args.get('gv_id') or (request.get_json() or {}).get('giang_vien_id')
+    new_status = (request.get_json() or {}).get('new_status')
+    
+    if not gv_id or not new_status:
+        return jsonify({'status': 'error', 'message': 'Thiếu tham số'}), 400
+        
+    label = "CongTrinhNghienCuu" if type == 'cong-trinh' else "DeTaiNghienCuu"
+    try:
+        conn = get_neo4j_connection()
+        # Kiểm tra quyền
+        check_query = f"""MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(n:{label}) 
+                         WHERE g.id = $gv_id AND n.id = $id
+                         RETURN n"""
+        allow = conn.query(check_query, parameters={'gv_id': gv_id, 'id': id})
+        if not allow:
+            return jsonify({'status': 'error', 'message': 'Bạn không có quyền thao tác trên mục này'}), 403
+            
+        query = f"""
+        MATCH (n:{label}) WHERE n.id = $id
+        SET n.trang_thai = 'Yêu cầu đổi trạng thái',
+            n.requested_status = $new_status,
+            n.status_request_at = timestamp()
+        RETURN n
+        """
+        conn.write(query, parameters={'id': id, 'new_status': new_status})
+        return jsonify({'status': 'ok', 'message': f'Đã gửi yêu cầu chuyển sang trạng thái "{new_status}" tới Admin'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
