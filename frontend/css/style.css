@@ -1507,6 +1507,7 @@ body::before {
     display: flex;
     flex-direction: column;
     transform: none !important; /* Force override responsive hide on desktop */
+    overflow: hidden;
 }
 
 .sidebar-header {
@@ -1519,10 +1520,31 @@ body::before {
 }
 
 .sidebar .nav-menu {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
     flex-direction: column;
     padding: 24px 16px;
     gap: 8px;
     align-items: stretch;
+}
+
+/* Custom Scrollbar for Admin Sidebar */
+.sidebar .nav-menu::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.sidebar .nav-menu:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .sidebar .nav-item {
