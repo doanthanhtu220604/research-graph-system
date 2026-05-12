@@ -37,6 +37,9 @@ def get_collaboration_overview():
         collab_dt = conn.query_single("""
             MATCH (gv1:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2:GiangVien)
             WHERE id(gv1) < id(gv2)
+              AND coalesce(gv1.is_deleted, false) = false 
+              AND coalesce(gv2.is_deleted, false) = false
+              AND coalesce(dt.is_deleted, false) = false
             RETURN count(DISTINCT [gv1.id, gv2.id]) AS total
         """)
 
@@ -89,6 +92,7 @@ def get_top_pairs():
               AND coalesce(ct.is_deleted, false) = false
             WITH gv1, gv2, count(DISTINCT ct) AS so_ct
             OPTIONAL MATCH (gv1)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2)
+            WHERE coalesce(dt.is_deleted, false) = false
             WITH gv1, gv2, so_ct, count(DISTINCT dt) AS so_dt
             WITH gv1, gv2, so_ct, so_dt, (so_ct + so_dt) AS tong_hop_tac
             ORDER BY tong_hop_tac DESC
@@ -136,18 +140,29 @@ def get_top_connectors():
         results = conn.query("""
             MATCH (gv:GiangVien)
             WHERE coalesce(gv.is_deleted, false) = false
+            
+            // Lấy danh sách cộng sự qua công trình
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
             WHERE gv <> gv2 AND coalesce(gv2.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
-            WITH gv, count(DISTINCT gv2) AS cong_su_ct
+            WITH gv, collect(DISTINCT gv2) AS list_ct
+            
+            // Lấy danh sách cộng sự qua đề tài
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv3:GiangVien)
-            WHERE gv <> gv3
-            WITH gv, cong_su_ct, count(DISTINCT gv3) AS cong_su_dt
-            WHERE (cong_su_ct + cong_su_dt) > 0
-            WITH gv, cong_su_ct, cong_su_dt, (cong_su_ct + cong_su_dt) AS tong_cong_su
+            WHERE gv <> gv3 AND coalesce(gv3.is_deleted, false) = false AND coalesce(dt.is_deleted, false) = false
+            WITH gv, list_ct, collect(DISTINCT gv3) AS list_dt
+            
+            // Tính tổng số cộng sự duy nhất (Unique)
+            WITH gv, list_ct, list_dt, (list_ct + list_dt) AS combined
+            UNWIND (CASE WHEN size(combined) > 0 THEN combined ELSE [null] END) AS collab
+            WITH gv, size(list_ct) AS cong_su_ct, size(list_dt) AS cong_su_dt, count(DISTINCT collab) AS tong_cong_su
+            WHERE tong_cong_su > 0
+            
             ORDER BY tong_cong_su DESC
             LIMIT $limit
+            
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct2:CongTrinhNghienCuu)
+            WHERE coalesce(ct2.is_deleted, false) = false
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    gv.anh_dai_dien AS avatar, bm.ten_bo_mon AS bo_mon,
                    cong_su_ct, cong_su_dt, tong_cong_su,
@@ -252,6 +267,9 @@ def get_collaboration_graph():
         pairs_dt = conn.query("""
             MATCH (gv1:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2:GiangVien)
             WHERE id(gv1) < id(gv2)
+              AND coalesce(gv1.is_deleted, false) = false
+              AND coalesce(gv2.is_deleted, false) = false
+              AND coalesce(dt.is_deleted, false) = false
             WITH gv1, gv2, count(DISTINCT dt) AS so_dt
             WHERE so_dt >= 1
             RETURN gv1.id AS id1, gv2.id AS id2, 0 AS so_ct, so_dt

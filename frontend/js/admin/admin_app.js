@@ -732,7 +732,9 @@ function renderExternalAuthorsTable(dataList) {
         return;
     }
     
-    tbody.innerHTML = dataList.map((tgn, index) => `
+    tbody.innerHTML = dataList.map((tgn) => {
+        const originalIndex = currentEntitiesData['tac-gia-ngoai'].indexOf(tgn);
+        return `
         <tr>
             <td>${tgn.id || 'N/A'}</td>
             <td><strong>${tgn.ho_va_ten || 'N/A'}</strong></td>
@@ -740,11 +742,11 @@ function renderExternalAuthorsTable(dataList) {
             <td>${[tgn.hoc_vi, tgn.chuc_danh].filter(Boolean).join(' / ')}</td>
             <td>
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết tham gia" onclick="viewExternalAuthorDetail('${tgn.id}')"><i class="fas fa-eye"></i></button>
-                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('tac-gia-ngoai', '${tgn.id}', ${index})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('tac-gia-ngoai', '${tgn.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('tac-gia-ngoai', '${tgn.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function filterExternalAuthors() {
@@ -829,10 +831,14 @@ async function openAdminModal(type, id = null, index = null) {
         document.getElementById('adminModalTitle').textContent = `Chỉnh sửa ${config.title} (#${id})`;
         
         let item = null;
-        if (index !== null && currentEntitiesData[type][index]) {
-            item = currentEntitiesData[type][index];
-        } else if (currentEntitiesData[type]) {
+        if (currentEntitiesData[type]) {
+            // Ưu tiên tìm theo ID để tránh sai sót khi đang lọc/sắp xếp danh sách
             item = currentEntitiesData[type].find(x => x.id == id);
+            
+            // Nếu không tìm thấy theo ID (trường hợp hiếm) thì mới dùng index
+            if (!item && index !== null && currentEntitiesData[type][index]) {
+                item = currentEntitiesData[type][index];
+            }
         }
 
         if (item) {
