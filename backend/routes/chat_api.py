@@ -46,6 +46,14 @@ def detect_intent(question: str) -> str:
         return "statistics"
     if "ai là chủ nhiệm" in q or "chủ nhiệm là ai" in q or "ai phụ trách" in q:
         return "who_leads"
+    # Câu hỏi về công trình/bài báo kết hợp thời gian → search_publication
+    if re.search(r"(công trình|bài báo|ấn phẩm|xuất bản).*(năm nay|năm hiện tại|năm này|hiện nay|\d{4})", q) or \
+       re.search(r"(năm nay|năm hiện tại|năm này|hiện nay|\d{4}).*(công trình|bài báo|ấn phẩm|xuất bản)", q):
+        return "search_publication"
+    # Câu hỏi về đề tài kết hợp thời gian → search_project
+    if re.search(r"(đề tài|dự án).*(năm nay|năm hiện tại|năm này|hiện nay|\d{4})", q) or \
+       re.search(r"(năm nay|năm hiện tại|năm này|hiện nay|\d{4}).*(đề tài|dự án)", q):
+        return "search_project"
 
     scores = {intent: 0 for intent in CHAT_CONFIG["intents"].keys()}
 
@@ -227,7 +235,12 @@ def extract_name(question: str) -> str:
 
 
 def extract_year(question: str) -> str:
-    """Trích xuất năm từ câu hỏi."""
+    """Trích xuất năm từ câu hỏi. Hỗ trợ 'năm nay', 'năm hiện tại', 'năm này'."""
+    from datetime import datetime
+    q_lower = question.lower()
+    # Xử lý các cụm chỉ năm hiện tại
+    if any(kw in q_lower for kw in ["năm nay", "năm hiện tại", "năm này", "hiện nay"]):
+        return str(datetime.now().year)
     match = re.search(r"\b(20\d{2}|19\d{2})\b", question)
     return match.group(1) if match else ""
 
