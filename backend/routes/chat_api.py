@@ -12,6 +12,7 @@ Cải tiến v2:
 """
 
 import re
+from typing import Optional
 import json
 import os
 from flask import Blueprint, jsonify, request
@@ -240,16 +241,16 @@ def extract_field(question: str) -> str:
         if kw in q or fuzz.partial_ratio(kw, q) > 85:
             return kw
 
-    triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực", "mảng"]
+    triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực", "mảng", "hỏi về", "tìm về"]
     for t in triggers:
         idx = q.find(t)
         if idx != -1:
             after = question[idx + len(t):].strip()
             words = after.split()
             result = []
-            for w in words[:4]:
+            for w in words[:5]:
                 clean = w.strip("?.,!")
-                if clean.lower() in ["có", "là", "nào", "không", "gì", "đó", "nhỉ", "để", "thì"]:
+                if clean.lower() in ["có", "là", "nào", "không", "gì", "đó", "nhỉ", "để", "thì", "tại", "ở"]:
                     break
                 result.append(clean)
             if result:
@@ -269,7 +270,8 @@ def extract_department(question: str) -> str:
             result = []
             for w in words[:5]:
                 clean = w.strip("?.,!")
-                if clean.lower() in ["có", "là", "gồm", "nào", "thì", "không", "ai"]:
+                # Chặn việc lấy quá đà các từ hành động/kỹ thuật làm tên bộ môn
+                if clean.lower() in ["có", "là", "gồm", "nào", "thì", "không", "ai", "nghiên", "cứu", "làm", "tìm", "về"]:
                     break
                 result.append(clean)
             return " ".join(result).strip()
@@ -320,11 +322,11 @@ def extract_journal(question: str) -> str:
 # HANDLERS (v2)
 # ============================================================
 
-def handle_statistics(question: str):
+def handle_statistics(question: str, entities: Optional[dict] = None):
     """Xử lý câu hỏi thống kê."""
     conn = get_neo4j_connection()
     q = question.lower()
-    year = extract_year(question)
+    year = (entities.get("year") if entities else None) or extract_year(question)
 
     if "giảng viên" in q or "gv" in q or "giáo viên" in q:
         r = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
@@ -383,10 +385,10 @@ def handle_statistics(question: str):
     )
 
 
-def handle_search_lecturer(question: str):
+def handle_search_lecturer(question: str, entities: Optional[dict] = None):
     """Tìm kiếm giảng viên theo tên hoặc đặc điểm."""
     conn = get_neo4j_connection()
-    name = extract_name(question)
+    name = (entities.get("name") if entities else None) or extract_name(question)
     q = question.lower()
 
     if name:
@@ -462,11 +464,11 @@ def handle_search_lecturer(question: str):
     return "Vui lòng cung cấp thêm thông tin (tên, học vị...) để tôi tìm kiếm chính xác hơn."
 
 
-def handle_search_publication(question: str):
+def handle_search_publication(question: str, entities: Optional[dict] = None):
     """Tìm kiếm công trình nghiên cứu."""
     conn = get_neo4j_connection()
-    name = extract_name(question)
-    year = extract_year(question)
+    name = (entities.get("name") if entities else None) or extract_name(question)
+    year = (entities.get("year") if entities else None) or extract_year(question)
 
     if name:
         results = conn.query(
@@ -533,11 +535,11 @@ def handle_search_publication(question: str):
     return "Không tìm thấy công trình nào. Hãy thử cung cấp tên tác giả hoặc năm xuất bản."
 
 
-def handle_search_project(question: str):
+def handle_search_project(question: str, entities: Optional[dict] = None):
     """Tìm kiếm đề tài nghiên cứu."""
     conn = get_neo4j_connection()
-    name = extract_name(question)
-    year = extract_year(question)
+    name = (entities.get("name") if entities else None) or extract_name(question)
+    year = (entities.get("year") if entities else None) or extract_year(question)
 
     if name:
         results = conn.query(
@@ -607,11 +609,11 @@ def handle_search_project(question: str):
     return "Không tìm thấy đề tài nào phù hợp."
 
 
-def handle_search_by_field(question: str, include_pubs: bool = True):
+def handle_search_by_field(question: str, include_pubs: bool = True, entities: Optional[dict] = None):
     """Tìm giảng viên và công trình theo lĩnh vực (có thể kết hợp bộ môn)."""
     conn = get_neo4j_connection()
-    field = extract_field(question)
-    dept = extract_department(question)
+    field = (entities.get("field") if entities else None) or extract_field(question)
+    dept = (entities.get("department") if entities else None) or extract_department(question)
 
     if not field:
         results = conn.query("""
@@ -696,11 +698,11 @@ def handle_search_by_field(question: str, include_pubs: bool = True):
     return f"Chưa tìm thấy dữ liệu về lĩnh vực **\"{field}\"**. Hãy thử từ khóa khác."
 
 
-def handle_collaboration(question: str):
+def handle_collaboration(question: str, entities: Optional[dict] = None):
     """Tìm mối quan hệ hợp tác giữa các giảng viên (qua cả công trình lẫn đề tài)."""
     conn = get_neo4j_connection()
-    name = extract_name(question)
-    field = extract_field(question)
+    name = (entities.get("name") if entities else None) or extract_name(question)
+    field = (entities.get("field") if entities else None) or extract_field(question)
 
     # Tránh trường hợp extract_name lấy nhầm tên lĩnh vực làm tên người
     if name and field and name.lower() in field.lower():
@@ -761,10 +763,10 @@ def handle_collaboration(question: str):
 # HANDLERS MỚI (v2)
 # ============================================================
 
-def handle_department(question: str):
+def handle_department(question: str, entities: Optional[dict] = None):
     """Xử lý câu hỏi về bộ môn."""
     conn = get_neo4j_connection()
-    dept_name = extract_department(question)
+    dept_name = (entities.get("department") if entities else None) or extract_department(question)
 
     if dept_name:
         results = conn.query(
@@ -807,7 +809,7 @@ def handle_department(question: str):
     return "Không tìm thấy thông tin bộ môn."
 
 
-def handle_top_lecturers(question: str):
+def handle_top_lecturers(question: str, entities: Optional[dict] = None):
     """Top giảng viên nổi bật theo công trình."""
     conn = get_neo4j_connection()
     results = conn.query("""
@@ -832,7 +834,7 @@ def handle_top_lecturers(question: str):
     return "Không có dữ liệu."
 
 
-def handle_top_by_projects(question: str):
+def handle_top_by_projects(question: str, entities: Optional[dict] = None):
     """Top giảng viên theo số đề tài."""
     conn = get_neo4j_connection()
     results = conn.query("""
@@ -855,10 +857,10 @@ def handle_top_by_projects(question: str):
     return "Không có dữ liệu về đề tài."
 
 
-def handle_project_by_level(question: str):
+def handle_project_by_level(question: str, entities: Optional[dict] = None):
     """Lọc đề tài theo cấp (Bộ, Tỉnh, Trường, ...)."""
     conn = get_neo4j_connection()
-    level = extract_project_level(question)
+    level = (entities.get("project_level") if entities else None) or extract_project_level(question)
 
     if level:
         results = conn.query(
@@ -899,10 +901,10 @@ def handle_project_by_level(question: str):
     return "Không có dữ liệu phân cấp đề tài."
 
 
-def handle_search_by_journal(question: str):
+def handle_search_by_journal(question: str, entities: Optional[dict] = None):
     """Tìm công trình theo tạp chí/hội thảo."""
     conn = get_neo4j_connection()
-    journal = extract_journal(question)
+    journal = (entities.get("journal") if entities else None) or extract_journal(question)
 
     if journal:
         results = conn.query(
@@ -946,23 +948,25 @@ def handle_search_by_journal(question: str):
     return "Không có thông tin về tạp chí trong hệ thống."
 
 
-def handle_who_leads(question: str):
+def handle_who_leads(question: str, entities: Optional[dict] = None):
     """Ai là chủ nhiệm đề tài?"""
     conn = get_neo4j_connection()
     q = question.lower()
-
-    # Trích xuất tên đề tài từ câu hỏi
-    project_name = ""
-    for t in ["đề tài", "dự án", "project", "đề án"]:
-        idx = q.find(t)
-        if idx != -1:
-            after = question[idx + len(t):].strip()
-            words = after.split()
-            filtered = [w for w in words if w.lower() not in ["là", "ai", "của", "nào", "?"]]
-            candidate = " ".join(filtered[:6]).strip("?.,!")
-            if len(candidate) > 2:
-                project_name = candidate
-            break
+    
+    project_name = (entities.get("project_name") if entities else None)
+    
+    if not project_name:
+        # Trích xuất tên đề tài từ câu hỏi
+        for t in ["đề tài", "dự án", "project", "đề án"]:
+            idx = q.find(t)
+            if idx != -1:
+                after = question[idx + len(t):].strip()
+                words = after.split()
+                filtered = [w for w in words if w.lower() not in ["là", "ai", "của", "nào", "?"]]
+                candidate = " ".join(filtered[:6]).strip("?.,!")
+                if len(candidate) > 2:
+                    project_name = candidate
+                break
 
     if project_name:
         results = conn.query(
@@ -1003,10 +1007,10 @@ def handle_who_leads(question: str):
     return "Không có dữ liệu về chủ nhiệm đề tài."
 
 
-def handle_lecturer_info(question: str):
+def handle_lecturer_info(question: str, entities: Optional[dict] = None):
     """Lấy thông tin chi tiết về một giảng viên."""
     conn = get_neo4j_connection()
-    name = extract_name(question)
+    name = (entities.get("name") if entities else None) or extract_name(question)
 
     if not name:
         return (
@@ -1050,7 +1054,7 @@ def handle_lecturer_info(question: str):
     return "\n\n---\n\n".join(cards)
 
 
-def handle_unknown(question: str):
+def handle_unknown(question: str, entities: Optional[dict] = None):
     """
     Smart fallback v2: Tự tìm kiếm tổng quát trên tất cả entities
     trước khi trả về hướng dẫn.
@@ -1160,9 +1164,6 @@ def ask():
         ai_analysis = gemini_service.analyze_question(question)
         if ai_analysis and ai_analysis.get("intent") != "unknown":
             intent = ai_analysis["intent"]
-            # Ghi đè entities từ Gemini nếu cần (optional)
-            # Tuy nhiên hiện tại các handler tự extract entity từ question
-            # Ở phiên bản tiếp theo ta có thể truyền ai_analysis['entities'] vào handler
             print(f"[CHAT AI] Intent detected: {intent} ({ai_analysis.get('explanation')})")
         else:
             # 2. Fallback dùng rule-based (v2)
@@ -1185,8 +1186,9 @@ def ask():
             "unknown": handle_unknown,
         }
 
+        entities = ai_analysis.get("entities") if ai_analysis else None
         handler = handler_map.get(intent, handle_unknown)
-        answer = handler(question)
+        answer = handler(question, entities=entities)
 
         # Build mini graph from entities mentioned in answer
         graph = build_graph_for_answer(answer)
