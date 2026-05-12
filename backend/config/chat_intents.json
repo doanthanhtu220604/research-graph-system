@@ -9,10 +9,10 @@
     "search_by_journal": ["tạp chí", "hội thảo", "hội nghị", "journal", "conference", "đăng trên", "xuất bản trên"],
     "who_leads": ["chủ nhiệm", "người phụ trách", "phụ trách", "người đứng đầu", "ai phụ trách", "ai chủ nhiệm"],
     "lecturer_info": ["thông tin", "email", "liên hệ", "liên lạc", "giới thiệu về", "profile", "số điện thoại"],
-    "search_by_field": ["nghiên cứu về", "chuyên về", "lĩnh vực", "chuyên ngành", "mảng", "thuộc lĩnh vực"],
+    "search_by_field": ["nghiên cứu về", "chuyên về", "lĩnh vực", "chuyên ngành", "mảng", "thuộc lĩnh vực", "chuyên sâu về"],
     "search_lecturer": ["giảng viên", "thầy", "cô", "gv", "giáo viên", "giảng sư", "tiến sĩ", "ts.", "ts ", "phó giáo sư", "pgs.", "pgs ", "giáo sư", "gs.", "gs ", "thạc sĩ", "ths.", "ths "],
-    "search_publication": ["công trình", "bài báo", "xuất bản", "publication", "bài viết", "bài nghiên cứu", "paper"],
-    "search_project": ["đề tài", "dự án", "project", "nghiên cứu khoa học", "nckh", "đề tài khoa học", "đề án"]
+    "search_publication": ["bài báo khoa học", "công trình nghiên cứu", "xuất bản khoa học", "bài nghiên cứu", "publication", "paper"],
+    "search_project": ["đề tài nghiên cứu", "dự án nghiên cứu", "đề tài nckh", "project"]
   },
   "keywords": {
     "tech_kws": [

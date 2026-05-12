@@ -18,6 +18,7 @@ from flask import Blueprint, jsonify, request
 from rapidfuzz import fuzz
 from pyvi import ViPosTagger
 from backend.services.neo4j_connection import get_neo4j_connection
+from backend.services.gemini_service import gemini_service
 
 chat_api_bp = Blueprint("chat_api", __name__)
 
@@ -56,9 +57,16 @@ def detect_intent(question: str) -> str:
                 scores[intent] += len(kw_lower.split()) * 10
             else:
                 # Match mờ (fuzz)
-                score = fuzz.partial_ratio(kw_lower, q)
-                if score > 85:
-                    scores[intent] += 5
+                # Chỉ match mờ nếu keyword đủ dài (> 10 ký tự) để tránh đụng độ từ ngắn
+                if len(kw_lower) > 10:
+                    score = fuzz.partial_ratio(kw_lower, q)
+                    if score > 90: # Tăng ngưỡng để tránh false positive
+                        scores[intent] += 5
+
+    # 1.5. Ưu tiên đặc biệt cho Technical Keywords (Field search)
+    field = extract_field(question)
+    if field:
+        scores["search_by_field"] += 60
 
     # 2. Phân tích theo Pattern câu hỏi (Question patterns)
     if re.search(r"bao nhiêu|có mấy|đếm|thống kê|số lượng|tổng số|tất cả bao nhiêu", q):
@@ -109,15 +117,11 @@ def detect_intent(question: str) -> str:
         scores["top_by_projects"] += 100
         scores["top_lecturers"] -= 50 # Giảm điểm tổng quát
 
-    # - Nếu nhắc "đề tài" + "thầy|cô" -> Ưu tiên "đề tài", giảm điểm "search_lecturer"
-    if scores.get("search_project", 0) > 0 and scores.get("search_lecturer", 0) > 0:
-        scores["search_project"] += 20
-        scores["search_lecturer"] -= 40 # Phạt nặng intent giảng viên chung chung
-
     # - Nếu nhắc "công trình/bài báo" + "thầy|cô" -> Ưu tiên "công trình", giảm điểm "search_lecturer"
-    if scores.get("search_publication", 0) > 0 and scores.get("search_lecturer", 0) > 0:
-        scores["search_publication"] += 20
-        scores["search_lecturer"] -= 40
+    # Giảm mức độ phạt để tránh mất dấu intent giảng viên nếu chỉ là matching mờ
+    if scores.get("search_publication", 0) > 30 and scores.get("search_lecturer", 0) > 0:
+        scores["search_publication"] += 10
+        scores["search_lecturer"] -= 20 
 
     # - Nếu hỏi "ai chủ nhiệm" / "thầy cô" / "đề tài" -> Chủ nhiệm là cụ thể nhất
     if scores.get("who_leads", 0) > 0:
@@ -604,9 +608,10 @@ def handle_search_project(question: str):
 
 
 def handle_search_by_field(question: str, include_pubs: bool = True):
-    """Tìm giảng viên và công trình theo lĩnh vực."""
+    """Tìm giảng viên và công trình theo lĩnh vực (có thể kết hợp bộ môn)."""
     conn = get_neo4j_connection()
     field = extract_field(question)
+    dept = extract_department(question)
 
     if not field:
         results = conn.query("""
@@ -621,18 +626,28 @@ def handle_search_by_field(question: str, include_pubs: bool = True):
             return "Các lĩnh vực nghiên cứu hiện có:\n" + "\n".join(f"- {f}" for f in fields)
         return "Bạn muốn tìm lĩnh vực nào? Ví dụ: AI, Machine Learning, Bảo mật, IoT..."
 
-    lecturers = conn.query(
-        """
+    # Truy vấn giảng viên (có filter bộ môn nếu có)
+    cypher_gv = """
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         WHERE toLower(lv.ten_linh_vuc) CONTAINS toLower($field)
            OR toLower($field) CONTAINS toLower(lv.ten_linh_vuc)
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, lv.ten_linh_vuc AS linh_vuc, bm.ten_bo_mon AS bo_mon
+    """
+    params_gv = {"field": field}
+    
+    if dept:
+        cypher_gv += " MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept) "
+        params_gv["dept"] = dept
+    else:
+        cypher_gv += " OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) "
+        
+    cypher_gv += """
+        RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, 
+               lv.ten_linh_vuc AS linh_vuc, bm.ten_bo_mon AS bo_mon
         ORDER BY gv.ho_va_ten
         LIMIT 10
-        """,
-        {"field": field}
-    )
+    """
+    
+    lecturers = conn.query(cypher_gv, params_gv)
 
     if include_pubs:
         pubs = conn.query(
@@ -654,17 +669,29 @@ def handle_search_by_field(question: str, include_pubs: bool = True):
     parts = []
     if lecturers:
         lv_name = lecturers[0].get("linh_vuc", field)
+        bm_name = lecturers[0].get("bo_mon") if dept else ""
+        
         names = [
             f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**" + (f" — {r['bo_mon']}" if r.get("bo_mon") else "")
             for r in lecturers
         ]
-        parts.append(f"👨‍🏫 **{len(names)} giảng viên** nghiên cứu về **{lv_name}**:\n" + "\n".join(f"- {n}" for n in names))
+        
+        header = f"👨‍🏫 **{len(names)} giảng viên** nghiên cứu về **{lv_name}**"
+        if dept and bm_name:
+            header += f" thuộc bộ môn **{bm_name}**"
+        header += ":\n"
+        
+        parts.append(header + "\n".join(f"- {n}" for n in names))
     if pubs:
         pub_list = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})" for r in pubs]
         parts.append(f"\n📄 **Công trình liên quan:**\n" + "\n".join(f"- {p}" for p in pub_list))
 
     if parts:
         return "\n".join(parts)
+
+    # Fallback: Nếu không tìm thấy trong DB nhưng có field name từ extractor
+    if field:
+        return f"Hiện chưa có dữ liệu cụ thể về các giảng viên nghiên cứu lĩnh vực **\"{field}\"**. Bạn có thể thử tìm kiếm với từ khóa khác như: _AI, Machine Learning, IOT..._"
 
     return f"Chưa tìm thấy dữ liệu về lĩnh vực **\"{field}\"**. Hãy thử từ khóa khác."
 
@@ -1129,7 +1156,17 @@ def ask():
         }), 400
 
     try:
-        intent = detect_intent(question)
+        # 1. Thử dùng Gemini (AI Upgrade) nếu có API Key
+        ai_analysis = gemini_service.analyze_question(question)
+        if ai_analysis and ai_analysis.get("intent") != "unknown":
+            intent = ai_analysis["intent"]
+            # Ghi đè entities từ Gemini nếu cần (optional)
+            # Tuy nhiên hiện tại các handler tự extract entity từ question
+            # Ở phiên bản tiếp theo ta có thể truyền ai_analysis['entities'] vào handler
+            print(f"[CHAT AI] Intent detected: {intent} ({ai_analysis.get('explanation')})")
+        else:
+            # 2. Fallback dùng rule-based (v2)
+            intent = detect_intent(question)
 
         handler_map = {
             "statistics": handle_statistics,
