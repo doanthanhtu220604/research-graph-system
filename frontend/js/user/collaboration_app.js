@@ -123,7 +123,7 @@ async function loadTopConnectors() {
                             <div style="width:${barWidth}%; height:100%; background:linear-gradient(90deg,#4F8EF7,#6ea8ff); border-radius:2px; transition:width 0.8s ease;"></div>
                         </div>
                     </div>
-                    <div class="rank-badge">${gv.tong_cong_su} CS</div>
+                    <div class="rank-badge">${gv.tong_cong_su} cộng sự</div>
                 </div>
             `;
         }).join('');
@@ -167,7 +167,7 @@ async function loadBridgeConnectors() {
                         <div class="rank-sub">${gv.bo_mon_chinh ? gv.bo_mon_chinh.replace('Bộ môn ', '') : 'N/A'}</div>
                         <div class="bridge-bm-tags">${tagsHtml}</div>
                     </div>
-                    <div class="rank-badge">${gv.so_bo_mon_ket_noi} BM</div>
+                    <div class="rank-badge">${gv.so_bo_mon_ket_noi} bộ môn</div>
                 </div>
             `;
         }).join('');
@@ -210,11 +210,11 @@ async function loadTopPairs() {
                         </div>
                         <div style="font-size:11px; color:var(--text-muted); margin-top:3px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                             ${bmTag}
-                            <span>📄 ${pair.so_cong_trinh} CT</span>
-                            <span>🔬 ${pair.so_de_tai} ĐT</span>
+                            <span>📄 ${pair.so_cong_trinh} công trình</span>
+                            <span>🔬 ${pair.so_de_tai} đề tài</span>
                         </div>
                     </div>
-                    <div class="rank-badge">${pair.tong_hop_tac} HT</div>
+                    <div class="rank-badge">${pair.tong_hop_tac} hợp tác</div>
                 </div>
             `;
         }).join('');
