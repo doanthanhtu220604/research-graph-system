@@ -10,6 +10,8 @@
     --bg-card: rgba(255, 255, 255, 0.95);
     --bg-card-hover: rgba(255, 255, 255, 1);
     --bg-sidebar: #ffffff;
+    --surface: #ffffff;
+    --bg-hover: rgba(0, 0, 0, 0.04);
 
     --text-primary: #1e293b;
     --text-secondary: #64748b;

@@ -1102,8 +1102,8 @@ async function deleteEntity(type, id) {
             position:fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(4px);
             z-index:9100; display:flex; align-items:center; justify-content:center;
             opacity:0; pointer-events:none; transition:opacity 0.2s;">
-            <div style="background:var(--surface); border-radius:20px; padding:32px; max-width:420px; width:90%;
-                        box-shadow:0 24px 60px rgba(0,0,0,0.2); transform:scale(0.92);
+            <div style="background: var(--bg-secondary, #ffffff); border-radius:20px; padding:32px; max-width:420px; width:90%;
+                        box-shadow: 0 15px 50px rgba(0,0,0,0.15); transform:scale(0.92);
                         transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);" id="softDeleteBox">
                 <div style="width:60px;height:60px;border-radius:50%;
                             background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(239,68,68,0.04));
