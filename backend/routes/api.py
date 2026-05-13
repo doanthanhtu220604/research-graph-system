@@ -22,13 +22,17 @@ def get_all_giang_vien():
         MATCH (gv:GiangVien)
         WHERE coalesce(gv.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-        RETURN gv, bm.ten_bo_mon AS bo_mon
+        OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+            WHERE coalesce(lv.is_deleted, false) = false
+        RETURN gv, bm.ten_bo_mon AS bo_mon,
+               collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc
         ORDER BY gv.ho_va_ten
     """)
     giang_vien_list = []
     for r in results:
         gv = dict(r["gv"])
         gv["bo_mon"] = r["bo_mon"]
+        gv["linh_vuc"] = [lv for lv in (r["linh_vuc"] or []) if lv]
         giang_vien_list.append(gv)
     return jsonify({"status": "ok", "data": giang_vien_list})
 
@@ -105,13 +109,17 @@ def get_all_cong_trinh():
         MATCH (ct:CongTrinhNghienCuu)
         WHERE coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
-        RETURN ct, collect(gv.ho_va_ten) AS tac_gia
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct)
+        RETURN ct,
+               collect(DISTINCT gv.ho_va_ten) AS tac_gia,
+               collect(DISTINCT tgn.ho_va_ten) AS tac_gia_ngoai
         ORDER BY ct.nam_xuat_ban DESC, coalesce(ct.created_at, 0) DESC, id(ct) DESC
     """)
     cong_trinh_list = []
     for r in results:
         ct = dict(r["ct"])
-        ct["tac_gia"] = r["tac_gia"]
+        ct["tac_gia"] = [t for t in (r["tac_gia"] or []) if t]
+        ct["tac_gia_ngoai"] = [t for t in (r["tac_gia_ngoai"] or []) if t]
         cong_trinh_list.append(ct)
     return jsonify({"status": "ok", "data": cong_trinh_list})
 
@@ -156,14 +164,21 @@ def get_all_de_tai():
     results = conn.query("""
         MATCH (dt:DeTaiNghienCuu)
         WHERE coalesce(dt.is_deleted, false) = false
-        OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
-        RETURN dt, collect(gv.ho_va_ten) AS chu_nhiem
+        OPTIONAL MATCH (gv_cn:GiangVien)-[:CHU_NHIEM]->(dt)
+        OPTIONAL MATCH (gv_tv:GiangVien)-[:THAM_GIA]->(dt)
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt)
+        RETURN dt,
+               collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
+               collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
+               collect(DISTINCT tgn.ho_va_ten)   AS tac_gia_ngoai
         ORDER BY coalesce(dt.created_at, 0) DESC, id(dt) DESC
     """)
     de_tai_list = []
     for r in results:
         dt = dict(r["dt"])
-        dt["chu_nhiem"] = r["chu_nhiem"]
+        dt["chu_nhiem"]    = [t for t in (r["chu_nhiem"] or []) if t]
+        dt["thanh_vien"]   = [t for t in (r["thanh_vien"] or []) if t]
+        dt["tac_gia_ngoai"] = [t for t in (r["tac_gia_ngoai"] or []) if t]
         de_tai_list.append(dt)
     return jsonify({"status": "ok", "data": de_tai_list})
 
