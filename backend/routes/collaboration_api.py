@@ -258,9 +258,9 @@ def get_collaboration_graph():
               AND coalesce(gv1.is_deleted, false) = false
               AND coalesce(gv2.is_deleted, false) = false
               AND coalesce(ct.is_deleted, false) = false
-            WITH gv1, gv2, count(DISTINCT ct) AS so_ct
+            WITH gv1, gv2, count(DISTINCT ct) AS so_ct, collect(DISTINCT ct.ten_cong_trinh) AS ds_ct
             WHERE so_ct >= $min_collab
-            RETURN gv1.id AS id1, gv2.id AS id2, so_ct, 0 AS so_dt
+            RETURN gv1.id AS id1, gv2.id AS id2, so_ct, ds_ct, 0 AS so_dt, [] AS ds_dt
         """, {"min_collab": min_collab})
 
         # Lấy các cặp hợp tác qua đề tài
@@ -270,22 +270,23 @@ def get_collaboration_graph():
               AND coalesce(gv1.is_deleted, false) = false
               AND coalesce(gv2.is_deleted, false) = false
               AND coalesce(dt.is_deleted, false) = false
-            WITH gv1, gv2, count(DISTINCT dt) AS so_dt
+            WITH gv1, gv2, count(DISTINCT dt) AS so_dt, collect(DISTINCT dt.ten_de_tai) AS ds_dt
             WHERE so_dt >= 1
-            RETURN gv1.id AS id1, gv2.id AS id2, 0 AS so_ct, so_dt
+            RETURN gv1.id AS id1, gv2.id AS id2, 0 AS so_ct, [] AS ds_ct, so_dt, ds_dt
         """)
 
         # Gộp thành map các cặp
         edge_map = {}
         for r in pairs_ct:
             key = (r["id1"], r["id2"])
-            edge_map[key] = {"so_ct": int(r["so_ct"]), "so_dt": 0}
+            edge_map[key] = {"so_ct": int(r["so_ct"]), "ds_ct": r["ds_ct"], "so_dt": 0, "ds_dt": []}
         for r in pairs_dt:
             key = (r["id1"], r["id2"])
             if key in edge_map:
                 edge_map[key]["so_dt"] = int(r["so_dt"])
+                edge_map[key]["ds_dt"] = r["ds_dt"]
             else:
-                edge_map[key] = {"so_ct": 0, "so_dt": int(r["so_dt"])}
+                edge_map[key] = {"so_ct": 0, "ds_ct": [], "so_dt": int(r["so_dt"]), "ds_dt": r["ds_dt"]}
 
         # Lọc theo min_collab tổng
         edge_map = {k: v for k, v in edge_map.items() if v["so_ct"] + v["so_dt"] >= min_collab}
@@ -318,15 +319,17 @@ def get_collaboration_graph():
         }
         default_color = "#95A5A6"
 
-        # Lấy thông tin GV
+        # Lấy thông tin GV và tổng số lượng riêng của mỗi người
         gv_info_results = conn.query("""
             MATCH (gv:GiangVien)
             WHERE gv.id IN $ids
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-            OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
-                   gv.anh_dai_dien AS avatar, bm.ten_bo_mon AS bo_mon,
-                   collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc
+                   bm.ten_bo_mon AS bo_mon,
+                   count(DISTINCT ct) AS tong_ct,
+                   count(DISTINCT dt) AS tong_dt
         """, {"ids": list(gv_ids)})
 
         gv_info_map = {}
@@ -337,9 +340,9 @@ def get_collaboration_graph():
             gv_info_map[r["id"]] = {
                 "ten": r["ten"],
                 "hoc_vi": r["hoc_vi"],
-                "avatar": r["avatar"],
                 "bo_mon": r["bo_mon"],
-                "linh_vuc": list(r["linh_vuc"]) if r["linh_vuc"] else [],
+                "tong_ct": r["tong_ct"],
+                "tong_dt": r["tong_dt"]
             }
 
         # Build nodes
@@ -352,14 +355,11 @@ def get_collaboration_graph():
             nodes.append({
                 "id": gv_id,
                 "label": info["ten"] or gv_id,
-                "title": info["ten"],
+                "title": f"{info['ten']}\n{info['tong_ct']} công trình, {info['tong_dt']} đề tài",
                 "group": info["bo_mon"] or "Khác",
                 "color": color,
                 "size": size,
                 "degree": degree,
-                "hoc_vi": info["hoc_vi"],
-                "bo_mon": info["bo_mon"],
-                "linh_vuc": info["linh_vuc"],
                 "shape": "dot",
             })
 
@@ -369,9 +369,22 @@ def get_collaboration_graph():
         for (id1, id2), counts in edge_map.items():
             if id1 not in gv_info_map or id2 not in gv_info_map:
                 continue
+            
             tong = counts["so_ct"] + counts["so_dt"]
             # Độ dày cạnh: scale từ 1 đến 8
             width = min(8, 1 + tong)
+
+            # Tạo nội dung tooltip thuần văn bản
+            info1 = gv_info_map[id1]
+            info2 = gv_info_map[id2]
+            
+            tooltip_text = (
+                f"{info1['ten']}: {info1['tong_ct']} công trình, {info1['tong_dt']} đề tài\n"
+                f"{info2['ten']}: {info2['tong_ct']} công trình, {info2['tong_dt']} đề tài\n"
+                f"-----------------------------------\n"
+                f"Chung: {counts['so_ct']} công trình, {counts['so_dt']} đề tài"
+            )
+
             edges.append({
                 "id": edge_id,
                 "from": id1,
@@ -380,7 +393,7 @@ def get_collaboration_graph():
                 "so_cong_trinh": counts["so_ct"],
                 "so_de_tai": counts["so_dt"],
                 "tong": tong,
-                "title": f"{counts['so_ct']} công trình, {counts['so_dt']} đề tài chung",
+                "title": tooltip_text,
                 "color": {"color": "rgba(79,142,247,0.35)", "highlight": "#4F8EF7", "hover": "#4F8EF7"},
             })
             edge_id += 1

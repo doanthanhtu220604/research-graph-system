@@ -12,6 +12,13 @@ let pendingAction   = null; // { type: 'permanent'|'empty', entityType, id }
 // INIT
 // ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // Kiểm tra quyền truy cập Admin
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+        window.location.href = '/user/login.html';
+        return;
+    }
+
     loadTrash();
     updateClock();
     setInterval(updateClock, 1000);
@@ -404,8 +411,10 @@ function showToast(msg, type = 'success') {
 
 // Đăng xuất admin
 function logoutAdmin() {
-    localStorage.removeItem('adminToken');
-    window.location.href = '/admin/login.html';
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userInfo');
+    window.location.href = '/user/login.html';
 }
 
 // Close confirm overlay on outside click

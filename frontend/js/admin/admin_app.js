@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    KNOWLEDGE MAP ADMIN - Main JavaScript
    ============================================================ */
 
@@ -96,6 +96,13 @@ const ENTITY_CONFIG = {
 let currentEntitiesData = {};
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Kiểm tra quyền truy cập Admin
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+        window.location.href = '/user/login.html';
+        return;
+    }
+
     // Không cần logic click menu ẩn hiện thẻ vì giờ là Multi-Page (mỗi trang HTML riêng)
     
     // Kiểm tra xem đang ở trang nào đê tải dữ liệu tương ứng
@@ -1826,5 +1833,7 @@ function updateAccountStats() {
 
 window.logoutAdmin = function() {
     localStorage.removeItem('isAdmin');
-    window.location.href = '/';
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userInfo');
+    window.location.href = '/user/login.html';
 };
