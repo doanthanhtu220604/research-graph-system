@@ -362,13 +362,24 @@
                 : `/api/admin/accounts/${gvId}/reset-password`;
             const body = mode === 'set' ? { username: un, password: pw } : { new_password: pw };
             try {
+                const mainContent = document.getElementById('mainContent');
+                const scrollPos = mainContent ? mainContent.scrollTop : 0;
+
                 const res = await fetch(endpoint, {
                     method: mode === 'set' ? 'POST' : 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 const data = await res.json();
-                if (data.status === 'ok') { closePwModal(); loadAccounts(); }
+                if (data.status === 'ok') { 
+                    closePwModal(); 
+                    await loadAccounts(); 
+                    if (mainContent) {
+                        setTimeout(() => {
+                            mainContent.scrollTop = scrollPos;
+                        }, 10);
+                    }
+                }
                 else { alert('Lỗi: ' + data.message); }
             } catch(e) { alert('Lỗi kết nối.'); }
         }

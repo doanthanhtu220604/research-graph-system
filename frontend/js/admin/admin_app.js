@@ -463,8 +463,8 @@ async function loadLecturers() {
         
         if (data.status === 'ok') {
             currentEntitiesData['giang-vien'] = data.data;
-            renderLecturersTable(data.data);
-            loadFilterDepartments(); // Tải danh sách bộ môn vào bộ lọc
+            await loadFilterDepartments(); // Tải danh sách bộ môn vào bộ lọc
+            filterLecturers(); // Áp dụng bộ lọc hiện tại thay vì render tất cả
         }
     } catch (err) {
         console.error(err);
@@ -533,11 +533,13 @@ async function loadFilterDepartments() {
         const res = await fetch(`${ADMIN_API_BASE}/bo-mon`);
         const data = await res.json();
         if (data.status === 'ok') {
+            const currentVal = select.value;
             let html = '<option value="">-- Chọn Bộ môn --</option>';
             data.data.forEach(bm => {
                 html += `<option value="${bm.ten_bo_mon}">${bm.ten_bo_mon}</option>`;
             });
             select.innerHTML = html;
+            select.value = currentVal;
         }
     } catch (e) {
         console.error('Lỗi tải bộ môn cho bộ lọc:', e);
@@ -551,8 +553,8 @@ async function loadPublications() {
         
         if (data.status === 'ok') {
             currentEntitiesData['cong-trinh'] = data.data;
-            renderPublicationsTable(data.data);
             populatePublicationYearFilter(data.data);
+            filterPublications(); // Áp dụng bộ lọc hiện tại thay vì render tất cả
         }
     } catch (err) {
         console.error(err);
@@ -623,11 +625,13 @@ function populatePublicationYearFilter(data) {
     
     const sortedYears = Array.from(years).sort((a, b) => b - a);
     
+    const currentVal = select.value;
     let html = '<option value="">-- Năm xuất bản --</option>';
     sortedYears.forEach(year => {
         html += `<option value="${year}">Năm ${year}</option>`;
     });
     select.innerHTML = html;
+    select.value = currentVal;
 }
 
 async function approvePublication(id) {
@@ -638,7 +642,14 @@ async function approvePublication(id) {
         });
         const data = await res.json();
         if (data.status === 'ok') {
-            loadPublications();
+            const mainContent = document.getElementById('mainContent');
+            const scrollPos = mainContent ? mainContent.scrollTop : 0;
+            await loadPublications();
+            if (mainContent) {
+                setTimeout(() => {
+                    mainContent.scrollTop = scrollPos;
+                }, 10);
+            }
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -656,7 +667,14 @@ async function approveProject(id) {
         });
         const data = await res.json();
         if (data.status === 'ok') {
-            loadProjects();
+            const mainContent = document.getElementById('mainContent');
+            const scrollPos = mainContent ? mainContent.scrollTop : 0;
+            await loadProjects();
+            if (mainContent) {
+                setTimeout(() => {
+                    mainContent.scrollTop = scrollPos;
+                }, 10);
+            }
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -674,8 +692,17 @@ async function approveDeleteEntity(type, id) {
         });
         const data = await res.json();
         if (data.status === 'ok') {
-            if (type === 'cong-trinh') loadPublications();
-            else if (type === 'de-tai') loadProjects();
+            const mainContent = document.getElementById('mainContent');
+            const scrollPos = mainContent ? mainContent.scrollTop : 0;
+            
+            if (type === 'cong-trinh') await loadPublications();
+            else if (type === 'de-tai') await loadProjects();
+            
+            if (mainContent) {
+                setTimeout(() => {
+                    mainContent.scrollTop = scrollPos;
+                }, 10);
+            }
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -692,8 +719,8 @@ async function loadProjects() {
         
         if (data.status === 'ok') {
             currentEntitiesData['de-tai'] = data.data;
-            renderProjectsTable(data.data);
             populateProjectYearFilter(data.data);
+            filterProjects(); // Áp dụng bộ lọc hiện tại
         }
     } catch (err) {
         console.error(err);
@@ -760,6 +787,8 @@ function populateProjectYearFilter(data) {
     const select = document.getElementById('filterProjYear');
     if (!select) return;
     
+    const currentVal = select.value;
+    
     const years = new Set();
     data.forEach(dt => {
         if (dt.nam_bat_dau) {
@@ -779,6 +808,7 @@ function populateProjectYearFilter(data) {
         html += `<option value="${year}">Năm ${year}</option>`;
     });
     select.innerHTML = html;
+    select.value = currentVal;
 }
 
 async function loadResearchFields() {
@@ -812,7 +842,7 @@ async function loadExternalAuthors() {
         
         if (data.status === 'ok') {
             currentEntitiesData['tac-gia-ngoai'] = data.data;
-            renderExternalAuthorsTable(data.data);
+            filterExternalAuthors(); // Áp dụng bộ lọc
         }
     } catch (err) {
         console.error(err);
@@ -1152,6 +1182,10 @@ async function handleFormSubmit(e) {
         const method = id ? 'PUT' : 'POST';
         const url = id ? `${config.adminApiUrl}/${id}` : config.adminApiUrl;
 
+        // Lưu vị trí cuộn trước khi tải lại dữ liệu
+        const mainContent = document.getElementById('mainContent');
+        const scrollPos = mainContent ? mainContent.scrollTop : 0;
+
         const res = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
@@ -1162,12 +1196,20 @@ async function handleFormSubmit(e) {
         if (data.status === 'ok') {
             closeAdminModal();
             // Tải lại đúng trang đang đứng
-            if (type === 'giang-vien') loadLecturers();
-            else if (type === 'cong-trinh') loadPublications();
-            else if (type === 'de-tai') loadProjects();
-            else if (type === 'linh-vuc') loadResearchFields();
-            else if (type === 'tac-gia-ngoai') loadExternalAuthors();
-            else if (type === 'bo-mon') loadDepartments();
+            if (type === 'giang-vien') await loadLecturers();
+            else if (type === 'cong-trinh') await loadPublications();
+            else if (type === 'de-tai') await loadProjects();
+            else if (type === 'linh-vuc') await loadResearchFields();
+            else if (type === 'tac-gia-ngoai') await loadExternalAuthors();
+            else if (type === 'bo-mon') await loadDepartments();
+
+            // Khôi phục vị trí cuộn
+            if (mainContent) {
+                // Đợi một chút để DOM ổn định (đặc biệt nếu có hình ảnh)
+                setTimeout(() => {
+                    mainContent.scrollTop = scrollPos;
+                }, 10);
+            }
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -1259,6 +1301,10 @@ async function deleteEntity(type, id) {
 
         const config = ENTITY_CONFIG[type];
         try {
+            // Lưu vị trí cuộn
+            const mainContent = document.getElementById('mainContent');
+            const scrollPos = mainContent ? mainContent.scrollTop : 0;
+
             const res = await fetch(`${config.adminApiUrl}/${id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
@@ -1268,12 +1314,20 @@ async function deleteEntity(type, id) {
             if (data.status === 'ok') {
                 // Hiện toast thành công
                 showAdminToast(`✅ Đã chuyển ${label} vào thùng rác`, 'success');
-                if (type === 'giang-vien') loadLecturers();
-                else if (type === 'cong-trinh') loadPublications();
-                else if (type === 'de-tai') loadProjects();
-                else if (type === 'linh-vuc') loadResearchFields();
-                else if (type === 'tac-gia-ngoai') loadExternalAuthors();
-                else if (type === 'bo-mon') loadDepartments();
+                if (type === 'giang-vien') await loadLecturers();
+                else if (type === 'cong-trinh') await loadPublications();
+                else if (type === 'de-tai') await loadProjects();
+                else if (type === 'linh-vuc') await loadResearchFields();
+                else if (type === 'tac-gia-ngoai') await loadExternalAuthors();
+                else if (type === 'bo-mon') await loadDepartments();
+                
+                // Khôi phục vị trí cuộn
+                if (mainContent) {
+                    setTimeout(() => {
+                        mainContent.scrollTop = scrollPos;
+                    }, 10);
+                }
+
                 // Cập nhật badge thùng rác
                 updateTrashBadge();
             } else {
@@ -1588,7 +1642,17 @@ async function saveRelations(e) {
             if(gvData.status === 'ok' && tgnData.status === 'ok') {
                 showAdminToast("Đã cập nhật liên kết thành công", "success");
                 closeRelationModal();
-                loadPublications();
+                
+                const mainContent = document.getElementById('mainContent');
+                const scrollPos = mainContent ? mainContent.scrollTop : 0;
+                
+                await loadPublications();
+                
+                if (mainContent) {
+                    setTimeout(() => {
+                        mainContent.scrollTop = scrollPos;
+                    }, 10);
+                }
             } else {
                 alert("Lỗi: " + (gvData.message || tgnData.message));
             }
@@ -1618,7 +1682,17 @@ async function saveRelations(e) {
             if(gvData.status === 'ok' && tgnData.status === 'ok') {
                 showAdminToast("Đã cập nhật liên kết thành công", "success");
                 closeRelationModal();
-                loadProjects();
+                
+                const mainContent = document.getElementById('mainContent');
+                const scrollPos = mainContent ? mainContent.scrollTop : 0;
+
+                await loadProjects();
+
+                if (mainContent) {
+                    setTimeout(() => {
+                        mainContent.scrollTop = scrollPos;
+                    }, 10);
+                }
             } else {
                 alert("Lỗi: " + (gvData.message || tgnData.message));
             }
@@ -2053,9 +2127,19 @@ function filterAccounts() {
 async function toggleAccountStatus(id) {
     if(!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
     try {
+        const mainContent = document.getElementById('mainContent');
+        const scrollPos = mainContent ? mainContent.scrollTop : 0;
+
         const res = await fetch(`${ADMIN_API_BASE}/accounts/${id}/toggle-status`, { method: 'PUT' });
         const data = await res.json();
-        if(data.status === 'ok') loadAccounts();
+        if(data.status === 'ok') {
+            await loadAccounts();
+            if (mainContent) {
+                setTimeout(() => {
+                    mainContent.scrollTop = scrollPos;
+                }, 10);
+            }
+        }
         else alert(data.message);
     } catch(e) { console.error(e); }
 }
