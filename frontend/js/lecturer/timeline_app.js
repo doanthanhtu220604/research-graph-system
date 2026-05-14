@@ -224,7 +224,7 @@ function buildCard(ev) {
     }
 
     const linkBtn = ev.link
-        ? `<a href="${ev.link}" target="_blank" class="tl-card-link"><i class="fas fa-external-link-alt"></i> Xem</a>`
+        ? `<a href="${ev.link}" target="_blank" rel="noopener noreferrer" class="tl-card-link"><i class="fas fa-external-link-alt"></i> Xem</a>`
         : '';
 
     const footer = (collabHtml || linkBtn)

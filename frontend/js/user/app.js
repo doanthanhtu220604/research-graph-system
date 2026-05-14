@@ -1079,7 +1079,7 @@ async function showPublicationDetail(ctId) {
                 <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'N/A'}</b></div>
             `;
             if (ct.link) {
-                fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${ct.link}" target="_blank" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem bài viết</a></div>`;
+                fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${ct.link}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem bài viết</a></div>`;
             }
             document.getElementById('detailFieldsGrid').innerHTML = fieldsHtml;
 
@@ -1161,7 +1161,7 @@ async function showProjectDetail(dtId) {
                 <div><span style="color:var(--text-muted);font-size:12px;">Thời gian thực hiện</span><br><b>${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'}</b></div>
             `;
             if (dt.link) {
-                fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${dt.link}" target="_blank" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-orange); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem chi tiết</a></div>`;
+                fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${dt.link}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-orange); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem chi tiết</a></div>`;
             }
             document.getElementById('detailFieldsGrid').innerHTML = fieldsHtml;
 
@@ -1718,7 +1718,7 @@ async function loadScholarStats(name, containerId) {
                             <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">H-index</div>
                         </div>
                     </div>
-                    ${stats.scholar_url ? `<div style="margin-top: 10px; text-align: right;"><a href="${stats.scholar_url}" target="_blank" style="font-size: 12px; color: #4285F4; font-weight: 600; text-decoration: none;"><i class="fas fa-external-link-alt"></i> Xem hồ sơ Scholar</a></div>` : ''}
+                    ${stats.scholar_url ? `<div style="margin-top: 10px; text-align: right;"><a href="${stats.scholar_url}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: #4285F4; font-weight: 600; text-decoration: none;"><i class="fas fa-external-link-alt"></i> Xem hồ sơ Scholar</a></div>` : ''}
                 </div>
             `;
         } else {

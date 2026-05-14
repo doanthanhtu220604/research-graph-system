@@ -564,7 +564,7 @@ function renderPublicationsTable(dataList) {
                 ${trangThai === 'Yêu cầu xóa' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Duyệt XÓA công trình" onclick="approveDeleteEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewPublicationStats('${ct.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', '${ct.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
-                ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', '${ct.id}', \`${(ct.ten_cong_trinh||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
+                ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', '${ct.id}')"><i class="fas fa-link"></i></button>` : ''}
                 <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
@@ -709,7 +709,7 @@ function renderProjectsTable(dataList) {
                 ${trangThai === 'Yêu cầu xóa' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Duyệt XÓA đề tài" onclick="approveDeleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
-                ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}', \`${(dt.ten_de_tai||'').replace(/`/g, '')}\`)"><i class="fas fa-link"></i></button>` : ''}
+                ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}')"><i class="fas fa-link"></i></button>` : ''}
                 <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
@@ -1316,13 +1316,22 @@ async function updateTrashBadge() {
 // QUẢN LÝ LIÊN KẾT (RELATIONSHIP MANAGEMENT)
 // ============================================================
 
-async function openRelationModal(type, entityId, entityName) {
+async function openRelationModal(type, entityId, entityName = null) {
     if (!document.getElementById('adminRelationModalOverlay')) {
         createRelationModalHtml();
     }
+    
+    // Nếu không có entityName, tìm trong dữ liệu hiện tại
+    if (!entityName && currentEntitiesData[type]) {
+        const item = currentEntitiesData[type].find(x => x.id === entityId);
+        if (item) {
+            entityName = item.ten_cong_trinh || item.ten_de_tai || item.ho_va_ten || 'N/A';
+        }
+    }
+
     document.getElementById('relEntityType').value = type;
     document.getElementById('relEntityId').value = entityId;
-    document.getElementById('adminRelationModalTitle').textContent = `Liên kết: ${entityName}`;
+    document.getElementById('adminRelationModalTitle').textContent = `Liên kết: ${entityName || 'N/A'}`;
     document.getElementById('adminRelationModalOverlay').classList.add('active');
     document.getElementById('relFormBody').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách nhân sự...</p>';
     
@@ -1525,21 +1534,25 @@ function createRelationModalHtml() {
     div.id = 'adminRelationModalOverlay';
     div.className = 'modal-overlay';
     div.innerHTML = `
-        <div class="modal" style="max-width: 650px;">
-            <div class="modal-header">
-                <h2 id="adminRelationModalTitle" style="font-size:16px;">Biên tập Liên kết</h2>
-                <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeRelationModal()">&times;</button>
+        <div class="modal" style="max-width: 800px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="flex-shrink: 0; padding: 15px 24px;">
+                <h2 id="adminRelationModalTitle" style="font-size:16px; margin: 0; line-height: 1.4; padding-right: 20px;">Biên tập Liên kết</h2>
+                <button class="btn btn-sm" style="background:none;border:none;font-size:20px; position: absolute; right: 15px; top: 12px;" type="button" onclick="closeRelationModal()">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="adminRelationForm" onsubmit="saveRelations(event)">
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 24px;">
+                <form id="adminRelationForm" onsubmit="saveRelations(event)" style="display: flex; flex-direction: column; height: 100%;">
                     <input type="hidden" id="relEntityType">
                     <input type="hidden" id="relEntityId">
-                    <div id="relFormBody" style="min-height: 100px; padding: 10px 0;"></div>
-                    <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top:15px;">
-                        <button type="button" class="btn" onclick="closeRelationModal()">Đóng</button>
-                        <button type="submit" class="btn btn-primary" style="background: var(--accent-blue);"><i class="fas fa-save"></i> Cập nhật Liên kết</button>
-                    </div>
+                    <div id="relFormBody" style="min-height: 100px;"></div>
+                    
+                    <!-- Nút bấm được chuyển xuống modal-footer bên dưới để không bị cuộn mất và không bị cắt -->
                 </form>
+            </div>
+            <div class="modal-footer" style="padding: 15px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-secondary); border-radius: 0 0 var(--radius) var(--radius); flex-shrink: 0;">
+                <button type="button" class="btn" onclick="closeRelationModal()">Đóng</button>
+                <button type="submit" form="adminRelationForm" class="btn btn-primary" style="background: var(--accent-blue);">
+                    <i class="fas fa-save"></i> Cập nhật Liên kết
+                </button>
             </div>
         </div>
     `;
@@ -1635,7 +1648,7 @@ async function viewPublicationStats(ctId) {
                     <p style="margin-bottom: 8px; font-size: 16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
                     <p style="margin-bottom: 5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Người tạo:</b> ${ct.nguoi_tao || 'Hệ thống / Admin'}</p>
-                    <p style="margin-bottom: 5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
                     <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>
                 </div>
             `;
@@ -1696,7 +1709,7 @@ async function viewProjectStats(dtId) {
                     <p style="margin-bottom: 8px; font-size: 16px;"><b>${dt.ten_de_tai || 'N/A'}</b></p>
                     <p style="margin-bottom: 5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Thời gian:</b> ${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'}</p>
-                    <p style="margin-bottom: 5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" style="color:var(--accent-blue);">${dt.link}</a>` : 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>` : 'N/A'}</p>
                     <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${dt.tom_tat || 'Đang cập nhật...'}</p>
                 </div>
             `;
@@ -1832,16 +1845,16 @@ function createStatsModalHtml() {
     div.id = 'adminStatsModalOverlay';
     div.className = 'modal-overlay';
     div.innerHTML = `
-        <div class="modal" style="max-width: 650px;">
-            <div class="modal-header">
-                <h2 id="adminStatsModalTitle" style="font-size:18px;">Thông tin Chi tiết</h2>
-                <button class="btn btn-sm" style="background:none;border:none;font-size:20px;" type="button" onclick="closeStatsModal()">&times;</button>
+        <div class="modal" style="max-width: 700px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="flex-shrink: 0; padding: 15px 24px;">
+                <h2 id="adminStatsModalTitle" style="font-size:18px; margin: 0;">Thông tin Chi tiết</h2>
+                <button class="btn btn-sm" style="background:none;border-color:transparent;font-size:20px; position: absolute; right: 15px; top: 12px;" type="button" onclick="closeStatsModal()">&times;</button>
             </div>
-            <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
-                <div id="statsFormBody" style="min-height: 100px; padding: 10px 0; color: var(--text-primary);"></div>
-                <div style="margin-top: 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top:15px;">
-                    <button type="button" class="btn" onclick="closeStatsModal()">Đóng</button>
-                </div>
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 24px;">
+                <div id="statsFormBody" style="min-height: 100px; color: var(--text-primary);"></div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; background: var(--bg-secondary); border-radius: 0 0 var(--radius) var(--radius); flex-shrink: 0;">
+                <button type="button" class="btn btn-primary" onclick="closeStatsModal()">Đóng</button>
             </div>
         </div>
     `;

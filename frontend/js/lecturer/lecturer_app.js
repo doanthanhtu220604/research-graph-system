@@ -801,7 +801,7 @@ async function viewProjectDetail(dtId) {
         else if (trangThai === 'Chờ duyệt')     { stColor = '#fd7e14'; stBg = 'rgba(253,126,20,0.1)'; }
 
         const linkHtml = dt.link
-            ? `<a href="${dt.link}" target="_blank" rel="noopener" style="color:var(--accent-blue);">${dt.link}</a>`
+            ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>`
             : 'N/A';
 
         // API public trả về thanh_vien: [{ten, vai_tro}]
@@ -878,7 +878,7 @@ async function viewPublicationDetail(ctId) {
         else if (trangThai === 'Chờ duyệt')     { stColor = '#fd7e14'; stBg = 'rgba(253,126,20,0.1)'; }
 
         const linkHtml = ct.link
-            ? `<a href="${ct.link}" target="_blank" rel="noopener" style="color:var(--accent-blue);">${ct.link}</a>`
+            ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>`
             : 'N/A';
 
         // API public trả về tac_gia: mảng string tên
