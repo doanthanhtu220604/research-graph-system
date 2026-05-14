@@ -978,7 +978,7 @@ async function showLecturerDetail(gvId) {
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${gv.cong_trinh.length})</h3>
                         ${gv.cong_trinh.map(item => {
-                            const ct = item.cong_trinh;
+                            const ct = item.ten_cong_trinh ? item : (item.cong_trinh || item);
                             const vt = item.vai_tro;
                             let roleLabel = '';
                             if (vt === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:var(--accent-blue); font-size:11px; font-weight:600;">(Tác giả chính)</span>';
@@ -1001,9 +1001,10 @@ async function showLecturerDetail(gvId) {
                     <div>
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-orange);"><i class="fas fa-flask"></i> Đề tài nghiên cứu (${gv.de_tai.length})</h3>
                         ${gv.de_tai.map(dt => {
-                            const tenDeTai = (dt.de_tai && dt.de_tai.ten_de_tai) ? dt.de_tai.ten_de_tai : 'N/A';
-                            const capDeTai = (dt.de_tai && dt.de_tai.cap_de_tai) ? dt.de_tai.cap_de_tai : 'Chưa xác định';
-                            const dtId = dt.de_tai ? dt.de_tai.id : null;
+                            const item = dt.ten_de_tai ? dt : (dt.de_tai || dt);
+                            const tenDeTai = item.ten_de_tai || 'N/A';
+                            const capDeTai = item.cap_de_tai || 'Chưa xác định';
+                            const dtId = item.id;
                             return `
                                 <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-orange); cursor: pointer;" ${dtId ? `onclick="showProjectDetail('${dtId}')"` : ''}>
                                     <strong>${tenDeTai}</strong>

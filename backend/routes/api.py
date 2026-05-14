@@ -82,14 +82,16 @@ def get_giang_vien_detail(gv_id):
     for r in cong_trinh:
         if r.get("ct"):
             ct_item = dict(r["ct"])
-            result["cong_trinh"].append({"cong_trinh": ct_item, "vai_tro": r.get("vai_tro")})
+            ct_item["vai_tro"] = r.get("vai_tro")
+            result["cong_trinh"].append(ct_item)
             
     # Check if de_tai is actually returned a valid node
     result["de_tai"] = []
     for r in de_tai:
         if r.get("dt"):
             dt_item = dict(r["dt"])
-            result["de_tai"].append({"de_tai": dt_item, "vai_tro": r.get("vai_tro")})
+            dt_item["vai_tro"] = r.get("vai_tro")
+            result["de_tai"].append(dt_item)
 
     # Lĩnh vực nghiên cứu
     result["linh_vuc"] = [r["ten_linh_vuc"] for r in linh_vuc if r.get("ten_linh_vuc")]

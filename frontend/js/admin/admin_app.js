@@ -177,7 +177,30 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
+    // Xử lý tham số tìm kiếm từ URL (khi nhảy từ chi tiết giảng viên sang)
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('search');
+    if (searchTerm) {
+        if (document.getElementById('page-admin-publications')) {
+            const input = document.getElementById('filterPubTitle');
+            if (input) input.value = searchTerm;
+        } else if (document.getElementById('page-admin-projects')) {
+            const input = document.getElementById('filterProjName');
+            if (input) input.value = searchTerm;
+        }
+    }
 });
+
+function navigateToManage(type, name) {
+    const pageMap = {
+        'cong-trinh': 'publications.html',
+        'de-tai': 'projects.html'
+    };
+    const page = pageMap[type];
+    if (page) {
+        window.location.href = `${page}?search=${encodeURIComponent(name)}`;
+    }
+}
 
 
 // ─── Admin chart instances ───
@@ -1771,7 +1794,16 @@ async function viewLecturerStats(gvId) {
             if (gv.cong_trinh && gv.cong_trinh.length > 0) {
                 html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
                 gv.cong_trinh.forEach(ct => {
-                    html += `<li><b>${ct.ten_cong_trinh}</b> <span style="color:var(--text-muted); font-size:12px;">(${ct.nam_xuat_ban || '?'})</span></li>`;
+                    const ten = ct.ten_cong_trinh || (ct.cong_trinh ? ct.cong_trinh.ten_cong_trinh : 'Không có tiêu đề');
+                    const nam = ct.nam_xuat_ban || (ct.cong_trinh ? ct.cong_trinh.nam_xuat_ban : '?');
+                    const vt = ct.vai_tro || (ct.cong_trinh ? ct.cong_trinh.vai_tro : '');
+                    let vaiTroLabel = 'Tác giả';
+                    if (vt === 'TAC_GIA_CHINH') vaiTroLabel = 'Tác giả chính';
+                    else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') vaiTroLabel = 'Cộng sự';
+
+                    const clickAttr = `onclick="navigateToManage('cong-trinh', '${ten.replace(/'/g, "\\'")}')" style="cursor:pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='inherit'"` ;
+
+                    html += `<li ${clickAttr}><b>${ten}</b> <span style="color:var(--text-muted); font-size:12px;">(${nam}) (Vai trò: <b>${vaiTroLabel}</b>)</span></li>`;
                 });
                 html += `</ul>`;
             } else {
@@ -1782,8 +1814,10 @@ async function viewLecturerStats(gvId) {
             if (gv.de_tai && gv.de_tai.length > 0) {
                 html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
                 gv.de_tai.forEach(dt => {
-                    const ten = dt.de_tai ? dt.de_tai.ten_de_tai : 'N/A';
-                    html += `<li><b>${ten}</b> <span style="color:var(--text-muted); font-size:12px;">(Vai trò: <b>${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`;
+                    const ten = dt.ten_de_tai || (dt.de_tai ? dt.de_tai.ten_de_tai : 'N/A');
+                    const clickAttr = `onclick="navigateToManage('de-tai', '${ten.replace(/'/g, "\\'")}')" style="cursor:pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='inherit'"` ;
+
+                    html += `<li ${clickAttr}><b>${ten}</b> <span style="color:var(--text-muted); font-size:12px;">(Vai trò: <b>${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`;
                 });
                 html += `</ul>`;
             } else {
