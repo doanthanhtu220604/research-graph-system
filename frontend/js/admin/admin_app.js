@@ -153,6 +153,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Tải badge số lượng thùng rác trên sidebar (áp dụng toàn bộ trang admin)
     updateTrashBadge();
+
+    // Thêm nút Back to Top
+    const bttBtn = document.createElement('button');
+    bttBtn.className = 'back-to-top';
+    bttBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    document.body.appendChild(bttBtn);
+
+    if (mainContent) {
+        mainContent.addEventListener('scroll', () => {
+            if (mainContent.scrollTop > 300) {
+                bttBtn.classList.add('visible');
+            } else {
+                bttBtn.classList.remove('visible');
+            }
+        });
+    }
+
+    bttBtn.addEventListener('click', () => {
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
 });
 
 
@@ -1317,6 +1341,45 @@ async function updateTrashBadge() {
 // ============================================================
 
 async function openRelationModal(type, entityId, entityName = null) {
+    // Styles cho nút chuyển đổi vai trò
+    if (!document.getElementById('role-toggle-styles')) {
+        const style = document.createElement('style');
+        style.id = 'role-toggle-styles';
+        style.textContent = `
+            .role-item-row {
+                position: relative;
+                padding: 8px;
+                border-radius: 6px;
+                transition: background 0.2s;
+            }
+            .role-item-row:hover {
+                background: rgba(79, 142, 247, 0.05);
+            }
+            .btn-role-switch {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                display: none;
+                padding: 4px 10px;
+                font-size: 11px;
+                background: var(--accent-blue);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                z-index: 10;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .role-item-row:hover .btn-role-switch {
+                display: block;
+            }
+            .btn-role-switch:hover {
+                filter: brightness(1.1);
+            }
+        `;
+        document.head.appendChild(style);
+    }
     if (!document.getElementById('adminRelationModalOverlay')) {
         createRelationModalHtml();
     }
@@ -1365,28 +1428,36 @@ async function openRelationModal(type, entityId, entityName = null) {
                 <div style="display:flex; gap: 20px; flex-wrap: wrap;">
                     <div style="flex:1; min-width: 280px;">
                         <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Tác giả chính (nội bộ):</b></p>
-                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allGVs.map(gv => `
-                            <div style="margin-bottom: 8px;">
-                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
-                                    <input type="checkbox" name="gv_tac_gia_chinh" value="${gv.id}" ${tacGiaChinhIds.includes(gv.id) ? 'checked' : ''}>
-                                    <span>${gv.ho_va_ten}</span>
-                                </label>
-                            </div>
-                        `).join('')}
+                        <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => {
+                            const checked = tacGiaChinhIds.includes(gv.id);
+                            return `
+                                <div class="role-item-row" id="row-main-${gv.id}">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                        <input type="checkbox" name="gv_tac_gia_chinh" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'main')">
+                                        <span>${gv.ho_va_ten}</span>
+                                    </label>
+                                    ${checked ? `<button class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
                         </div>
                     </div>
                     <div style="flex:1; min-width: 280px;">
                         <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Cộng sự (nội bộ):</b></p>
-                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allGVs.map(gv => `
-                            <div style="margin-bottom: 8px;">
-                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
-                                    <input type="checkbox" name="gv_cong_su" value="${gv.id}" ${congSuIds.includes(gv.id) ? 'checked' : ''}>
-                                    <span>${gv.ho_va_ten}</span>
-                                </label>
-                            </div>
-                        `).join('')}
+                        <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => {
+                            const checked = congSuIds.includes(gv.id);
+                            return `
+                                <div class="role-item-row" id="row-collab-${gv.id}">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                        <input type="checkbox" name="gv_cong_su" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'collab')">
+                                        <span>${gv.ho_va_ten}</span>
+                                    </label>
+                                    ${checked ? `<button class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'collab')"><i class="fas fa-exchange-alt"></i> Sang Tác giả chính</button>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
                         </div>
                     </div>
                 </div>
@@ -1422,28 +1493,36 @@ async function openRelationModal(type, entityId, entityName = null) {
                 <div style="display:flex; gap: 20px; flex-wrap: wrap;">
                     <div style="flex:1; min-width: 280px;">
                         <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Chủ nhiệm:</b></p>
-                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allGVs.map(gv => `
-                            <div style="margin-bottom: 8px;">
-                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
-                                    <input type="checkbox" name="gv_chu_nhiem" value="${gv.id}" ${chuNhiemIds.includes(gv.id) ? 'checked' : ''}>
-                                    <span>${gv.ho_va_ten}</span>
-                                </label>
-                            </div>
-                        `).join('')}
+                        <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => {
+                            const checked = chuNhiemIds.includes(gv.id);
+                            return `
+                                <div class="role-item-row" id="row-lead-${gv.id}">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                        <input type="checkbox" name="gv_chu_nhiem" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'lead')">
+                                        <span>${gv.ho_va_ten}</span>
+                                    </label>
+                                    ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
                         </div>
                     </div>
                     <div style="flex:1; min-width: 280px;">
                         <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Thành viên nội bộ:</b></p>
-                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allGVs.map(gv => `
-                            <div style="margin-bottom: 8px;">
-                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
-                                    <input type="checkbox" name="gv_tham_gia" value="${gv.id}" ${thamGiaIds.includes(gv.id) ? 'checked' : ''}>
-                                    <span>${gv.ho_va_ten}</span>
-                                </label>
-                            </div>
-                        `).join('')}
+                        <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => {
+                            const checked = thamGiaIds.includes(gv.id);
+                            return `
+                                <div class="role-item-row" id="row-member-${gv.id}">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                        <input type="checkbox" name="gv_tham_gia" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'member')">
+                                        <span>${gv.ho_va_ten}</span>
+                                    </label>
+                                    ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
                         </div>
                     </div>
                 </div>
@@ -2002,4 +2081,79 @@ window.logoutAdmin = function() {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userInfo');
     window.location.href = '/user/login.html';
+};
+
+// Helper: Đồng bộ checkbox và hiển thị nút switch
+window.syncRoleCheckbox = function(gvId, column) {
+    const mainCb = document.querySelector(`input[name="gv_tac_gia_chinh"][value="${gvId}"]`) || document.querySelector(`input[name="gv_chu_nhiem"][value="${gvId}"]`);
+    const collabCb = document.querySelector(`input[name="gv_cong_su"][value="${gvId}"]`) || document.querySelector(`input[name="gv_tham_gia"][value="${gvId}"]`);
+    
+    // Nếu chọn bên này thì bỏ chọn bên kia (logic một người chỉ một vai trò)
+    if (column === 'main' || column === 'lead') {
+        if (mainCb && mainCb.checked && collabCb) collabCb.checked = false;
+    } else {
+        if (collabCb && collabCb.checked && mainCb) mainCb.checked = false;
+    }
+
+    // Refresh lại giao diện nút switch (đơn giản nhất là re-render hoặc DOM manipulation)
+    // Ở đây ta dùng DOM manipulation cho nhanh
+    updateSwitchButtons(gvId);
+};
+
+function updateSwitchButtons(gvId) {
+    const mainRow = document.getElementById(`row-main-${gvId}`) || document.getElementById(`row-lead-${gvId}`);
+    const collabRow = document.getElementById(`row-collab-${gvId}`) || document.getElementById(`row-member-${gvId}`);
+    
+    const mainCb = mainRow ? mainRow.querySelector('input[type="checkbox"]') : null;
+    const collabCb = collabRow ? collabRow.querySelector('input[type="checkbox"]') : null;
+
+    if (mainRow) {
+        let btn = mainRow.querySelector('.btn-role-switch');
+        if (mainCb.checked) {
+            if (!btn) {
+                const text = mainRow.id.includes('lead') ? 'Sang Thành viên' : 'Sang Cộng sự';
+                const func = mainRow.id.includes('lead') ? 'switchMemberRole' : 'switchAuthorRole';
+                mainRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="${func}('${gvId}', '${mainRow.id.includes('lead') ? 'lead' : 'main'}')"><i class="fas fa-exchange-alt"></i> ${text}</button>`);
+            }
+        } else if (btn) btn.remove();
+    }
+
+    if (collabRow) {
+        let btn = collabRow.querySelector('.btn-role-switch');
+        if (collabCb.checked) {
+            if (!btn) {
+                const text = collabRow.id.includes('member') ? 'Sang Chủ nhiệm' : 'Sang Tác giả chính';
+                const func = collabRow.id.includes('member') ? 'switchMemberRole' : 'switchAuthorRole';
+                collabRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="${func}('${gvId}', '${collabRow.id.includes('member') ? 'member' : 'collab'}')"><i class="fas fa-exchange-alt"></i> ${text}</button>`);
+            }
+        } else if (btn) btn.remove();
+    }
+}
+
+window.switchAuthorRole = function(gvId, currentRole) {
+    const mainCb = document.querySelector(`input[name="gv_tac_gia_chinh"][value="${gvId}"]`);
+    const collabCb = document.querySelector(`input[name="gv_cong_su"][value="${gvId}"]`);
+    
+    if (currentRole === 'main') {
+        if (mainCb) mainCb.checked = false;
+        if (collabCb) collabCb.checked = true;
+    } else {
+        if (collabCb) collabCb.checked = false;
+        if (mainCb) mainCb.checked = true;
+    }
+    updateSwitchButtons(gvId);
+};
+
+window.switchMemberRole = function(gvId, currentRole) {
+    const leadCb = document.querySelector(`input[name="gv_chu_nhiem"][value="${gvId}"]`);
+    const memberCb = document.querySelector(`input[name="gv_tham_gia"][value="${gvId}"]`);
+    
+    if (currentRole === 'lead') {
+        if (leadCb) leadCb.checked = false;
+        if (memberCb) memberCb.checked = true;
+    } else {
+        if (memberCb) memberCb.checked = false;
+        if (leadCb) leadCb.checked = true;
+    }
+    updateSwitchButtons(gvId);
 };
