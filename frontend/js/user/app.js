@@ -977,12 +977,21 @@ async function showLecturerDetail(gvId) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-file-alt"></i> Công trình nghiên cứu (${gv.cong_trinh.length})</h3>
-                        ${gv.cong_trinh.map(ct => `
-                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail('${ct.id}')">
-                                <strong>${ct.ten_cong_trinh || 'N/A'}</strong>
-                                ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted); font-size: 12px;"> (${ct.nam_xuat_ban})</span>` : ''}
-                            </div>
-                        `).join('')}
+                        ${gv.cong_trinh.map(item => {
+                            const ct = item.cong_trinh;
+                            const vt = item.vai_tro;
+                            let roleLabel = '';
+                            if (vt === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:var(--accent-blue); font-size:11px; font-weight:600;">(Tác giả chính)</span>';
+                            else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px; font-weight:600;">(Cộng sự)</span>';
+
+                            return `
+                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail('${ct.id}')">
+                                    <strong>${ct.ten_cong_trinh || 'N/A'}</strong>
+                                    ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted); font-size: 12px;"> (${ct.nam_xuat_ban})</span>` : ''}
+                                    <div style="margin-top:4px;">${roleLabel}</div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
             }
@@ -1099,8 +1108,23 @@ async function showPublicationDetail(ctId) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Nhóm tác giả (trong trường)</h3>
-                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                            ${ct.tac_gia.map(tg => `<span style="padding:5px 10px; background:rgba(79, 142, 247, 0.1); color:var(--accent-blue); border-radius:15px; font-size:13px;"><i class="fas fa-user-tie" style="margin-right:4px; font-size:11px;"></i>${tg}</span>`).join('')}
+                        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                            ${ct.tac_gia.map(tg => {
+                                let roleText = '';
+                                let roleColor = 'rgba(79, 142, 247, 0.1)';
+                                let textColor = 'var(--accent-blue)';
+                                
+                                if (tg.vai_tro === 'TAC_GIA_CHINH') {
+                                    roleText = ' <small style="opacity:0.8;">(Tác giả chính)</small>';
+                                    roleColor = 'rgba(79, 142, 247, 0.15)';
+                                } else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') {
+                                    roleText = ' <small style="opacity:0.8;">(Cộng sự)</small>';
+                                    roleColor = 'rgba(16, 185, 129, 0.1)';
+                                    textColor = '#10b981';
+                                }
+                                
+                                return `<span style="padding:6px 14px; background:${roleColor}; color:${textColor}; border-radius:20px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fas fa-user-tie" style="font-size:11px;"></i>${tg.ten}${roleText}</span>`;
+                            }).join('')}
                         </div>
                     </div>
                 `;
@@ -1267,7 +1291,8 @@ function renderPublicationRows(list) {
     }
     container.innerHTML = list.map(ct => {
         const title = String(ct.ten_cong_trinh || 'N/A').replace(/</g, '&lt;');
-        const authors = (ct.tac_gia || []).join(', ');
+        // Với API danh sách, tac_gia vẫn là mảng string tên
+        const authors = (ct.tac_gia || []).map(tg => typeof tg === 'object' ? tg.ten : tg).join(', ');
         return `
             <div class="data-row" onclick="showPublicationDetail('${ct.id}')">
                 <div class="data-row-icon row-icon-green"><i class="fas fa-file-alt"></i></div>

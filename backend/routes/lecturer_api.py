@@ -39,8 +39,8 @@ def suggest_collaborators():
 
         # ── Bước 2: Lấy danh sách ID những người đã từng hợp tác ─────────────
         da_hop_tac_res = conn.query("""
-            MATCH (me:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(work)
-            <-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]-(other:GiangVien)
+            MATCH (me:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(work)
+            <-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]-(other:GiangVien)
             WHERE me.id = $gv_id AND other.id <> $gv_id
               AND coalesce(work.is_deleted, false) = false
               AND coalesce(other.is_deleted, false) = false
@@ -54,7 +54,7 @@ def suggest_collaborators():
             WHERE other.id <> $gv_id AND coalesce(other.is_deleted, false) = false
             OPTIONAL MATCH (other)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
             OPTIONAL MATCH (other)-[:THUOC_BO_MON]->(bm:BoMon)
-            OPTIONAL MATCH (other)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            OPTIONAL MATCH (other)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             OPTIONAL MATCH (other)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             RETURN other.id AS id,
                    other.ho_va_ten AS ho_va_ten,
@@ -143,12 +143,12 @@ def get_me():
         query = """
         MATCH (g:GiangVien) WHERE g.id = $id AND coalesce(g.is_deleted, false) = false
         OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        OPTIONAL MATCH (g)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+        OPTIONAL MATCH (g)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (g)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
         RETURN 
             g {.*} as info,
             collect(DISTINCT lv.ten_linh_vuc) as linh_vuc,
-            collect(DISTINCT ct {.*}) as cong_trinh,
+            collect(DISTINCT ct {.*, vai_tro: type(r)}) as cong_trinh,
             collect(DISTINCT dt {.*, vai_tro: type(r)}) as de_tai
         """
         result = conn.query_single(query, parameters={'id': gv_id})
@@ -177,9 +177,9 @@ def get_my_publications():
     try:
         conn = get_neo4j_connection()
         query = """
-        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        MATCH (g:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         WHERE g.id = $id AND coalesce(ct.is_deleted, false) = false
-        RETURN ct {.*} as cong_trinh
+        RETURN ct {.*, vai_tro: type(r)} as cong_trinh
         ORDER BY ct.nam_xuat_ban DESC
         """
         results = conn.query(query, parameters={'id': gv_id})
@@ -224,11 +224,11 @@ def add_my_publication():
         WITH creator, members, ct
         SET ct.id = 'ct_' + toString(id(ct))
         
-        CREATE (creator)-[:LA_TAC_GIA_CUA]->(ct)
+        CREATE (creator)-[:TAC_GIA_CHINH]->(ct)
         
         FOREACH (m IN members |
             FOREACH (_ IN CASE WHEN m.id <> creator.id THEN [1] ELSE [] END |
-                CREATE (m)-[:LA_TAC_GIA_CUA]->(ct)
+                CREATE (m)-[:TAC_GIA_CHINH]->(ct)
             )
         )
         RETURN ct {.*} as new_ct
@@ -253,7 +253,7 @@ def update_my_publication(ct_id):
         return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
         
     conn = get_neo4j_connection()
-    check_query = """MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) 
+    check_query = """MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) 
                      WHERE g.id = $gv_id AND ct.id = $ct_id
                      RETURN ct"""
     allow = conn.query(check_query, parameters={'gv_id': gv_id, 'ct_id': ct_id})
@@ -411,9 +411,9 @@ def get_lecturer_timeline():
 
         # ── 2. Lấy công trình nghiên cứu ─────────────────────────────────────
         ct_res = conn.query("""
-            MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            MATCH (g:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE g.id = $id AND coalesce(ct.is_deleted, false) = false
-            OPTIONAL MATCH (co:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            OPTIONAL MATCH (co:GiangVien)-[r2:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
             WHERE co.id <> $id AND coalesce(co.is_deleted, false) = false
             RETURN ct.id AS id,
                    ct.ten_cong_trinh AS tieu_de,
@@ -422,6 +422,7 @@ def get_lecturer_timeline():
                    ct.tom_tat AS tom_tat,
                    ct.link AS link,
                    ct.trang_thai AS trang_thai,
+                   type(r) AS vai_tro,
                    collect(DISTINCT co.ho_va_ten) AS dong_tac_gia
             ORDER BY ct.nam_xuat_ban DESC
         """, {'id': gv_id})
@@ -468,7 +469,7 @@ def get_lecturer_timeline():
                 'link': ct.get('link') or '',
                 'trang_thai': ct.get('trang_thai') or 'Đã duyệt',
                 'dong_tac_gia': dong_ta,
-                'vai_tro': 'Tác giả',
+                'vai_tro': 'Tác giả chính' if ct.get('vai_tro') == 'TAC_GIA_CHINH' else ('Cộng sự' if ct.get('vai_tro') in ['CONG_SU', 'LA_TAC_GIA_CUA'] else 'Tác giả'),
             })
 
         for dt in dt_res:
@@ -682,7 +683,7 @@ def get_my_trash():
         conn = get_neo4j_connection()
         # Lấy công trình đã xóa
         ct_query = """
-        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         WHERE g.id = $id AND ct.is_deleted = true
         RETURN ct {.*, type: 'cong-trinh'} as item
         """
@@ -713,7 +714,7 @@ def restore_my_item(type, id):
     try:
         conn = get_neo4j_connection()
         query = f"""
-        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(n:{label})
+        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(n:{label})
         WHERE g.id = $gv_id AND n.id = $id AND n.is_deleted = true
         SET n.trang_thai = 'Yêu cầu khôi phục'
         RETURN n
@@ -740,7 +741,7 @@ def request_status_change(type, id):
     try:
         conn = get_neo4j_connection()
         # Kiểm tra quyền
-        check_query = f"""MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(n:{label}) 
+        check_query = f"""MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(n:{label}) 
                          WHERE g.id = $gv_id AND n.id = $id
                          RETURN n"""
         allow = conn.query(check_query, parameters={'gv_id': gv_id, 'id': id})

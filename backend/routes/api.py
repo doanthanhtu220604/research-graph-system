@@ -55,9 +55,9 @@ def get_giang_vien_detail(gv_id):
 
     # Công trình nghiên cứu
     cong_trinh = conn.query("""
-        MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         WHERE gv.id = $id AND coalesce(ct.is_deleted, false) = false
-        RETURN ct
+        RETURN ct, type(r) AS vai_tro
         ORDER BY ct.nam_xuat_ban DESC
     """, {"id": gv_id})
 
@@ -82,7 +82,7 @@ def get_giang_vien_detail(gv_id):
     for r in cong_trinh:
         if r.get("ct"):
             ct_item = dict(r["ct"])
-            result["cong_trinh"].append(ct_item)
+            result["cong_trinh"].append({"cong_trinh": ct_item, "vai_tro": r.get("vai_tro")})
             
     # Check if de_tai is actually returned a valid node
     result["de_tai"] = []
@@ -108,7 +108,7 @@ def get_all_cong_trinh():
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
         WHERE coalesce(ct.is_deleted, false) = false
-        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
         OPTIONAL MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct)
         RETURN ct,
                collect(DISTINCT gv.ho_va_ten) AS tac_gia,
@@ -131,9 +131,9 @@ def get_cong_trinh_detail(ct_id):
     result = conn.query_single("""
         MATCH (ct:CongTrinhNghienCuu) 
         WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
-        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
         WHERE coalesce(gv.is_deleted, false) = false
-        RETURN ct, collect(gv.ho_va_ten) AS tac_gia
+        RETURN ct, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS tac_gia
     """, {"id": ct_id})
 
     tac_gia_ngoai_res = conn.query("""
@@ -496,7 +496,7 @@ def get_overview_stats():
 
         # Top giảng viên theo số công trình
         top_gv = conn.query("""
-            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
             RETURN gv.ho_va_ten AS ten, gv.id AS id, count(ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC
@@ -546,7 +546,7 @@ def get_overview_stats():
         ct_moi = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
             WHERE ct.nam_xuat_ban IS NOT NULL
-            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
             RETURN ct.id AS id,
                    ct.ten_cong_trinh AS ten_cong_trinh,
                    ct.loai_an_pham AS loai_an_pham,

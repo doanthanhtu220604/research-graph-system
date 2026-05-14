@@ -881,12 +881,16 @@ async function viewPublicationDetail(ctId) {
             ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>`
             : 'N/A';
 
-        // API public trả về tac_gia: mảng string tên
-        const tacGia = (ct.tac_gia || []).filter(Boolean);
+        // API public trả về tac_gia: mảng object {ten, vai_tro}
+        const tacGia = (ct.tac_gia || []).filter(tg => tg && tg.ten);
         const tacGiaHtml = tacGia.length > 0
-            ? `<ul style="margin-left:20px;margin-top:10px;line-height:1.8;">${tacGia.map(tg =>
-                `<li><i class="fas fa-user-tie" style="color:#4F8EF7;font-size:11px;margin-right:4px;"></i><b>${tg}</b></li>`
-              ).join('')}</ul>`
+            ? `<ul style="margin-left:20px;margin-top:10px;line-height:1.8;">${tacGia.map(tg => {
+                let roleLabel = '';
+                if (tg.vai_tro === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:#4F8EF7; font-size:11px;">(Tác giả chính)</span>';
+                else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px;">(Cộng sự)</span>';
+                
+                return `<li><i class="fas fa-user-tie" style="color:#4F8EF7;font-size:11px;margin-right:4px;"></i><b>${tg.ten}</b>${roleLabel}</li>`;
+              }).join('')}</ul>`
             : '<p style="color:var(--text-muted);font-size:13px;margin-top:5px;">Chưa có tác giả nào được gán.</p>';
 
         const tgnList = ct.tac_gia_ngoai || [];

@@ -8,48 +8,55 @@ admin_relations_bp = Blueprint("admin_relations", __name__, url_prefix="/api/adm
 # ==============================================================================
 @admin_relations_bp.route("/cong-trinh/<ct_id>/giang-vien", methods=["GET"])
 def get_tac_gia_cong_trinh(ct_id):
-    """Lấy danh sách ID các giảng viên là tác giả của công trình."""
+    """Lấy danh sách ID các giảng viên là tác giả của công trình kèm vai trò."""
     conn = get_neo4j_connection()
     results = conn.query("""
-        MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         WHERE ct.id = $id
-        RETURN gv.id AS gv_id, gv.ho_va_ten AS ten
+        RETURN gv.id AS gv_id, gv.ho_va_ten AS ten, type(r) AS vai_tro
     """, {"id": ct_id})
-    data = [{"id": r["gv_id"], "ten": r["ten"]} for r in results]
+    data = [{"id": r["gv_id"], "ten": r["ten"], "vai_tro": r["vai_tro"]} for r in results]
     return jsonify({"status": "ok", "data": data})
 
 
 @admin_relations_bp.route("/cong-trinh/<ct_id>/giang-vien", methods=["PUT"])
 def update_tac_gia_cong_trinh(ct_id):
     """
-    Cập nhật danh sách tác giả cho công trình.
-    Payload: {"giang_vien_ids": [12, 15, ...]}
-    Xóa tất cả quan hệ LA_TAC_GIA_CUA hiện tại đến công trình này,
-    sau đó tạo lại quan hệ mới cho các ID được gửi lên.
+    Cập nhật danh sách tác giả cho công trình với vai trò (Tác giả chính / Cộng sự).
+    Payload: {"tac_gia_chinh_ids": [12], "cong_su_ids": [15, 16]}
     """
     data = request.json
-    gv_ids = data.get("giang_vien_ids", [])
+    tac_gia_chinh_ids = data.get("tac_gia_chinh_ids", [])
+    cong_su_ids = data.get("cong_su_ids", [])
     
     conn = get_neo4j_connection()
     try:
-        # 1. Xóa các quan hệ cũ
+        # 1. Xóa các quan hệ cũ (bao gồm cả quan hệ cũ LA_TAC_GIA_CUA)
         conn.query("""
-            MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE ct.id = $id
             DELETE r
         """, {"id": ct_id})
         
-        # 2. Thêm các quan hệ mới
-        if gv_ids:
-            # Tạo node mới sử dụng UNWIND (truyền mảng ID vào)
+        # 2. Thêm Tác giả chính
+        if tac_gia_chinh_ids:
             conn.query("""
-                UNWIND $gv_ids AS gv_id
+                UNWIND $ids AS gv_id
                 MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu)
                 WHERE gv.id = gv_id AND ct.id = $id
-                MERGE (gv)-[:LA_TAC_GIA_CUA]->(ct)
-            """, {"id": ct_id, "gv_ids": gv_ids})
+                MERGE (gv)-[:TAC_GIA_CHINH]->(ct)
+            """, {"id": ct_id, "ids": tac_gia_chinh_ids})
             
-        return jsonify({"status": "ok", "message": "Đã cập nhật quan hệ tác giả công trình."})
+        # 3. Thêm Cộng sự
+        if cong_su_ids:
+            conn.query("""
+                UNWIND $ids AS gv_id
+                MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu)
+                WHERE gv.id = gv_id AND ct.id = $id
+                MERGE (gv)-[:CONG_SU]->(ct)
+            """, {"id": ct_id, "ids": cong_su_ids})
+            
+        return jsonify({"status": "ok", "message": "Đã cập nhật vai trò tác giả công trình."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

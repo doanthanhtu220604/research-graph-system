@@ -1354,29 +1354,47 @@ async function openRelationModal(type, entityId, entityName = null) {
             ]);
             const relGvData = await relGvRes.json();
             const relTgnData = await relTgnRes.json();
-            const selectedGvIds = (relGvData.data || []).map(r => r.id);
+            
+            // Phân loại vai trò (hỗ trợ cả LA_TAC_GIA_CUA cũ)
+            const tacGiaChinhIds = (relGvData.data || []).filter(r => r.vai_tro === 'TAC_GIA_CHINH').map(r => r.id);
+            const congSuIds = (relGvData.data || []).filter(r => r.vai_tro === 'CONG_SU' || r.vai_tro === 'LA_TAC_GIA_CUA').map(r => r.id);
             const selectedTgnIds = (relTgnData.data || []).map(r => r.id);
             
             let html = `
-            <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:280px;">
-                    <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Tác giả nội bộ:</b></p>
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+            <div style="display:flex; flex-direction:column; gap: 20px;">
+                <div style="display:flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 280px;">
+                        <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Tác giả chính (nội bộ):</b></p>
+                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
                         ${allGVs.map(gv => `
                             <div style="margin-bottom: 8px;">
                                 <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
-                                    <input type="checkbox" name="gv_tac_gia" value="${gv.id}" ${selectedGvIds.includes(gv.id) ? 'checked' : ''}>
-                                    <span>${gv.ho_va_ten} <small style="color:var(--text-muted)">(${gv.bo_mon || 'N/A'})</small></span>
+                                    <input type="checkbox" name="gv_tac_gia_chinh" value="${gv.id}" ${tacGiaChinhIds.includes(gv.id) ? 'checked' : ''}>
+                                    <span>${gv.ho_va_ten}</span>
                                 </label>
                             </div>
                         `).join('')}
+                        </div>
+                    </div>
+                    <div style="flex:1; min-width: 280px;">
+                        <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Cộng sự (nội bộ):</b></p>
+                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => `
+                            <div style="margin-bottom: 8px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
+                                    <input type="checkbox" name="gv_cong_su" value="${gv.id}" ${congSuIds.includes(gv.id) ? 'checked' : ''}>
+                                    <span>${gv.ho_va_ten}</span>
+                                </label>
+                            </div>
+                        `).join('')}
+                        </div>
                     </div>
                 </div>
-                <div style="flex:1; min-width:280px;">
+                <div>
                     <p style="margin-bottom:10px; color:#e67e22;"><b><i class="fas fa-user-friends"></i> Tác giả ngoài:</b></p>
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
                         ${allTGNs.map(tgn => `
-                            <div style="margin-bottom: 8px;">
+                            <div style="margin-bottom: 8px; display:inline-block; width:30%; min-width:200px;">
                                 <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
                                     <input type="checkbox" name="tgn_ids" value="${tgn.id}" ${selectedTgnIds.includes(tgn.id) ? 'checked' : ''}>
                                     <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
@@ -1466,14 +1484,17 @@ async function saveRelations(e) {
         const tgn_ids = Array.from(tgnBoxes).map(cb => cb.value);
 
         if (type === 'cong-trinh') {
-            const gvBoxes = document.querySelectorAll('input[name="gv_tac_gia"]:checked');
-            const gv_ids = Array.from(gvBoxes).map(cb => cb.value);
+            const tjcBoxes = document.querySelectorAll('input[name="gv_tac_gia_chinh"]:checked');
+            const csBoxes = document.querySelectorAll('input[name="gv_cong_su"]:checked');
+            
+            const tacGiaChinhIds = Array.from(tjcBoxes).map(cb => cb.value);
+            const congSuIds = Array.from(csBoxes).map(cb => cb.value);
             
             const [gvRes, tgnRes] = await Promise.all([
                 fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/giang-vien`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ giang_vien_ids: gv_ids })
+                    body: JSON.stringify({ tac_gia_chinh_ids: tacGiaChinhIds, cong_su_ids: congSuIds })
                 }),
                 fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/tac-gia-ngoai`, {
                     method: 'PUT',
@@ -1657,7 +1678,11 @@ async function viewPublicationStats(ctId) {
             if (ct.tac_gia && ct.tac_gia.length > 0) {
                 html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.6;">`;
                 ct.tac_gia.forEach(tg => {
-                    html += `<li><i class="fas fa-user-tie" style="color:#4F8EF7; font-size:11px; margin-right:4px;"></i><b>${tg}</b></li>`;
+                    let roleLabel = '';
+                    if (tg.vai_tro === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:#4F8EF7; font-size:11px;">(Tác giả chính)</span>';
+                    else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px;">(Cộng sự)</span>';
+                    
+                    html += `<li><i class="fas fa-user-tie" style="color:#4F8EF7; font-size:11px; margin-right:4px;"></i><b>${tg.ten}</b>${roleLabel}</li>`;
                 });
                 html += `</ul>`;
             } else {
