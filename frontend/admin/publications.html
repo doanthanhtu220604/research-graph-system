@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -128,10 +128,9 @@
                             <i class="fas fa-search"></i>
                             <input type="text" id="filterPubTitle" placeholder="Tìm tên công trình..." style="font-size: 14px;" onkeyup="filterPublications()">
                         </div>
-                        <div class="search-box" style="width: 150px; flex-shrink: 0; padding: 6px 12px; margin: 0; border-radius: 6px;">
-                            <i class="fas fa-calendar-alt"></i>
-                            <input type="number" id="filterPubYear" placeholder="Năm XB..." style="font-size: 14px;" onkeyup="filterPublications()" onchange="filterPublications()">
-                        </div>
+                        <select id="filterPubYear" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; color: var(--text-primary); outline: none; background: white;" onchange="filterPublications()">
+                            <option value="">-- Năm xuất bản --</option>
+                        </select>
 
                     </div>
                     <div class="table-responsive">

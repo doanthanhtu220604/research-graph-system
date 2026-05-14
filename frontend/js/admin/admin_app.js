@@ -528,6 +528,7 @@ async function loadPublications() {
         if (data.status === 'ok') {
             currentEntitiesData['cong-trinh'] = data.data;
             renderPublicationsTable(data.data);
+            populatePublicationYearFilter(data.data);
         }
     } catch (err) {
         console.error(err);
@@ -582,6 +583,24 @@ function filterPublications() {
     });
     
     renderPublicationsTable(filtered);
+}
+
+function populatePublicationYearFilter(data) {
+    const select = document.getElementById('filterPubYear');
+    if (!select) return;
+    
+    const years = new Set();
+    data.forEach(ct => {
+        if (ct.nam_xuat_ban) years.add(ct.nam_xuat_ban);
+    });
+    
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    
+    let html = '<option value="">-- Năm xuất bản --</option>';
+    sortedYears.forEach(year => {
+        html += `<option value="${year}">Năm ${year}</option>`;
+    });
+    select.innerHTML = html;
 }
 
 async function approvePublication(id) {
@@ -647,6 +666,7 @@ async function loadProjects() {
         if (data.status === 'ok') {
             currentEntitiesData['de-tai'] = data.data;
             renderProjectsTable(data.data);
+            populateProjectYearFilter(data.data);
         }
     } catch (err) {
         console.error(err);
@@ -697,16 +717,35 @@ function filterProjects() {
     const list = currentEntitiesData['de-tai'] || [];
     const nameFilter = (document.getElementById('filterProjName')?.value || '').toLowerCase();
     const levelFilter = document.getElementById('filterProjLevel')?.value || '';
-    const statusFilter = document.getElementById('filterProjStatus')?.value || '';
+    const yearFilter = document.getElementById('filterProjYear')?.value || '';
     
     const filtered = list.filter(dt => {
         const matchName = (dt.ten_de_tai || '').toLowerCase().includes(nameFilter);
         const matchLevel = levelFilter === '' || (dt.cap_de_tai === levelFilter);
-        const matchStatus = statusFilter === '' || (dt.trang_thai === statusFilter);
-        return matchName && matchLevel && matchStatus;
+        const matchYear = yearFilter === '' || (dt.nam_bat_dau == yearFilter || dt.nam_ket_thuc == yearFilter);
+        return matchName && matchLevel && matchYear;
     });
     
     renderProjectsTable(filtered);
+}
+
+function populateProjectYearFilter(data) {
+    const select = document.getElementById('filterProjYear');
+    if (!select) return;
+    
+    const years = new Set();
+    data.forEach(dt => {
+        if (dt.nam_bat_dau) years.add(dt.nam_bat_dau);
+        if (dt.nam_ket_thuc) years.add(dt.nam_ket_thuc);
+    });
+    
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    
+    let html = '<option value="">-- Năm thực hiện --</option>';
+    sortedYears.forEach(year => {
+        html += `<option value="${year}">Năm ${year}</option>`;
+    });
+    select.innerHTML = html;
 }
 
 async function loadResearchFields() {
