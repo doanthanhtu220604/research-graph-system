@@ -1352,8 +1352,10 @@ function filterUserProjects() {
 }
 
 // ─── Chart instances (để destroy khi cần reload) ───
-let chartByYear = null;
-let chartByLevel = null;
+let chartTrend = null;
+let chartLevel = null;
+let chartPubType = null;
+let chartDept = null;
 
 async function loadStatistics() {
     try {
@@ -1373,6 +1375,12 @@ async function loadStatistics() {
             data.de_tai_dang_thuc_hien || [],
             data.cong_trinh_moi || []
         );
+
+        // ── 3. Render Leaderboard ──────────────────────────────────────────────
+        renderStatsLeaderboard(data.top_giang_vien || []);
+
+        // ── 4. Render Charts ──────────────────────────────────────────────────
+        renderCharts(data);
 
     } catch (err) {
         console.error('Statistics error:', err);
@@ -1396,7 +1404,174 @@ function animateStatCard(id, endValue, duration = 1200) {
 }
 
 function renderStatsLeaderboard(lecturers) {
-    // Kept for backward compatibility
+    const podiumContainer = document.getElementById('statsPodium');
+    const listContainer = document.getElementById('statsRankList');
+    if (!podiumContainer || !listContainer) return;
+
+    if (!lecturers || lecturers.length === 0) {
+        podiumContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Không có dữ liệu giảng viên.</div>';
+        listContainer.innerHTML = '';
+        return;
+    }
+
+    // Tách Top 3 (Podium) và phần còn lại
+    const top3 = lecturers.slice(0, 3);
+    const others = lecturers.slice(3, 10);
+
+    // Render Podium
+    // Sắp xếp lại thứ tự hiển thị: 2 - 1 - 3
+    const displayOrder = [1, 0, 2];
+    podiumContainer.innerHTML = displayOrder.map(idx => {
+        const gv = top3[idx];
+        if (!gv) return '<div></div>';
+        const rank = idx + 1;
+        const medalIcon = rank === 1 ? 'fa-crown' : 'fa-medal';
+        return `
+            <div class="podium-card rank-${rank}" onclick="showLecturerDetail('${gv.id}')">
+                <div class="podium-medal"><i class="fas ${medalIcon}"></i></div>
+                <div class="podium-name">${gv.ten}</div>
+                <div class="podium-count">${gv.so_cong_trinh}</div>
+                <div class="podium-count-label">CÔNG TRÌNH</div>
+            </div>
+        `;
+    }).join('');
+
+    // Render List
+    const maxCount = Math.max(...lecturers.map(l => l.so_cong_trinh)) || 1;
+    listContainer.innerHTML = others.map((gv, i) => {
+        const rank = i + 4;
+        const percent = Math.round((gv.so_cong_trinh / maxCount) * 100);
+        return `
+            <div class="rank-list-item" onclick="showLecturerDetail('${gv.id}')">
+                <div class="rank-num">${rank}</div>
+                <div class="rank-info">
+                    <div class="rank-name">${gv.ten}</div>
+                </div>
+                <div class="rank-bar-wrap">
+                    <div class="rank-bar">
+                        <div class="rank-bar-fill" style="width: ${percent}%"></div>
+                    </div>
+                    <div class="rank-count-badge">${gv.so_cong_trinh} bài</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderCharts(data) {
+    const ctxTrend = document.getElementById('chartTrend');
+    const ctxLevel = document.getElementById('chartLevel');
+    const ctxPubType = document.getElementById('chartPubType');
+    const ctxDept = document.getElementById('chartDept');
+
+    // Hủy biểu đồ cũ nếu tồn tại
+    if (chartTrend) chartTrend.destroy();
+    if (chartLevel) chartLevel.destroy();
+    if (chartPubType) chartPubType.destroy();
+    if (chartDept) chartDept.destroy();
+
+    // 1. Biểu đồ xu hướng (Công trình & Đề tài)
+    if (ctxTrend) {
+        const years = [...new Set([
+            ...data.cong_trinh_theo_nam.map(d => d.nam),
+            ...data.de_tai_theo_nam.map(d => d.nam)
+        ])].sort((a, b) => a - b).filter(y => y > 2010);
+
+        const ctData = years.map(y => data.cong_trinh_theo_nam.find(d => d.nam === y)?.so_luong || 0);
+        const dtData = years.map(y => data.de_tai_theo_nam.find(d => d.nam === y)?.so_luong || 0);
+
+        chartTrend = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Công trình',
+                        data: ctData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Đề tài',
+                        data: dtData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+
+    // 2. Biểu đồ cơ cấu đề tài theo cấp
+    if (ctxLevel) {
+        chartLevel = new Chart(ctxLevel, {
+            type: 'doughnut',
+            data: {
+                labels: data.de_tai_theo_cap.map(d => d.cap),
+                datasets: [{
+                    data: data.de_tai_theo_cap.map(d => d.so_luong),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+
+    // 3. Biểu đồ cơ cấu ấn phẩm
+    if (ctxPubType) {
+        chartPubType = new Chart(ctxPubType, {
+            type: 'pie',
+            data: {
+                labels: data.cong_trinh_theo_loai.map(d => d.loai),
+                datasets: [{
+                    data: data.cong_trinh_theo_loai.map(d => d.so_luong),
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+
+    // 4. Biểu đồ giảng viên theo bộ môn
+    if (ctxDept) {
+        chartDept = new Chart(ctxDept, {
+            type: 'bar',
+            data: {
+                labels: data.giang_vien_theo_bo_mon.map(d => d.bo_mon.replace('Bộ môn ', '')),
+                datasets: [{
+                    label: 'Số lượng giảng viên',
+                    data: data.giang_vien_theo_bo_mon.map(d => d.so_luong),
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
 }
 
 // ── Render danh sách hoạt động ─────────────────────────────────────────

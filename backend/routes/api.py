@@ -556,6 +556,30 @@ def get_overview_stats():
             LIMIT 6
         """)
 
+        # ── Thống kê công trình theo loại ấn phẩm ───────────────────────────
+        ct_theo_loai = conn.query("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE ct.loai_an_pham IS NOT NULL AND coalesce(ct.is_deleted, false) = false
+            RETURN ct.loai_an_pham AS loai, count(ct) AS so_luong
+            ORDER BY so_luong DESC
+        """)
+
+        # ── Thống kê giảng viên theo học vị ─────────────────────────────────
+        gv_theo_hoc_vi = conn.query("""
+            MATCH (gv:GiangVien)
+            WHERE gv.hoc_vi IS NOT NULL AND coalesce(gv.is_deleted, false) = false
+            RETURN gv.hoc_vi AS hoc_vi, count(gv) AS so_luong
+            ORDER BY so_luong DESC
+        """)
+
+        # ── Thống kê giảng viên theo bộ môn ─────────────────────────────────
+        gv_theo_bo_mon = conn.query("""
+            MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
+            WHERE coalesce(gv.is_deleted, false) = false
+            RETURN bm.ten_bo_mon AS bo_mon, count(gv) AS so_luong
+            ORDER BY so_luong DESC
+        """)
+
         return jsonify({
             "status": "ok",
             "stats": {
@@ -568,6 +592,9 @@ def get_overview_stats():
             "cong_trinh_theo_nam": [{"nam": r["nam"], "so_luong": int(r["so_luong"])} for r in ct_theo_nam],
             "de_tai_theo_nam": [{"nam": r["nam"], "so_luong": int(r["so_luong"])} for r in dt_theo_nam],
             "de_tai_theo_cap": [{"cap": r["cap"], "so_luong": int(r["so_luong"])} for r in dt_theo_cap],
+            "cong_trinh_theo_loai": [{"loai": r["loai"], "so_luong": int(r["so_luong"])} for r in ct_theo_loai],
+            "giang_vien_theo_hoc_vi": [{"hoc_vi": r["hoc_vi"], "so_luong": int(r["so_luong"])} for r in gv_theo_hoc_vi],
+            "giang_vien_theo_bo_mon": [{"bo_mon": r["bo_mon"], "so_luong": int(r["so_luong"])} for r in gv_theo_bo_mon],
             "de_tai_dang_thuc_hien": [
                 {
                     "id": r["id"],

@@ -298,6 +298,41 @@
             .stats-hero { grid-template-columns: repeat(2, 1fr); }
             .podium-grid { grid-template-columns: 1fr; }
         }
+
+        /* ─── Chart Container Styles ─── */
+        .chart-container {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title i {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -379,6 +414,68 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ─── BẢNG VÀNG CÁC NHÀ KHOA HỌC ─── -->
+            <div class="top-lecturers-section" style="margin-bottom: 28px;">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-trophy"></i>
+                        Nhà khoa học tiêu biểu
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Dựa trên số lượng công trình nghiên cứu</div>
+                </div>
+                
+                <div class="podium-grid" id="statsPodium">
+                    <!-- Sẽ được render từ JS -->
+                </div>
+
+                <div class="rank-list" id="statsRankList">
+                    <!-- Sẽ được render từ JS -->
+                </div>
+            </div>
+
+            <!-- ─── BIỂU ĐỒ XU HƯỚNG & CƠ CẤU ─── -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 28px;" class="charts-grid-layout">
+                <!-- Biểu đồ xu hướng -->
+                <div class="chart-container">
+                    <h3 class="chart-title"><i class="fas fa-chart-line" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;"></i> Xu hướng nghiên cứu theo năm</h3>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="chartTrend"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ cơ cấu đề tài -->
+                <div class="chart-container">
+                    <h3 class="chart-title"><i class="fas fa-chart-pie" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"></i> Cơ cấu đề tài theo cấp</h3>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="chartLevel"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ cơ cấu ấn phẩm -->
+                <div class="chart-container">
+                    <h3 class="chart-title"><i class="fas fa-book-open" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"></i> Loại hình công trình công bố</h3>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="chartPubType"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ nhân sự theo bộ môn -->
+                <div class="chart-container">
+                    <h3 class="chart-title"><i class="fas fa-users" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"></i> Phân bổ giảng viên theo bộ môn</h3>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="chartDept"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                @media (max-width: 1000px) {
+                    .charts-grid-layout {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            </style>
 
         </section>
 
