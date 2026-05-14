@@ -5,6 +5,10 @@
 const API_BASE = '/api';
 let dashboardGraph = null;
 let exploreGraph = null;
+let chartTrend = null;
+let chartLevel = null;
+let chartPubType = null;
+let chartDept = null;
 
 // ============================================================
 // INITIALIZATION (MPA MODE)
@@ -73,6 +77,25 @@ async function loadDashboard() {
     initSimpleLecturerGrid();
     initSimplePublicationGrid();
     initSimpleProjectGrid();
+    
+    // Load Mini Graph Preview
+    loadKnowledgeGraph();
+}
+
+function performHeroSearch() {
+    const input = document.getElementById('heroSearchInput');
+    if (input) {
+        const query = input.value.trim();
+        if (query) {
+            window.location.href = `explore.html?q=${encodeURIComponent(query)}`;
+        }
+    }
+}
+
+function handleHeroSearch(e) {
+    if (e.key === 'Enter') {
+        performHeroSearch();
+    }
 }
 
 function animateValue(id, endValue, duration = 1000) {
@@ -88,15 +111,6 @@ function animateValue(id, endValue, duration = 1000) {
         }
     };
     window.requestAnimationFrame(step);
-}
-
-function handleHeroSearch(e) {
-    if (e.key === 'Enter') {
-        const query = e.target.value.trim();
-        if (query) {
-            window.location.href = `explore.html?q=${encodeURIComponent(query)}`;
-        }
-    }
 }
 
 async function initSimpleLecturerGrid() {
@@ -1351,11 +1365,7 @@ function filterUserProjects() {
     renderProjectRows(filtered);
 }
 
-// ─── Chart instances (để destroy khi cần reload) ───
-let chartTrend = null;
-let chartLevel = null;
-let chartPubType = null;
-let chartDept = null;
+// ─── Statistics functions ───
 
 async function loadStatistics() {
     try {
