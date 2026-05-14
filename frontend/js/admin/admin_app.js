@@ -591,7 +591,10 @@ function populatePublicationYearFilter(data) {
     
     const years = new Set();
     data.forEach(ct => {
-        if (ct.nam_xuat_ban) years.add(ct.nam_xuat_ban);
+        if (ct.nam_xuat_ban) {
+            const y = Number(String(ct.nam_xuat_ban).trim());
+            if (!isNaN(y)) years.add(y);
+        }
     });
     
     const sortedYears = Array.from(years).sort((a, b) => b - a);
@@ -735,8 +738,14 @@ function populateProjectYearFilter(data) {
     
     const years = new Set();
     data.forEach(dt => {
-        if (dt.nam_bat_dau) years.add(dt.nam_bat_dau);
-        if (dt.nam_ket_thuc) years.add(dt.nam_ket_thuc);
+        if (dt.nam_bat_dau) {
+            const y = Number(String(dt.nam_bat_dau).trim());
+            if (!isNaN(y)) years.add(y);
+        }
+        if (dt.nam_ket_thuc) {
+            const y = Number(String(dt.nam_ket_thuc).trim());
+            if (!isNaN(y)) years.add(y);
+        }
     });
     
     const sortedYears = Array.from(years).sort((a, b) => b - a);
@@ -1315,63 +1324,113 @@ async function openRelationModal(type, entityId, entityName) {
     document.getElementById('relEntityId').value = entityId;
     document.getElementById('adminRelationModalTitle').textContent = `Liên kết: ${entityName}`;
     document.getElementById('adminRelationModalOverlay').classList.add('active');
-    document.getElementById('relFormBody').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách giảng viên...</p>';
+    document.getElementById('relFormBody').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách nhân sự...</p>';
     
     try {
-        const gvRes = await fetch(`${API_BASE}/giang-vien`);
+        // Tải danh sách tất cả giảng viên và tác giả ngoài
+        const [gvRes, tgnRes] = await Promise.all([
+            fetch(`${API_BASE}/giang-vien`),
+            fetch(`${ADMIN_API_BASE}/tac-gia-ngoai`)
+        ]);
         const gvData = await gvRes.json();
+        const tgnData = await tgnRes.json();
         const allGVs = gvData.data || [];
+        const allTGNs = tgnData.data || [];
         
         if (type === 'cong-trinh') {
-            const relRes = await fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/giang-vien`);
-            const relData = await relRes.json();
-            const selectedIds = (relData.data || []).map(r => r.id);
+            // Tải các liên kết hiện tại
+            const [relGvRes, relTgnRes] = await Promise.all([
+                fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/giang-vien`),
+                fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/tac-gia-ngoai`)
+            ]);
+            const relGvData = await relGvRes.json();
+            const relTgnData = await relTgnRes.json();
+            const selectedGvIds = (relGvData.data || []).map(r => r.id);
+            const selectedTgnIds = (relTgnData.data || []).map(r => r.id);
             
-            let html = `<p style="margin-bottom:10px; color:var(--text-primary);"><b>Chọn Tác giả bài báo:</b></p>
-            <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px;">`;
-            allGVs.forEach(gv => {
-                const checked = selectedIds.includes(gv.id) ? 'checked' : '';
-                html += `<div style="margin-bottom: 8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
-                                <input type="checkbox" name="gv_tac_gia" value="${gv.id}" ${checked}>
-                                <span>${gv.ho_va_ten} (${gv.bo_mon || 'Không rõ bộ môn'})</span>
-                            </label>
-                         </div>`;
-            });
-            html += `</div>`;
-            document.getElementById('relFormBody').innerHTML = html;
-        } else if (type === 'de-tai') {
-            const relRes = await fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/giang-vien`);
-            const relData = await relRes.json();
-            
-            const chuNhiemIds = (relData.data || []).filter(r => r.vai_tro === 'CHU_NHIEM').map(r => r.id);
-            const thamGiaIds = (relData.data || []).filter(r => r.vai_tro === 'THAM_GIA').map(r => r.id);
-            
-            let html = `<div style="display:flex; gap: 20px; flex-wrap: wrap;">
-                <div style="flex:1; min-width: 250px;">
-                    <p style="margin-bottom:10px; color:var(--text-primary);"><b>Chọn Chủ nhiệm:</b></p>
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px;">
-                    ${allGVs.map(gv => `
-                        <div style="margin-bottom: 8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
-                                <input type="checkbox" name="gv_chu_nhiem" value="${gv.id}" ${chuNhiemIds.includes(gv.id) ? 'checked' : ''}>
-                                <span>${gv.ho_va_ten}</span>
-                            </label>
-                        </div>
-                    `).join('')}
+            let html = `
+            <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:280px;">
+                    <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Tác giả nội bộ:</b></p>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => `
+                            <div style="margin-bottom: 8px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
+                                    <input type="checkbox" name="gv_tac_gia" value="${gv.id}" ${selectedGvIds.includes(gv.id) ? 'checked' : ''}>
+                                    <span>${gv.ho_va_ten} <small style="color:var(--text-muted)">(${gv.bo_mon || 'N/A'})</small></span>
+                                </label>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
-                <div style="flex:1; min-width: 250px;">
-                    <p style="margin-bottom:10px; color:var(--text-primary);"><b>Chọn Thành viên:</b></p>
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px;">
-                    ${allGVs.map(gv => `
-                        <div style="margin-bottom: 8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
-                                <input type="checkbox" name="gv_tham_gia" value="${gv.id}" ${thamGiaIds.includes(gv.id) ? 'checked' : ''}>
-                                <span>${gv.ho_va_ten}</span>
-                            </label>
+                <div style="flex:1; min-width:280px;">
+                    <p style="margin-bottom:10px; color:#e67e22;"><b><i class="fas fa-user-friends"></i> Tác giả ngoài:</b></p>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allTGNs.map(tgn => `
+                            <div style="margin-bottom: 8px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
+                                    <input type="checkbox" name="tgn_ids" value="${tgn.id}" ${selectedTgnIds.includes(tgn.id) ? 'checked' : ''}>
+                                    <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>`;
+            document.getElementById('relFormBody').innerHTML = html;
+        } else if (type === 'de-tai') {
+            const [relGvRes, relTgnRes] = await Promise.all([
+                fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/giang-vien`),
+                fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/tac-gia-ngoai`)
+            ]);
+            const relGvData = await relGvRes.json();
+            const relTgnData = await relTgnRes.json();
+            
+            const chuNhiemIds = (relGvData.data || []).filter(r => r.vai_tro === 'CHU_NHIEM').map(r => r.id);
+            const thamGiaIds = (relGvData.data || []).filter(r => r.vai_tro === 'THAM_GIA').map(r => r.id);
+            const selectedTgnIds = (relTgnData.data || []).map(r => r.id);
+            
+            let html = `
+            <div style="display:flex; flex-direction:column; gap: 20px;">
+                <div style="display:flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 280px;">
+                        <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Chủ nhiệm:</b></p>
+                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => `
+                            <div style="margin-bottom: 8px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
+                                    <input type="checkbox" name="gv_chu_nhiem" value="${gv.id}" ${chuNhiemIds.includes(gv.id) ? 'checked' : ''}>
+                                    <span>${gv.ho_va_ten}</span>
+                                </label>
+                            </div>
+                        `).join('')}
                         </div>
-                    `).join('')}
+                    </div>
+                    <div style="flex:1; min-width: 280px;">
+                        <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Thành viên nội bộ:</b></p>
+                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allGVs.map(gv => `
+                            <div style="margin-bottom: 8px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
+                                    <input type="checkbox" name="gv_tham_gia" value="${gv.id}" ${thamGiaIds.includes(gv.id) ? 'checked' : ''}>
+                                    <span>${gv.ho_va_ten}</span>
+                                </label>
+                            </div>
+                        `).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p style="margin-bottom:10px; color:#e67e22;"><b><i class="fas fa-user-friends"></i> Tác giả/Cộng tác viên ngoài:</b></p>
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
+                        ${allTGNs.map(tgn => `
+                            <div style="margin-bottom: 8px; display:inline-block; width:30%; min-width:200px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
+                                    <input type="checkbox" name="tgn_ids" value="${tgn.id}" ${selectedTgnIds.includes(tgn.id) ? 'checked' : ''}>
+                                    <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
+                                </label>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             </div>`;
@@ -1394,20 +1453,36 @@ async function saveRelations(e) {
     const entityId = document.getElementById('relEntityId').value;
     
     try {
+        const tgnBoxes = document.querySelectorAll('input[name="tgn_ids"]:checked');
+        const tgn_ids = Array.from(tgnBoxes).map(cb => cb.value);
+
         if (type === 'cong-trinh') {
-            const checkedBoxes = document.querySelectorAll('input[name="gv_tac_gia"]:checked');
-            const gv_ids = Array.from(checkedBoxes).map(cb => cb.value);
+            const gvBoxes = document.querySelectorAll('input[name="gv_tac_gia"]:checked');
+            const gv_ids = Array.from(gvBoxes).map(cb => cb.value);
             
-            const res = await fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/giang-vien`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ giang_vien_ids: gv_ids })
-            });
-            const data = await res.json();
-            if(data.status==='ok') {
+            const [gvRes, tgnRes] = await Promise.all([
+                fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/giang-vien`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ giang_vien_ids: gv_ids })
+                }),
+                fetch(`${ADMIN_API_BASE}/relations/cong-trinh/${entityId}/tac-gia-ngoai`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tac_gia_ngoai_ids: tgn_ids })
+                })
+            ]);
+            
+            const gvData = await gvRes.json();
+            const tgnData = await tgnRes.json();
+            
+            if(gvData.status === 'ok' && tgnData.status === 'ok') {
+                showAdminToast("Đã cập nhật liên kết thành công", "success");
                 closeRelationModal();
-                loadPublications(); // reload table to maybe show updated count/authors if added
-            } else alert("Lỗi: " + data.message);
+                loadPublications();
+            } else {
+                alert("Lỗi: " + (gvData.message || tgnData.message));
+            }
         } else if (type === 'de-tai') {
             const cnBoxes = document.querySelectorAll('input[name="gv_chu_nhiem"]:checked');
             const tgBoxes = document.querySelectorAll('input[name="gv_tham_gia"]:checked');
@@ -1415,18 +1490,32 @@ async function saveRelations(e) {
             const chuNhiemIds = Array.from(cnBoxes).map(cb => cb.value);
             const thamGiaIds = Array.from(tgBoxes).map(cb => cb.value);
             
-            const res = await fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/giang-vien`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chu_nhiem_ids: chuNhiemIds, tham_gia_ids: thamGiaIds })
-            });
-            const data = await res.json();
-            if(data.status==='ok') {
+            const [gvRes, tgnRes] = await Promise.all([
+                fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/giang-vien`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chu_nhiem_ids: chuNhiemIds, tham_gia_ids: thamGiaIds })
+                }),
+                fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/tac-gia-ngoai`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tac_gia_ngoai_ids: tgn_ids })
+                })
+            ]);
+            
+            const gvData = await gvRes.json();
+            const tgnData = await tgnRes.json();
+            
+            if(gvData.status === 'ok' && tgnData.status === 'ok') {
+                showAdminToast("Đã cập nhật liên kết thành công", "success");
                 closeRelationModal();
                 loadProjects();
-            } else alert("Lỗi: " + data.message);
+            } else {
+                alert("Lỗi: " + (gvData.message || tgnData.message));
+            }
         }
     } catch (err) {
+        console.error(err);
         alert("Có lỗi khi lưu quan hệ!");
     }
 }

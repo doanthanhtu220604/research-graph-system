@@ -111,3 +111,76 @@ def update_thanh_vien_de_tai(dt_id):
         return jsonify({"status": "ok", "message": "Đã cập nhật vai trò vào đề tài nghiên cứu."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ==============================================================================
+# QUAN HỆ VỚI TÁC GIẢ NGOÀI (DONG_TAC_GIA)
+# ==============================================================================
+@admin_relations_bp.route("/cong-trinh/<ct_id>/tac-gia-ngoai", methods=["GET"])
+def get_tac_gia_ngoai_cong_trinh(ct_id):
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+        WHERE ct.id = $id
+        RETURN tgn.id AS tgn_id, tgn.ho_va_ten AS ten
+    """, {"id": ct_id})
+    data = [{"id": r["tgn_id"], "ten": r["ten"]} for r in results]
+    return jsonify({"status": "ok", "data": data})
+
+
+@admin_relations_bp.route("/cong-trinh/<ct_id>/tac-gia-ngoai", methods=["PUT"])
+def update_tac_gia_ngoai_cong_trinh(ct_id):
+    data = request.json
+    tgn_ids = data.get("tac_gia_ngoai_ids", [])
+    conn = get_neo4j_connection()
+    try:
+        conn.query("""
+            MATCH (tgn:TacGiaNgoai)-[r:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+            WHERE ct.id = $id
+            DELETE r
+        """, {"id": ct_id})
+        if tgn_ids:
+            conn.query("""
+                UNWIND $tgn_ids AS tgn_id
+                MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                WHERE tgn.id = tgn_id AND ct.id = $id
+                MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
+            """, {"id": ct_id, "tgn_ids": tgn_ids})
+        return jsonify({"status": "ok", "message": "Đã cập nhật tác giả ngoài cho công trình."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_relations_bp.route("/de-tai/<dt_id>/tac-gia-ngoai", methods=["GET"])
+def get_tac_gia_ngoai_de_tai(dt_id):
+    conn = get_neo4j_connection()
+    results = conn.query("""
+        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+        WHERE dt.id = $id
+        RETURN tgn.id AS tgn_id, tgn.ho_va_ten AS ten
+    """, {"id": dt_id})
+    data = [{"id": r["tgn_id"], "ten": r["ten"]} for r in results]
+    return jsonify({"status": "ok", "data": data})
+
+
+@admin_relations_bp.route("/de-tai/<dt_id>/tac-gia-ngoai", methods=["PUT"])
+def update_tac_gia_ngoai_de_tai(dt_id):
+    data = request.json
+    tgn_ids = data.get("tac_gia_ngoai_ids", [])
+    conn = get_neo4j_connection()
+    try:
+        conn.query("""
+            MATCH (tgn:TacGiaNgoai)-[r:DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+            WHERE dt.id = $id
+            DELETE r
+        """, {"id": dt_id})
+        if tgn_ids:
+            conn.query("""
+                UNWIND $tgn_ids AS tgn_id
+                MATCH (tgn:TacGiaNgoai), (dt:DeTaiNghienCuu)
+                WHERE tgn.id = tgn_id AND dt.id = $id
+                MERGE (tgn)-[:DONG_TAC_GIA]->(dt)
+            """, {"id": dt_id, "tgn_ids": tgn_ids})
+        return jsonify({"status": "ok", "message": "Đã cập nhật tác giả ngoài cho đề tài."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
