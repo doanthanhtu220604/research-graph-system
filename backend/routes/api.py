@@ -168,7 +168,7 @@ def get_all_de_tai():
         WHERE coalesce(dt.is_deleted, false) = false
         OPTIONAL MATCH (gv_cn:GiangVien)-[:CHU_NHIEM]->(dt)
         OPTIONAL MATCH (gv_tv:GiangVien)-[:THAM_GIA]->(dt)
-        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt)
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt)
         RETURN dt,
                collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
                collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
@@ -198,9 +198,9 @@ def get_de_tai_detail(dt_id):
     """, {"id": dt_id})
 
     tac_gia_ngoai_res = conn.query("""
-        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+        MATCH (tgn:TacGiaNgoai)-[r:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
         WHERE dt.id = $id
-        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi
+        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro
     """, {"id": dt_id})
 
     if not result or not result.get("dt"):
@@ -209,7 +209,7 @@ def get_de_tai_detail(dt_id):
     data = dict(result["dt"])
     data["thanh_vien"] = result["thanh_vien"]
     data["tac_gia_ngoai"] = [
-        {"ten": r["ten"], "don_vi": r["don_vi"]} for r in tac_gia_ngoai_res
+        {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"]} for r in tac_gia_ngoai_res
     ]
     return jsonify({"status": "ok", "data": data})
 

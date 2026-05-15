@@ -1566,57 +1566,92 @@ async function openRelationModal(type, entityId, entityName = null) {
             
             const chuNhiemIds = (relGvData.data || []).filter(r => r.vai_tro === 'CHU_NHIEM').map(r => r.id);
             const thamGiaIds = (relGvData.data || []).filter(r => r.vai_tro === 'THAM_GIA').map(r => r.id);
-            const selectedTgnIds = (relTgnData.data || []).map(r => r.id);
+            
+            // Hỗ trợ Tác giả ngoài có vai trò
+            const tgnChuNhiemIds = (relTgnData.data || []).filter(r => r.vai_tro === 'CHU_NHIEM').map(r => r.id);
+            const tgnThamGiaIds = (relTgnData.data || []).filter(r => r.vai_tro === 'THAM_GIA' || r.vai_tro === 'DONG_TAC_GIA').map(r => r.id);
             
             let html = `
-            <div style="display:flex; flex-direction:column; gap: 20px;">
-                <div style="display:flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex:1; min-width: 280px;">
-                        <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Chủ nhiệm:</b></p>
-                        <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allGVs.map(gv => {
-                            const checked = chuNhiemIds.includes(gv.id);
-                            return `
-                                <div class="role-item-row" id="row-lead-${gv.id}">
-                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
-                                        <input type="checkbox" name="gv_chu_nhiem" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'lead')">
-                                        <span>${gv.ho_va_ten}</span>
-                                    </label>
-                                    ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
-                                </div>
-                            `;
-                        }).join('')}
+            <div style="display:flex; flex-direction:column; gap: 24px;">
+                <!-- Section 1: Giảng viên nội bộ -->
+                <div style="background: rgba(79, 142, 247, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent-blue);">
+                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-university"></i> NHÂN SỰ TRONG TRƯỜNG</h3>
+                    <div style="display:flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex:1; min-width: 280px;">
+                            <p style="margin-bottom:10px; color:var(--accent-blue);"><b><i class="fas fa-user-tie"></i> Chủ nhiệm nội bộ:</b></p>
+                            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:white;">
+                            ${allGVs.map(gv => {
+                                const checked = chuNhiemIds.includes(gv.id);
+                                return `
+                                    <div class="role-item-row" id="row-lead-${gv.id}">
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                            <input type="checkbox" name="gv_chu_nhiem" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'lead')">
+                                            <span>${gv.ho_va_ten}</span>
+                                        </label>
+                                        ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                            </div>
                         </div>
-                    </div>
-                    <div style="flex:1; min-width: 280px;">
-                        <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Thành viên nội bộ:</b></p>
-                        <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allGVs.map(gv => {
-                            const checked = thamGiaIds.includes(gv.id);
-                            return `
-                                <div class="role-item-row" id="row-member-${gv.id}">
-                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
-                                        <input type="checkbox" name="gv_tham_gia" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'member')">
-                                        <span>${gv.ho_va_ten}</span>
-                                    </label>
-                                    ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
-                                </div>
-                            `;
-                        }).join('')}
+                        <div style="flex:1; min-width: 280px;">
+                            <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Thành viên nội bộ:</b></p>
+                            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:white;">
+                            ${allGVs.map(gv => {
+                                const checked = thamGiaIds.includes(gv.id);
+                                return `
+                                    <div class="role-item-row" id="row-member-${gv.id}">
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                            <input type="checkbox" name="gv_tham_gia" value="${gv.id}" ${checked ? 'checked' : ''} onchange="syncRoleCheckbox('${gv.id}', 'member')">
+                                            <span>${gv.ho_va_ten}</span>
+                                        </label>
+                                        ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div>
-                    <p style="margin-bottom:10px; color:#e67e22;"><b><i class="fas fa-user-friends"></i> Tác giả/Cộng tác viên ngoài:</b></p>
-                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:var(--bg-hover);">
-                        ${allTGNs.map(tgn => `
-                            <div style="margin-bottom: 8px; display:inline-block; width:30%; min-width:200px;">
-                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px;">
-                                    <input type="checkbox" name="tgn_ids" value="${tgn.id}" ${selectedTgnIds.includes(tgn.id) ? 'checked' : ''}>
-                                    <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
-                                </label>
+
+                <!-- Section 2: Tác giả ngoài -->
+                <div style="background: rgba(230, 126, 34, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #e67e22;">
+                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px; color: #e67e22;"><i class="fas fa-globe"></i> NHÂN SỰ NGOÀI TRƯỜNG</h3>
+                    <div style="display:flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex:1; min-width: 280px;">
+                            <p style="margin-bottom:10px; color:#e67e22;"><b><i class="fas fa-user-shield"></i> Chủ nhiệm ngoài:</b></p>
+                            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:white;">
+                                ${allTGNs.map(tgn => {
+                                    const checked = tgnChuNhiemIds.includes(tgn.id);
+                                    return `
+                                        <div class="role-item-row" id="row-tgn-lead-${tgn.id}">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                                <input type="checkbox" name="tgn_chu_nhiem" value="${tgn.id}" ${checked ? 'checked' : ''} onchange="syncTgnRoleCheckbox('${tgn.id}', 'lead')">
+                                                <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
+                                            </label>
+                                            ${checked ? `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgn.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
-                        `).join('')}
+                        </div>
+                        <div style="flex:1; min-width: 280px;">
+                            <p style="margin-bottom:10px; color:#8b5cf6;"><b><i class="fas fa-users"></i> Thành viên ngoài:</b></p>
+                            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:white;">
+                                ${allTGNs.map(tgn => {
+                                    const checked = tgnThamGiaIds.includes(tgn.id);
+                                    return `
+                                        <div class="role-item-row" id="row-tgn-member-${tgn.id}">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary); font-size:13px; margin:0;">
+                                                <input type="checkbox" name="tgn_tham_gia" value="${tgn.id}" ${checked ? 'checked' : ''} onchange="syncTgnRoleCheckbox('${tgn.id}', 'member')">
+                                                <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
+                                            </label>
+                                            ${checked ? `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgn.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -1685,9 +1720,13 @@ async function saveRelations(e) {
         } else if (type === 'de-tai') {
             const cnBoxes = document.querySelectorAll('input[name="gv_chu_nhiem"]:checked');
             const tgBoxes = document.querySelectorAll('input[name="gv_tham_gia"]:checked');
+            const tgnCnBoxes = document.querySelectorAll('input[name="tgn_chu_nhiem"]:checked');
+            const tgnTgBoxes = document.querySelectorAll('input[name="tgn_tham_gia"]:checked');
             
             const chuNhiemIds = Array.from(cnBoxes).map(cb => cb.value);
             const thamGiaIds = Array.from(tgBoxes).map(cb => cb.value);
+            const tgnChuNhiemIds = Array.from(tgnCnBoxes).map(cb => cb.value);
+            const tgnThamGiaIds = Array.from(tgnTgBoxes).map(cb => cb.value);
             
             const [gvRes, tgnRes] = await Promise.all([
                 fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/giang-vien`, {
@@ -1698,7 +1737,7 @@ async function saveRelations(e) {
                 fetch(`${ADMIN_API_BASE}/relations/de-tai/${entityId}/tac-gia-ngoai`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tac_gia_ngoai_ids: tgn_ids })
+                    body: JSON.stringify({ chu_nhiem_ngoai_ids: tgnChuNhiemIds, tham_gia_ngoai_ids: tgnThamGiaIds })
                 })
             ]);
             
@@ -1947,7 +1986,11 @@ async function viewProjectStats(dtId) {
                 html += `<ul style="margin-left:20px; margin-bottom:15px; margin-top: 10px; line-height: 1.8;">`;
                 tgnList.forEach(tgn => {
                     const donVi = tgn.don_vi ? `<span style="color:var(--text-muted); font-size:12px;"> — ${tgn.don_vi}</span>` : '';
-                    html += `<li><i class="fas fa-user-friends" style="color:#e67e22; font-size:11px; margin-right:4px;"></i><b>${tgn.ten}</b>${donVi}</li>`;
+                    let roleLabel = '';
+                    if (tgn.vai_tro === 'CHU_NHIEM') roleLabel = ' <span style="color:#e67e22; font-size:11px;">(Chủ nhiệm)</span>';
+                    else if (tgn.vai_tro === 'THAM_GIA') roleLabel = ' <span style="color:#8b5cf6; font-size:11px;">(Thành viên)</span>';
+                    
+                    html += `<li><i class="fas fa-user-friends" style="color:#e67e22; font-size:11px; margin-right:4px;"></i><b>${tgn.ten}</b>${donVi}${roleLabel}</li>`;
                 });
                 html += `</ul>`;
             } else {
@@ -2277,4 +2320,57 @@ window.switchMemberRole = function(gvId, currentRole) {
         if (leadCb) leadCb.checked = true;
     }
     updateSwitchButtons(gvId);
+};
+
+// Helper: Đồng bộ checkbox và hiển thị nút switch cho Tác giả ngoài
+window.syncTgnRoleCheckbox = function(tgnId, column) {
+    const leadCb = document.querySelector(`input[name="tgn_chu_nhiem"][value="${tgnId}"]`);
+    const memberCb = document.querySelector(`input[name="tgn_tham_gia"][value="${tgnId}"]`);
+    
+    if (column === 'lead') {
+        if (leadCb && leadCb.checked && memberCb) memberCb.checked = false;
+    } else {
+        if (memberCb && memberCb.checked && leadCb) leadCb.checked = false;
+    }
+    updateTgnSwitchButtons(tgnId);
+};
+
+function updateTgnSwitchButtons(tgnId) {
+    const leadRow = document.getElementById(`row-tgn-lead-${tgnId}`);
+    const memberRow = document.getElementById(`row-tgn-member-${tgnId}`);
+    
+    const leadCb = leadRow ? leadRow.querySelector('input[type="checkbox"]') : null;
+    const memberCb = memberRow ? memberRow.querySelector('input[type="checkbox"]') : null;
+
+    if (leadRow) {
+        let btn = leadRow.querySelector('.btn-role-switch');
+        if (leadCb && leadCb.checked) {
+            if (!btn) {
+                leadRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgnId}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>`);
+            }
+        } else if (btn) btn.remove();
+    }
+
+    if (memberRow) {
+        let btn = memberRow.querySelector('.btn-role-switch');
+        if (memberCb && memberCb.checked) {
+            if (!btn) {
+                memberRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgnId}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>`);
+            }
+        } else if (btn) btn.remove();
+    }
+}
+
+window.switchTgnMemberRole = function(tgnId, currentRole) {
+    const leadCb = document.querySelector(`input[name="tgn_chu_nhiem"][value="${tgnId}"]`);
+    const memberCb = document.querySelector(`input[name="tgn_tham_gia"][value="${tgnId}"]`);
+    
+    if (currentRole === 'lead') {
+        if (leadCb) leadCb.checked = false;
+        if (memberCb) memberCb.checked = true;
+    } else {
+        if (memberCb) memberCb.checked = false;
+        if (leadCb) leadCb.checked = true;
+    }
+    updateTgnSwitchButtons(tgnId);
 };
