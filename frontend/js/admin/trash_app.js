@@ -133,11 +133,13 @@ function renderTrash() {
 
     // Filter by search
     if (searchVal) {
-        items = items.filter(i =>
-            (i.ten  || '').toLowerCase().includes(searchVal) ||
-            (i.sub  || '').toLowerCase().includes(searchVal) ||
-            (i.note || '').toLowerCase().includes(searchVal)
-        );
+        const q = searchVal.normalize('NFC').toLowerCase().trim();
+        items = items.filter(i => {
+            const ten = (i.ten || '').normalize('NFC').toLowerCase();
+            const sub = (i.sub || '').normalize('NFC').toLowerCase();
+            const note = (i.note || '').normalize('NFC').toLowerCase();
+            return ten.includes(q) || sub.includes(q) || note.includes(q);
+        });
     }
 
     if (items.length === 0) {
@@ -324,11 +326,14 @@ function closeConfirm() {
 
 async function executeConfirm() {
     if (!pendingAction) return;
+    
+    // Phải lưu lại thông tin trước khi gọi closeConfirm vì closeConfirm sẽ xóa sạch pendingAction
+    const actionData = { ...pendingAction };
     closeConfirm();
 
-    if (pendingAction.action === 'permanent') {
-        await doPermanentDelete(pendingAction.type, pendingAction.id);
-    } else if (pendingAction.action === 'empty') {
+    if (actionData.action === 'permanent') {
+        await doPermanentDelete(actionData.type, actionData.id);
+    } else if (actionData.action === 'empty') {
         await doEmptyTrash();
     }
 }

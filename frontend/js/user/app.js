@@ -7,7 +7,6 @@ let dashboardGraph = null;
 let exploreGraph = null;
 let chartTrend = null;
 let chartLevel = null;
-let chartPubType = null;
 let chartDept = null;
 
 // ============================================================
@@ -1313,10 +1312,12 @@ function renderPublicationRows(list) {
 }
 
 function filterUserPublications() {
-    const q = (document.getElementById('pubSearchInput')?.value || '').toLowerCase();
+    const q = (document.getElementById('pubSearchInput')?.value || '').normalize('NFC').toLowerCase().trim();
     const year = document.getElementById('pubYearFilter')?.value || '';
+    
     const filtered = _allPublications.filter(ct => {
-        const matchQ = (ct.ten_cong_trinh || '').toLowerCase().includes(q);
+        const title = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
+        const matchQ = title.includes(q);
         const matchYear = !year || (String(ct.nam_xuat_ban) === year);
         return matchQ && matchYear;
     });
@@ -1381,10 +1382,12 @@ function renderProjectRows(list) {
 }
 
 function filterUserProjects() {
-    const q = (document.getElementById('projSearchInput')?.value || '').toLowerCase();
+    const q = (document.getElementById('projSearchInput')?.value || '').normalize('NFC').toLowerCase().trim();
     const level = document.getElementById('projLevelFilter')?.value || '';
+    
     const filtered = _allProjects.filter(dt => {
-        const matchQ = (dt.ten_de_tai || '').toLowerCase().includes(q);
+        const title = (dt.ten_de_tai || '').normalize('NFC').toLowerCase();
+        const matchQ = title.includes(q);
         const matchLevel = !level || (dt.cap_de_tai === level);
         return matchQ && matchLevel;
     });
@@ -1497,13 +1500,11 @@ function renderStatsLeaderboard(lecturers) {
 function renderCharts(data) {
     const ctxTrend = document.getElementById('chartTrend');
     const ctxLevel = document.getElementById('chartLevel');
-    const ctxPubType = document.getElementById('chartPubType');
     const ctxDept = document.getElementById('chartDept');
 
     // Hủy biểu đồ cũ nếu tồn tại
     if (chartTrend) chartTrend.destroy();
     if (chartLevel) chartLevel.destroy();
-    if (chartPubType) chartPubType.destroy();
     if (chartDept) chartDept.destroy();
 
     // 1. Biểu đồ xu hướng (Công trình & Đề tài)
@@ -1553,7 +1554,7 @@ function renderCharts(data) {
         chartLevel = new Chart(ctxLevel, {
             type: 'doughnut',
             data: {
-                labels: data.de_tai_theo_cap.map(d => d.cap),
+                labels: data.de_tai_theo_cap.map(d => d.cap || 'Chưa xác định'),
                 datasets: [{
                     data: data.de_tai_theo_cap.map(d => d.so_luong),
                     backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b']
@@ -1567,24 +1568,6 @@ function renderCharts(data) {
         });
     }
 
-    // 3. Biểu đồ cơ cấu ấn phẩm
-    if (ctxPubType) {
-        chartPubType = new Chart(ctxPubType, {
-            type: 'pie',
-            data: {
-                labels: data.cong_trinh_theo_loai.map(d => d.loai),
-                datasets: [{
-                    data: data.cong_trinh_theo_loai.map(d => d.so_luong),
-                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'right' } }
-            }
-        });
-    }
 
     // 4. Biểu đồ giảng viên theo bộ môn
     if (ctxDept) {

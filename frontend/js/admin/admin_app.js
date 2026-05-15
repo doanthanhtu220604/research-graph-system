@@ -534,12 +534,13 @@ function renderLecturersTable(dataList) {
 
 function filterLecturers() {
     const list = currentEntitiesData['giang-vien'] || [];
-    const nameFilter = (document.getElementById('filterName')?.value || '').toLowerCase();
+    const nameFilter = (document.getElementById('filterName')?.value || '').normalize('NFC').toLowerCase().trim();
     const deptFilter = document.getElementById('filterDepartment')?.value || '';
     const degreeFilter = document.getElementById('filterDegree')?.value || '';
     
     const filtered = list.filter(gv => {
-        const matchName = (gv.ho_va_ten || '').toLowerCase().includes(nameFilter);
+        const name = (gv.ho_va_ten || '').normalize('NFC').toLowerCase();
+        const matchName = name.includes(nameFilter);
         const matchDept = deptFilter === '' || (gv.bo_mon === deptFilter);
         const matchDegree = degreeFilter === '' || (gv.hoc_vi && gv.hoc_vi.includes(degreeFilter));
         return matchName && matchDept && matchDegree;
@@ -622,11 +623,12 @@ function renderPublicationsTable(dataList) {
 
 function filterPublications() {
     const list = currentEntitiesData['cong-trinh'] || [];
-    const titleFilter = (document.getElementById('filterPubTitle')?.value || '').toLowerCase();
+    const titleFilter = (document.getElementById('filterPubTitle')?.value || '').normalize('NFC').toLowerCase().trim();
     const yearFilter = document.getElementById('filterPubYear')?.value || '';
     
     const filtered = list.filter(ct => {
-        const matchTitle = (ct.ten_cong_trinh || '').toLowerCase().includes(titleFilter);
+        const title = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
+        const matchTitle = title.includes(titleFilter);
         const matchYear = yearFilter === '' || (ct.nam_xuat_ban == yearFilter);
         return matchTitle && matchYear;
     });
@@ -792,12 +794,13 @@ function renderProjectsTable(dataList) {
 
 function filterProjects() {
     const list = currentEntitiesData['de-tai'] || [];
-    const nameFilter = (document.getElementById('filterProjName')?.value || '').toLowerCase();
+    const nameFilter = (document.getElementById('filterProjName')?.value || '').normalize('NFC').toLowerCase().trim();
     const levelFilter = document.getElementById('filterProjLevel')?.value || '';
     const yearFilter = document.getElementById('filterProjYear')?.value || '';
     
     const filtered = list.filter(dt => {
-        const matchName = (dt.ten_de_tai || '').toLowerCase().includes(nameFilter);
+        const title = (dt.ten_de_tai || '').normalize('NFC').toLowerCase();
+        const matchName = title.includes(nameFilter);
         const matchLevel = levelFilter === '' || (dt.cap_de_tai === levelFilter);
         const matchYear = yearFilter === '' || (dt.nam_bat_dau == yearFilter || dt.nam_ket_thuc == yearFilter);
         return matchName && matchLevel && matchYear;
