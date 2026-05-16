@@ -66,6 +66,7 @@ def get_giang_vien_detail(gv_id):
         MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         WHERE gv.id = $id AND coalesce(dt.is_deleted, false) = false
         RETURN dt, type(r) AS vai_tro
+        ORDER BY dt.nam_bat_dau DESC
     """, {"id": gv_id})
 
     linh_vuc = conn.query("""
@@ -173,7 +174,7 @@ def get_all_de_tai():
                collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
                collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
                collect(DISTINCT tgn.ho_va_ten)   AS tac_gia_ngoai
-        ORDER BY coalesce(dt.created_at, 0) DESC, id(dt) DESC
+        ORDER BY dt.nam_bat_dau DESC, coalesce(dt.created_at, 0) DESC, id(dt) DESC
     """)
     de_tai_list = []
     for r in results:
