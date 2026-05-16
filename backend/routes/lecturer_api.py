@@ -467,7 +467,7 @@ def get_lecturer_timeline():
                 'loai': ct.get('loai') or 'Bài báo',
                 'tom_tat': ct.get('tom_tat') or '',
                 'link': ct.get('link') or '',
-                'trang_thai': ct.get('trang_thai') or 'Đã duyệt',
+                'trang_thai': ct.get('trang_thai') or 'Đang thực hiện',
                 'dong_tac_gia': dong_ta,
                 'vai_tro': 'Tác giả chính' if ct.get('vai_tro') == 'TAC_GIA_CHINH' else ('Cộng sự' if ct.get('vai_tro') in ['CONG_SU', 'LA_TAC_GIA_CUA'] else 'Tác giả'),
             })
@@ -500,7 +500,7 @@ def get_lecturer_timeline():
                 'cap': dt.get('cap') or 'N/A',
                 'tom_tat': dt.get('tom_tat') or '',
                 'link': dt.get('link') or '',
-                'trang_thai': dt.get('trang_thai') or 'Đã duyệt',
+                'trang_thai': dt.get('trang_thai') or 'Đang thực hiện',
                 'thanh_vien': thanh_vien,
                 'vai_tro': vai_tro_label,
             })

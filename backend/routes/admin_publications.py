@@ -89,11 +89,18 @@ def delete_cong_trinh(id):
     try:
         from flask import request as _req
         note = _req.json.get("note", "") if _req.is_json else ""
+
+        # Kiểm tra trạng thái trước khi xóa
+        status_res = conn.query_single("MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id RETURN ct.trang_thai AS status", {'id': id})
+        if status_res and status_res.get('status') == 'Đang thực hiện':
+            return jsonify({'status': 'error', 'message': 'Không thể xóa công trình đang thực hiện. Vui lòng chuyển trạng thái sang "Hoàn thành" trước khi xóa.'}), 400
+
         result = conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
             SET ct.is_deleted   = true,
                 ct.deleted_at   = timestamp(),
-                ct.deleted_note = $note
+                ct.deleted_note = $note,
+                ct.old_status   = ct.trang_thai
             RETURN ct.id AS id
         """, {"id": id, "note": note})
         if not result:
@@ -106,10 +113,12 @@ def delete_cong_trinh(id):
 def approve_delete_cong_trinh(id):
     conn = get_neo4j_connection()
     try:
+        # Tương tự đề tài, khi phê duyệt xóa ta tin tưởng logic ở lecturer_api đã chặn 'Đang thực hiện'
         conn.write("""
             MATCH (n:CongTrinhNghienCuu) WHERE n.id = $id
             SET n.is_deleted = true,
                 n.deleted_at = timestamp(),
+                n.old_status = CASE WHEN n.trang_thai = 'Yêu cầu xóa' THEN 'Hoàn thành' ELSE n.trang_thai END,
                 n.trang_thai = 'Đã vào thùng rác'
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Đã phê duyệt xóa công trình. Công trình đã được chuyển vào thùng rác."})

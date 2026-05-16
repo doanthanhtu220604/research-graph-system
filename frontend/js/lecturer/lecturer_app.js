@@ -302,7 +302,7 @@ async function loadPublications() {
                     <td>${ct.id}</td>
                     <td><strong style="color: var(--text-primary);">${ct.ten_cong_trinh}</strong></td>
                     <td>${ct.nam_xuat_ban || ''}</td>
-                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${ct.trang_thai || 'Đã duyệt'}</span></td>
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${ct.trang_thai || 'Đang thực hiện'}</span></td>
                     <td style="text-align: center;">
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewPublicationDetail('${ct.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
                         <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-edit"></i></button>
@@ -339,7 +339,7 @@ async function loadProjects() {
                     <td><strong style="color: var(--text-primary);">${dt.ten_de_tai}</strong></td>
                     <td><span style="background: var(--bg-hover); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
                     <td>${dt.cap_de_tai || 'N/A'}</td>
-                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${dt.trang_thai || 'Đã duyệt'}</span></td>
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${dt.trang_thai || 'Đang thực hiện'}</span></td>
                     <td style="text-align: center;">
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewProjectDetail('${dt.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
                         <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('de-tai', '${dt.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-edit"></i></button>
@@ -1004,7 +1004,7 @@ function openStatusChangeModal(type, id) {
                                     <option value="Hoàn thành">Hoàn thành</option>
                                     <option value="Hủy bỏ">Hủy bỏ</option>
                                 ` : `
-                                    <option value="Đã duyệt">Đã duyệt</option>
+                                    <option value="Đang thực hiện">Đang thực hiện</option>
                                     <option value="Hoàn thành">Hoàn thành</option>
                                 `}
                             </select>
@@ -1033,7 +1033,7 @@ function openStatusChangeModal(type, id) {
                 <option value="Hoàn thành">Hoàn thành</option>
                 <option value="Hủy bỏ">Hủy bỏ</option>
             ` : `
-                <option value="Đã duyệt">Đã duyệt</option>
+                <option value="Đang thực hiện">Đang thực hiện</option>
                 <option value="Hoàn thành">Hoàn thành</option>
             `;
         }

@@ -38,7 +38,8 @@ def soft_delete(entity_type, id):
             MATCH (n:{label}) WHERE n.id = $id AND coalesce(n.is_deleted, false) = false
             SET n.is_deleted   = true,
                 n.deleted_at   = timestamp(),
-                n.deleted_note = coalesce($note, '')
+                n.deleted_note = coalesce($note, ''),
+                n.old_status   = n.trang_thai
             RETURN n.id AS id
         """, {"id": id, "note": request.json.get("note", "") if request.is_json else ""})
 
@@ -215,13 +216,14 @@ def restore(entity_type, id):
 
         result = conn.write(f"""
             {query}
-            REMOVE n.is_deleted, n.deleted_at, n.deleted_note
-            // Restore status based on label: Publication -> 'Đã duyệt', Project -> 'Đang thực hiện'
+            // Khôi phục trạng thái cũ nếu có, nếu không thì dùng mặc định
             SET n.trang_thai = CASE 
-                WHEN 'CongTrinhNghienCuu' IN labels(n) THEN 'Đã duyệt'
-                WHEN 'DeTaiNghienCuu' IN labels(n) THEN 'Đang thực hiện'
+                WHEN n.old_status IS NOT NULL AND n.old_status <> 'Đã vào thùng rác' AND n.old_status <> 'Yêu cầu xóa' THEN n.old_status
+                WHEN 'CongTrinhNghienCuu' IN labels(n) THEN 'Hoàn thành'
+                WHEN 'DeTaiNghienCuu' IN labels(n) THEN 'Hoàn thành'
                 ELSE n.trang_thai
             END
+            REMOVE n.is_deleted, n.deleted_at, n.deleted_note, n.old_status
             RETURN n
         """, {"id": id})
 

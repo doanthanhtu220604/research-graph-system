@@ -103,11 +103,18 @@ def delete_de_tai(id):
     try:
         from flask import request as _req
         note = _req.json.get("note", "") if _req.is_json else ""
+        
+        # Kiểm tra trạng thái trước khi xóa
+        status_res = conn.query_single("MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id RETURN dt.trang_thai AS status", {'id': id})
+        if status_res and status_res.get('status') == 'Đang thực hiện':
+            return jsonify({'status': 'error', 'message': 'Không thể xóa đề tài đang thực hiện. Vui lòng chuyển trạng thái sang "Hoàn thành" trước khi xóa.'}), 400
+
         result = conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
             SET dt.is_deleted   = true,
                 dt.deleted_at   = timestamp(),
-                dt.deleted_note = $note
+                dt.deleted_note = $note,
+                dt.old_status   = dt.trang_thai
             RETURN dt.id AS id
         """, {"id": id, "note": note})
         if not result:
@@ -120,10 +127,13 @@ def delete_de_tai(id):
 def approve_delete_de_tai(id):
     conn = get_neo4j_connection()
     try:
+        # Khi phê duyệt xóa, ta không cần check trạng thái vì giảng viên đã gửi yêu cầu xóa 
+        # (và giảng viên đã bị chặn nếu status là 'Đang thực hiện' ở lecturer_api)
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
             SET dt.is_deleted = true,
                 dt.deleted_at = timestamp(),
+                dt.old_status = CASE WHEN dt.trang_thai = 'Yêu cầu xóa' THEN 'Hoàn thành' ELSE dt.trang_thai END,
                 dt.trang_thai = 'Đã vào thùng rác'
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Đã phê duyệt xóa đề tài. Đề tài đã được chuyển vào thùng rác."})
