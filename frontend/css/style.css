@@ -1951,6 +1951,38 @@ body:has(.sidebar) .card {
     border: none;
     box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
 }
+
+/* Translation Button */
+.btn-translate {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 6px;
+    color: var(--accent-blue);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 28px;
+}
+
+.btn-translate:hover {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: var(--accent-blue);
+    transform: translateY(-1px);
+}
+
+.btn-translate i {
+    font-size: 12px;
+}
+
+.btn-translate.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
 .page-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;

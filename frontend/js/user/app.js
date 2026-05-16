@@ -1096,8 +1096,13 @@ async function showPublicationDetail(ctId) {
             if (ct.tom_tat) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-green);"><i class="fas fa-align-left"></i> Tóm tắt nội dung</h3>
-                        <div style="padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; line-height: 1.6; color: var(--text-primary); text-align: justify; white-space: pre-line;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 15px; margin: 0; color: var(--accent-green);"><i class="fas fa-align-left"></i> Tóm tắt nội dung</h3>
+                            <button class="btn-translate" onclick="toggleTranslation(this, 'summaryContent')">
+                                <i class="fas fa-language"></i> Dịch tóm tắt
+                            </button>
+                        </div>
+                        <div id="summaryContent" style="padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; line-height: 1.6; color: var(--text-primary); text-align: justify; white-space: pre-line;" data-original="${ct.tom_tat.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;')}">
                             ${ct.tom_tat}
                         </div>
                     </div>
@@ -1193,8 +1198,13 @@ async function showProjectDetail(dtId) {
             if (dt.tom_tat) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-orange);"><i class="fas fa-align-left"></i> Tóm tắt nội dung</h3>
-                        <div style="padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; line-height: 1.6; color: var(--text-primary); text-align: justify; white-space: pre-line;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 15px; margin: 0; color: var(--accent-orange);"><i class="fas fa-align-left"></i> Tóm tắt nội dung</h3>
+                            <button class="btn-translate" onclick="toggleTranslation(this, 'summaryContentProj')">
+                                <i class="fas fa-language"></i> Dịch tóm tắt
+                            </button>
+                        </div>
+                        <div id="summaryContentProj" style="padding: 15px; background: rgba(0,0,0,0.02); border-radius: 8px; line-height: 1.6; color: var(--text-primary); text-align: justify; white-space: pre-line;" data-original="${dt.tom_tat.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;')}">
                             ${dt.tom_tat}
                         </div>
                     </div>
@@ -1735,5 +1745,81 @@ async function loadScholarStats(name, containerId) {
         }
     } catch (e) {
         container.innerHTML = `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; margin-bottom: 20px;"><i class="fas fa-exclamation-triangle"></i> Lỗi kết nối API Google Scholar.</div>`;
+    }
+}
+
+// ============================================================
+// TRANSLATION LOGIC
+// ============================================================
+
+async function toggleTranslation(btn, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (btn.classList.contains('loading')) return;
+
+    const originalText = container.getAttribute('data-original');
+    
+    if (container.getAttribute('data-translated') === 'true') {
+        container.innerText = originalText;
+        container.setAttribute('data-translated', 'false');
+        btn.innerHTML = '<i class="fas fa-language"></i> Dịch tóm tắt';
+        return;
+    }
+
+    try {
+        btn.classList.add('loading');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang dịch...';
+        
+        const isVi = detectVN(originalText);
+        const langPair = isVi ? 'vi|en' : 'en|vi';
+        
+        const result = await translateText(originalText, langPair);
+        
+        if (result && result.success) {
+            container.innerText = result.text;
+            container.setAttribute('data-translated', 'true');
+            btn.innerHTML = '<i class="fas fa-undo"></i> Xem bản gốc';
+        } else {
+            const msg = (result && result.message) ? result.message : 'Không thể dịch nội dung này vào lúc này.';
+            alert(msg);
+            btn.innerHTML = '<i class="fas fa-language"></i> Dịch tóm tắt';
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        alert('Có lỗi xảy ra khi gọi API dịch.');
+        btn.innerHTML = '<i class="fas fa-language"></i> Dịch tóm tắt';
+    } finally {
+        btn.classList.remove('loading');
+    }
+}
+
+function detectVN(text) {
+    const vnWords = ['và', 'của', 'là', 'trong', 'cho', 'với', 'các', 'những', 'được', 'về', 'một', 'đã', 'có'];
+    const words = text.toLowerCase().split(/\s+/);
+    return words.some(w => vnWords.includes(w));
+}
+
+async function translateText(text, langPair) {
+    try {
+        // Chuyển sang gọi backend API (sử dụng Gemini) để không bị giới hạn 500 ký tự
+        const target = langPair.split('|')[1]; // 'vi' hoặc 'en'
+        const response = await fetch(`${API_BASE}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                text: text, 
+                target_lang: target === 'vi' ? 'Tiếng Việt' : 'Tiếng Anh' 
+            })
+        });
+        const data = await response.json();
+        
+        if (data && data.status === 'ok' && data.translatedText) {
+            return { success: true, text: data.translatedText };
+        }
+        return { success: false, message: data.message };
+    } catch (err) {
+        console.error('Translate API error:', err);
+        return { success: false, message: 'Lỗi kết nối đến máy chủ dịch thuật.' };
     }
 }

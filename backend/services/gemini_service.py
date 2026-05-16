@@ -10,8 +10,8 @@ class GeminiService:
         self.model: Optional[genai.GenerativeModel] = None
         if self.api_key:
             genai.configure(api_key=self.api_key)
-            # Use gemini-1.5-flash for speed and efficiency
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            # Use gemini-3-flash-preview to match environment availability
+            self.model = genai.GenerativeModel('gemini-3-flash-preview')
 
     def is_available(self) -> bool:
         return self.model is not None
@@ -84,6 +84,34 @@ class GeminiService:
             return json.loads(text)
         except Exception as e:
             print(f"[Gemini Error] {e}")
+            return None
+
+    def translate(self, text: str, target_lang: str = "vi") -> Optional[str]:
+        """
+        Translates text to target language using Gemini.
+        Handles much longer text than free MyMemory API.
+        """
+        if not self.model:
+            return None
+
+        prompt = f"""
+        Nhiệm vụ: Dịch đoạn văn bản sau sang {target_lang}.
+        Yêu cầu:
+        1. Giữ nguyên định dạng (nếu có).
+        2. Dịch sát nghĩa chuyên ngành (Công nghệ thông tin, nghiên cứu khoa học).
+        3. Không thêm bất kỳ văn bản nào khác ngoài bản dịch.
+
+        Văn bản cần dịch:
+        '''
+        {text}
+        '''
+        """
+
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"[Gemini Translate Error] {e}")
             return None
 
 # Singleton instance

@@ -6,8 +6,40 @@ Cung cấp endpoints để frontend truy vấn dữ liệu từ Neo4j.
 from flask import Blueprint, jsonify, request
 import unicodedata
 from backend.services.neo4j_connection import get_neo4j_connection
+from backend.services.gemini_service import gemini_service
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
+
+@api_bp.route("/translate", methods=["POST"])
+def translate_content():
+    """Dịch nội dung sử dụng Google Translate (miễn phí)."""
+    from deep_translator import GoogleTranslator
+    data = request.json
+    text = data.get("text", "").strip()
+    target_lang = data.get("target_lang", "vi").strip()
+    
+    # Map sang mã ngôn ngữ ISO
+    lang_map = {
+        "vi": "vi",
+        "en": "en",
+        "Tiếng Việt": "vi",
+        "Tiếng Anh": "en"
+    }
+    target = lang_map.get(target_lang, "vi")
+    
+    if not text:
+        return jsonify({"status": "error", "message": "Nội dung trống"}), 400
+        
+    try:
+        # GoogleTranslator tự động xử lý các đoạn văn dài bằng cách chia nhỏ (chunking)
+        translated = GoogleTranslator(source='auto', target=target).translate(text)
+        if translated:
+            return jsonify({"status": "ok", "translatedText": translated})
+        else:
+            return jsonify({"status": "error", "message": "Không thể dịch nội dung này"}), 500
+    except Exception as e:
+        print(f"[Translation Error] {e}")
+        return jsonify({"status": "error", "message": f"Lỗi dịch thuật: {str(e)}"}), 500
 
 
 # ============================================================
