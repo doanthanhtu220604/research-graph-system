@@ -10,8 +10,9 @@ admin_publications_bp = Blueprint("admin_publications_api", __name__)
 @admin_publications_bp.route("/cong-trinh", methods=["POST"])
 def create_cong_trinh():
     data = request.json
-    giang_vien_ids = data.pop("giang_vien_ids", [])
-    tac_gia_ngoai_names = data.pop("tac_gia_ngoai_names", [])
+    tac_gia_chinh_ids = data.pop("tac_gia_chinh_ids", [])
+    cong_su_ids = data.pop("cong_su_ids", [])
+    tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
     conn = get_neo4j_connection()
     try:
         result = conn.write("""
@@ -28,27 +29,32 @@ def create_cong_trinh():
         """, data)
         new_id = result[0]["id"]
 
-        # Gán tác giả ngay khi tạo (nếu có)
-        if giang_vien_ids:
+        # Gán Tác giả chính ngay khi tạo
+        if tac_gia_chinh_ids:
             conn.write("""
                 UNWIND $gv_ids AS gv_id
                 MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu)
                 WHERE gv.id = gv_id AND ct.id = $ct_id
-                MERGE (gv)-[:LA_TAC_GIA_CUA]->(ct)
-            """, {"ct_id": new_id, "gv_ids": giang_vien_ids})
+                MERGE (gv)-[:TAC_GIA_CHINH]->(ct)
+            """, {"ct_id": new_id, "gv_ids": tac_gia_chinh_ids})
+
+        # Gán Cộng sự ngay khi tạo
+        if cong_su_ids:
+            conn.write("""
+                UNWIND $gv_ids AS gv_id
+                MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu)
+                WHERE gv.id = gv_id AND ct.id = $ct_id
+                MERGE (gv)-[:CONG_SU]->(ct)
+            """, {"ct_id": new_id, "gv_ids": cong_su_ids})
 
         # Gán tác giả ngoài
-        for ten in tac_gia_ngoai_names:
-            ten = ten.strip()
-            if not ten:
-                continue
+        if tac_gia_ngoai_ids:
             conn.write("""
-                MERGE (tgn:TacGiaNgoai {ho_va_ten: $ten})
-                ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn))
-                WITH tgn
-                MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id
+                UNWIND $tgn_ids AS tgn_id
+                MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                WHERE tgn.id = tgn_id AND ct.id = $ct_id
                 MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
-            """, {"ten": ten, "ct_id": new_id})
+            """, {"ct_id": new_id, "tgn_ids": tac_gia_ngoai_ids})
 
         return jsonify({"status": "ok", "message": "Thêm công trình thành công", "id": new_id})
     except Exception as e:

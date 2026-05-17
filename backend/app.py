@@ -31,7 +31,7 @@ from backend.routes.scholar_api import scholar_bp
 from backend.routes.admin_trash import admin_trash_bp
 from backend.routes.admin_departments import admin_departments_bp
 from backend.routes.admin_import import admin_import_bp
-
+from backend.routes.upload_api import upload_api_bp
 
 def create_app():
     """Factory pattern tạo Flask app."""
@@ -58,6 +58,7 @@ def create_app():
     app.register_blueprint(admin_trash_bp, url_prefix='/api/admin')
     app.register_blueprint(admin_departments_bp, url_prefix='/api/admin')
     app.register_blueprint(admin_import_bp, url_prefix='/api/admin')
+    app.register_blueprint(upload_api_bp, url_prefix='/api/upload')
 
 
     # ============================
