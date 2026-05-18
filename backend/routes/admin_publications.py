@@ -15,10 +15,16 @@ def create_cong_trinh():
     tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
     conn = get_neo4j_connection()
     try:
+        # Ensure all expected fields exist in data so that Cypher parameters match cleanly
+        for field in ["ten_cong_trinh", "nam_xuat_ban", "noi_xuat_ban", "tom_tat", "trang_thai", "link"]:
+            if field not in data:
+                data[field] = None
+
         result = conn.write("""
             CREATE (ct:CongTrinhNghienCuu {
                 ten_cong_trinh: $ten_cong_trinh,
                 nam_xuat_ban: $nam_xuat_ban,
+                noi_xuat_ban: $noi_xuat_ban,
                 tom_tat: $tom_tat,
                 trang_thai: coalesce($trang_thai, 'Đang thực hiện'),
                 link: $link,
@@ -65,14 +71,24 @@ def update_cong_trinh(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
+        params = {
+            "id": id,
+            "ten_cong_trinh": data.get("ten_cong_trinh"),
+            "nam_xuat_ban": data.get("nam_xuat_ban"),
+            "noi_xuat_ban": data.get("noi_xuat_ban"),
+            "tom_tat": data.get("tom_tat"),
+            "trang_thai": data.get("trang_thai"),
+            "link": data.get("link")
+        }
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.ten_cong_trinh = $ten_cong_trinh,
                 ct.nam_xuat_ban = $nam_xuat_ban,
+                ct.noi_xuat_ban = $noi_xuat_ban,
                 ct.tom_tat = $tom_tat,
                 ct.trang_thai = coalesce($trang_thai, 'Hoàn thành'),
                 ct.link = $link
-        """, {"id": id, **data})
+        """, params)
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

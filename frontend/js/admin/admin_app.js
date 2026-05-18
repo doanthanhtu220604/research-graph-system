@@ -36,7 +36,8 @@ const ENTITY_CONFIG = {
         adminApiUrl: `${ADMIN_API_BASE}/cong-trinh`,
         fields: [
             { name: 'ten_cong_trinh', label: 'Tên công trình', type: 'text', required: true },
-            { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
+            { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
+            { name: 'noi_xuat_ban', label: 'Nơi xuất bản', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
             { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
                 { value: 'Đang thực hiện', label: 'Đang thực hiện' },
@@ -2010,7 +2011,8 @@ async function viewPublicationStats(ctId) {
             let html = `
                 <div style="margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
                     <p style="margin-bottom: 8px; font-size: 16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
-                    <p style="margin-bottom: 5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
+                    <p style="margin-bottom: 5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'N/A'}</p>
                     <p style="margin-bottom: 5px;"><b>Người tạo:</b> ${ct.nguoi_tao || 'Hệ thống / Admin'}</p>
                     <p style="margin-bottom: 5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
                     <p style="margin-bottom: 5px; margin-top: 10px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>

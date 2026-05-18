@@ -1086,6 +1086,7 @@ async function showPublicationDetail(ctId) {
             
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Nơi xuất bản</span><br><b>${ct.noi_xuat_ban || 'N/A'}</b></div>
             `;
             if (ct.link) {
                 fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${ct.link}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem bài viết</a></div>`;

@@ -251,7 +251,8 @@ const ENTITY_CONFIG = {
         title: 'Công trình',
         fields: [
             { name: 'ten_cong_trinh', label: 'Tên công trình', type: 'text', required: true },
-            { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
+            { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
+            { name: 'noi_xuat_ban', label: 'Nơi xuất bản', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
             { name: 'link', label: 'Link bài viết', type: 'url' },
             { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' }
@@ -917,7 +918,8 @@ async function viewPublicationDetail(ctId) {
             <p style="margin-bottom:8px;font-size:16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b>
                 <span style="background:${stBg};color:${stColor};border:1px solid ${stColor};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;margin-left:8px;">${trangThai}</span>
             </p>
-            <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Người tạo:</b> ${ct.nguoi_tao || 'Hệ thống / Admin'}</p>
             <p style="margin-bottom:5px;"><b>Link:</b> ${linkHtml}</p>
             <p style="margin-bottom:0;margin-top:10px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>
