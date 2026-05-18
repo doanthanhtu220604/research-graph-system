@@ -150,9 +150,12 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên công trình – bỏ qua.")
             continue
 
+        nam_xuat_ban_str = safe_str(row.get("nam_xuat_ban"))
+        nam_xuat_ban = int(nam_xuat_ban_str) if nam_xuat_ban_str.isdigit() else None
+
         props = {
             "ten_cong_trinh": ten,
-            "nam_xuat_ban":   safe_str(row.get("nam_xuat_ban")),
+            "nam_xuat_ban":   nam_xuat_ban,
             "tom_tat":        safe_str(row.get("tom_tat")),
             "trang_thai":     safe_str(row.get("trang_thai")) or "Hoàn thành",
             "link":           safe_str(row.get("link")),
@@ -224,11 +227,16 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên đề tài – bỏ qua.")
             continue
 
+        nam_bat_dau_str = safe_str(row.get("nam_bat_dau"))
+        nam_ket_thuc_str = safe_str(row.get("nam_ket_thuc"))
+        nam_bat_dau = int(nam_bat_dau_str) if nam_bat_dau_str.isdigit() else None
+        nam_ket_thuc = int(nam_ket_thuc_str) if nam_ket_thuc_str.isdigit() else None
+
         props = {
             "ten_de_tai":   ten,
             "cap_de_tai":   safe_str(row.get("cap_de_tai")),
-            "nam_bat_dau":  safe_str(row.get("nam_bat_dau")),
-            "nam_ket_thuc": safe_str(row.get("nam_ket_thuc")),
+            "nam_bat_dau":  nam_bat_dau,
+            "nam_ket_thuc": nam_ket_thuc,
             "tom_tat":      safe_str(row.get("tom_tat")),
             "trang_thai":   safe_str(row.get("trang_thai")) or "Đang thực hiện",
             "link":         safe_str(row.get("link")),

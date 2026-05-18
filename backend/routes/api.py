@@ -148,7 +148,7 @@ def get_all_cong_trinh():
         RETURN ct,
                collect(DISTINCT gv.ho_va_ten) AS tac_gia,
                collect(DISTINCT tgn.ho_va_ten) AS tac_gia_ngoai
-        ORDER BY ct.nam_xuat_ban DESC, coalesce(ct.created_at, 0) DESC, id(ct) DESC
+        ORDER BY toInteger(ct.nam_xuat_ban) DESC, coalesce(ct.created_at, 0) DESC, id(ct) DESC
     """)
     cong_trinh_list = []
     for r in results:
@@ -206,7 +206,7 @@ def get_all_de_tai():
                collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
                collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
                collect(DISTINCT tgn.ho_va_ten)   AS tac_gia_ngoai
-        ORDER BY dt.nam_bat_dau DESC, coalesce(dt.created_at, 0) DESC, id(dt) DESC
+        ORDER BY toInteger(dt.nam_bat_dau) DESC, coalesce(dt.created_at, 0) DESC, id(dt) DESC
     """)
     de_tai_list = []
     for r in results:
