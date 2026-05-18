@@ -1128,4 +1128,29 @@ async function uploadPdfForLink(input, targetId) {
         if (statusDiv) statusDiv.innerHTML = "<span style=\"color: #ef4444;\"><i class=\"fas fa-times\"></i> Lỗi mạng.</span>";
     }
 }
+
+// Dynamic Scroll to Top Button for Lecturer Panel
+document.addEventListener("DOMContentLoaded", function() {
+    const scrollToTopBtn = document.createElement('button');
+    scrollToTopBtn.id = 'scrollToTopBtn';
+    scrollToTopBtn.className = 'scroll-to-top-btn';
+    scrollToTopBtn.title = 'Lên đầu trang';
+    scrollToTopBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    document.body.appendChild(scrollToTopBtn);
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollToTopBtn.classList.add('show');
+        } else {
+            scrollToTopBtn.classList.remove('show');
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
 

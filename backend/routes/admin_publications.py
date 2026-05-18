@@ -22,7 +22,7 @@ def create_cong_trinh():
 
         result = conn.write("""
             CREATE (ct:CongTrinhNghienCuu {
-                ten_cong_trinh: $ten_cong_trinh,
+                ten_cong_trinh: toUpper($ten_cong_trinh),
                 nam_xuat_ban: $nam_xuat_ban,
                 noi_xuat_ban: $noi_xuat_ban,
                 tom_tat: $tom_tat,
@@ -82,7 +82,7 @@ def update_cong_trinh(id):
         }
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
-            SET ct.ten_cong_trinh = $ten_cong_trinh,
+            SET ct.ten_cong_trinh = toUpper($ten_cong_trinh),
                 ct.nam_xuat_ban = $nam_xuat_ban,
                 ct.noi_xuat_ban = $noi_xuat_ban,
                 ct.tom_tat = $tom_tat,

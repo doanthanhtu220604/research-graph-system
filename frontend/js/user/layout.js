@@ -72,4 +72,27 @@ document.addEventListener("DOMContentLoaded", function() {
     detailOverlayPlaceholder.id = 'entity-detail-placeholder';
     document.body.appendChild(detailOverlayPlaceholder);
     loadComponent('entity-detail-placeholder', 'components/entity_detail.html');
+
+    // Add Scroll to Top Button dynamically
+    const scrollToTopBtn = document.createElement('button');
+    scrollToTopBtn.id = 'scrollToTopBtn';
+    scrollToTopBtn.className = 'scroll-to-top-btn';
+    scrollToTopBtn.title = 'Lên đầu trang';
+    scrollToTopBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+    document.body.appendChild(scrollToTopBtn);
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollToTopBtn.classList.add('show');
+        } else {
+            scrollToTopBtn.classList.remove('show');
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 });

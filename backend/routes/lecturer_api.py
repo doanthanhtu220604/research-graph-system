@@ -213,7 +213,7 @@ def add_my_publication():
         WITH creator, collect(member) AS members
         
         CREATE (ct:CongTrinhNghienCuu {
-            ten_cong_trinh: $ten_ct,
+            ten_cong_trinh: toUpper($ten_ct),
             nam_xuat_ban: toInteger($nam_xb),
             noi_xuat_ban: $noi_xb,
             tom_tat: $tom_tat,
@@ -281,7 +281,7 @@ def update_my_publication(ct_id):
             data = request.get_json()
             query = """
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
-            SET ct.ten_cong_trinh = $ten_ct,
+            SET ct.ten_cong_trinh = toUpper($ten_ct),
                 ct.nam_xuat_ban = toInteger($nam_xb),
                 ct.noi_xuat_ban = $noi_xb,
                 ct.tom_tat = $tom_tat,
