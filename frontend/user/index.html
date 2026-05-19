@@ -60,6 +60,28 @@
             z-index: 2;
         }
 
+        .hero-logo-wrapper {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hero-logo-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+
+        .hero-logo-wrapper img {
+            height: 55px;
+            width: auto;
+            display: block;
+        }
+
         .home-hero h1 {
             font-size: 32px;
             font-weight: 800;
@@ -344,6 +366,9 @@
         <!-- ─── Hero ─── -->
         <div class="home-hero">
             <div class="home-hero-content">
+                <div class="hero-logo-wrapper">
+                    <img src="../static/Logo-Khoa-CNTT-NTU.png" alt="Khoa Công nghệ thông tin - ĐH Nha Trang">
+                </div>
                 <h1>Khám phá <span class="highlight">Mạng lưới Tri thức</span> Khoa học</h1>
                 <p>Hệ thống quản lý và kết nối dữ liệu nghiên cứu khoa học, giúp bạn dễ dàng tìm kiếm giảng viên, công trình và xu hướng nghiên cứu mới nhất.</p>
 
