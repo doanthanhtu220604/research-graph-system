@@ -3274,7 +3274,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                         </label>
 
-                                        ${checked ? `<button class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
+                                        ${checked ? `<button type="button" class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
 
                                     </div>
 
@@ -3308,7 +3308,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                         </label>
 
-                                        ${checked ? `<button class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'collab')"><i class="fas fa-exchange-alt"></i> Sang Tác giả chính</button>` : ''}
+                                        ${checked ? `<button type="button" class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'collab')"><i class="fas fa-exchange-alt"></i> Sang Tác giả chính</button>` : ''}
 
                                     </div>
 
@@ -3354,7 +3354,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                             </label>
 
-                                            ${checked ? `<button class="btn-role-switch" onclick="switchTgnPubRole('${tgn.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
+                                            ${checked ? `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgn.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
 
                                         </div>
 
@@ -3388,7 +3388,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                             </label>
 
-                                            ${checked ? `<button class="btn-role-switch" onclick="switchTgnPubRole('${tgn.id}', 'collab')"><i class="fas fa-exchange-alt"></i> Sang Tác giả chính</button>` : ''}
+                                            ${checked ? `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgn.id}', 'collab')"><i class="fas fa-exchange-alt"></i> Sang Tác giả chính</button>` : ''}
 
                                         </div>
 
@@ -3471,7 +3471,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                         </label>
 
-                                        ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
+                                        ${checked ? `<button type="button" class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
 
                                     </div>
 
@@ -3505,7 +3505,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                         </label>
 
-                                        ${checked ? `<button class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
+                                        ${checked ? `<button type="button" class="btn-role-switch" onclick="switchMemberRole('${gv.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
 
                                     </div>
 
@@ -3553,7 +3553,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                             </label>
 
-                                            ${checked ? `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgn.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
+                                            ${checked ? `<button type="button" class="btn-role-switch" onclick="switchTgnMemberRole('${tgn.id}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>` : ''}
 
                                         </div>
 
@@ -3587,7 +3587,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                             </label>
 
-                                            ${checked ? `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgn.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
+                                            ${checked ? `<button type="button" class="btn-role-switch" onclick="switchTgnMemberRole('${tgn.id}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>` : ''}
 
                                         </div>
 
@@ -3655,11 +3655,19 @@ async function saveRelations(e) {
 
             const csBoxes = document.querySelectorAll('input[name="gv_cong_su"]:checked');
 
+            const tgnTjcBoxes = document.querySelectorAll('input[name="tgn_tac_gia_chinh"]:checked');
+
+            const tgnCsBoxes = document.querySelectorAll('input[name="tgn_cong_su"]:checked');
+
             
 
             const tacGiaChinhIds = Array.from(tjcBoxes).map(cb => cb.value);
 
             const congSuIds = Array.from(csBoxes).map(cb => cb.value);
+
+            const tgnTacGiaChinhIds = Array.from(tgnTjcBoxes).map(cb => cb.value);
+
+            const tgnCongSuIds = Array.from(tgnCsBoxes).map(cb => cb.value);
 
             
 
@@ -3681,7 +3689,7 @@ async function saveRelations(e) {
 
                     headers: { 'Content-Type': 'application/json' },
 
-                    body: JSON.stringify({ tac_gia_ngoai_ids: tgn_ids })
+                    body: JSON.stringify({ tac_gia_chinh_ngoai_ids: tgnTacGiaChinhIds, cong_su_ngoai_ids: tgnCongSuIds })
 
                 })
 
@@ -4144,7 +4152,19 @@ async function viewPublicationStats(ctId) {
 
                     const donVi = tgn.don_vi ? `<span style="color:var(--text-muted); font-size:12px;"> — ${tgn.don_vi}</span>` : '';
 
-                    html += `<li><i class="fas fa-user-friends" style="color:#e67e22; font-size:11px; margin-right:4px;"></i><b>${tgn.ten}</b>${donVi}</li>`;
+                    let roleLabel = '';
+
+                    if (tgn.vai_tro === 'TAC_GIA_CHINH') {
+
+                        roleLabel = ' <span style="color:#e67e22; font-size:11px;">(Tác giả chính)</span>';
+
+                    } else if (tgn.vai_tro === 'CONG_SU' || tgn.vai_tro === 'LA_TAC_GIA_CUA' || tgn.vai_tro === 'DONG_TAC_GIA') {
+
+                        roleLabel = ' <span style="color:#8b5cf6; font-size:11px;">(Cộng sự)</span>';
+
+                    }
+
+                    html += `<li><i class="fas fa-user-friends" style="color:#e67e22; font-size:11px; margin-right:4px;"></i><b>${tgn.ten}</b>${roleLabel}${donVi}</li>`;
 
                 });
 
@@ -4850,7 +4870,7 @@ function updateSwitchButtons(gvId) {
 
                 const func = mainRow.id.includes('lead') ? 'switchMemberRole' : 'switchAuthorRole';
 
-                mainRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="${func}('${gvId}', '${mainRow.id.includes('lead') ? 'lead' : 'main'}')"><i class="fas fa-exchange-alt"></i> ${text}</button>`);
+                mainRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="${func}('${gvId}', '${mainRow.id.includes('lead') ? 'lead' : 'main'}')"><i class="fas fa-exchange-alt"></i> ${text}</button>`);
 
             }
 
@@ -4872,7 +4892,7 @@ function updateSwitchButtons(gvId) {
 
                 const func = collabRow.id.includes('member') ? 'switchMemberRole' : 'switchAuthorRole';
 
-                collabRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="${func}('${gvId}', '${collabRow.id.includes('member') ? 'member' : 'collab'}')"><i class="fas fa-exchange-alt"></i> ${text}</button>`);
+                collabRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="${func}('${gvId}', '${collabRow.id.includes('member') ? 'member' : 'collab'}')"><i class="fas fa-exchange-alt"></i> ${text}</button>`);
 
             }
 
@@ -4988,7 +5008,7 @@ function updateTgnSwitchButtons(tgnId) {
 
             if (!btn) {
 
-                leadRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgnId}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>`);
+                leadRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="switchTgnMemberRole('${tgnId}', 'lead')"><i class="fas fa-exchange-alt"></i> Sang Thành viên</button>`);
 
             }
 
@@ -5006,7 +5026,7 @@ function updateTgnSwitchButtons(tgnId) {
 
             if (!btn) {
 
-                memberRow.insertAdjacentHTML('beforeend', `<button class="btn-role-switch" onclick="switchTgnMemberRole('${tgnId}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>`);
+                memberRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="switchTgnMemberRole('${tgnId}', 'member')"><i class="fas fa-exchange-alt"></i> Sang Chủ nhiệm</button>`);
 
             }
 
@@ -5045,6 +5065,59 @@ window.switchTgnMemberRole = function(tgnId, currentRole) {
 };
 
 
+
+// Helper: Đồng bộ checkbox và hiển thị nút switch cho Tác giả ngoài của Công trình
+window.syncTgnPubRoleCheckbox = function(tgnId, column) {
+    const mainCb = document.querySelector(`input[name="tgn_tac_gia_chinh"][value="${tgnId}"]`);
+    const collabCb = document.querySelector(`input[name="tgn_cong_su"][value="${tgnId}"]`);
+    
+    if (column === 'main') {
+        if (mainCb && mainCb.checked && collabCb) collabCb.checked = false;
+    } else {
+        if (collabCb && collabCb.checked && mainCb) mainCb.checked = false;
+    }
+    updateTgnPubSwitchButtons(tgnId);
+};
+
+function updateTgnPubSwitchButtons(tgnId) {
+    const mainRow = document.getElementById(`row-tgn-main-${tgnId}`);
+    const collabRow = document.getElementById(`row-tgn-collab-${tgnId}`);
+    
+    const mainCb = mainRow ? mainRow.querySelector('input[type="checkbox"]') : null;
+    const collabCb = collabRow ? collabRow.querySelector('input[type="checkbox"]') : null;
+
+    if (mainRow) {
+        let btn = mainRow.querySelector('.btn-role-switch');
+        if (mainCb && mainCb.checked) {
+            if (!btn) {
+                mainRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgnId}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>`);
+            }
+        } else if (btn) btn.remove();
+    }
+
+    if (collabRow) {
+        let btn = collabRow.querySelector('.btn-role-switch');
+        if (collabCb && collabCb.checked) {
+            if (!btn) {
+                collabRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgnId}', 'collab')"><i class="fas fa-exchange-alt"></i> Sang Tác giả chính</button>`);
+            }
+        } else if (btn) btn.remove();
+    }
+}
+
+window.switchTgnPubRole = function(tgnId, currentRole) {
+    const mainCb = document.querySelector(`input[name="tgn_tac_gia_chinh"][value="${tgnId}"]`);
+    const collabCb = document.querySelector(`input[name="tgn_cong_su"][value="${tgnId}"]`);
+    
+    if (currentRole === 'main') {
+        if (mainCb) mainCb.checked = false;
+        if (collabCb) collabCb.checked = true;
+    } else {
+        if (collabCb) collabCb.checked = false;
+        if (mainCb) mainCb.checked = true;
+    }
+    updateTgnPubSwitchButtons(tgnId);
+};
 
 async function uploadPdfForLink(input, targetId) {
     if (!input.files || input.files.length === 0) return;
