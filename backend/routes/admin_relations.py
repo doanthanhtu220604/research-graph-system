@@ -127,32 +127,60 @@ def update_thanh_vien_de_tai(dt_id):
 def get_tac_gia_ngoai_cong_trinh(ct_id):
     conn = get_neo4j_connection()
     results = conn.query("""
-        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+        MATCH (tgn:TacGiaNgoai)-[r:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
         WHERE ct.id = $id
-        RETURN tgn.id AS tgn_id, tgn.ho_va_ten AS ten
+        RETURN tgn.id AS tgn_id, tgn.ho_va_ten AS ten, type(r) AS vai_tro
     """, {"id": ct_id})
-    data = [{"id": r["tgn_id"], "ten": r["ten"]} for r in results]
+    data = [{"id": r["tgn_id"], "ten": r["ten"], "vai_tro": r["vai_tro"]} for r in results]
     return jsonify({"status": "ok", "data": data})
 
 
 @admin_relations_bp.route("/cong-trinh/<ct_id>/tac-gia-ngoai", methods=["PUT"])
 def update_tac_gia_ngoai_cong_trinh(ct_id):
     data = request.json
-    tgn_ids = data.get("tac_gia_ngoai_ids", [])
+    tac_gia_chinh_ngoai_ids = data.get("tac_gia_chinh_ngoai_ids")
+    cong_su_ngoai_ids = data.get("cong_su_ngoai_ids")
+    tgn_ids = data.get("tac_gia_ngoai_ids")
+    
     conn = get_neo4j_connection()
     try:
+        # Xóa các quan hệ cũ (bao gồm cả DONG_TAC_GIA cũ)
         conn.query("""
-            MATCH (tgn:TacGiaNgoai)-[r:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+            MATCH (tgn:TacGiaNgoai)-[r:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
             WHERE ct.id = $id
             DELETE r
         """, {"id": ct_id})
-        if tgn_ids:
-            conn.query("""
-                UNWIND $tgn_ids AS tgn_id
-                MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
-                WHERE tgn.id = tgn_id AND ct.id = $id
-                MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
-            """, {"id": ct_id, "tgn_ids": tgn_ids})
+        
+        # Nếu gửi theo kiểu phân vai trò mới
+        if tac_gia_chinh_ngoai_ids is not None or cong_su_ngoai_ids is not None:
+            chinh_ids = tac_gia_chinh_ngoai_ids or []
+            phu_ids = cong_su_ngoai_ids or []
+            
+            if chinh_ids:
+                conn.query("""
+                    UNWIND $ids AS tgn_id
+                    MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                    WHERE tgn.id = tgn_id AND ct.id = $id
+                    MERGE (tgn)-[:TAC_GIA_CHINH]->(ct)
+                """, {"id": ct_id, "ids": chinh_ids})
+                
+            if phu_ids:
+                conn.query("""
+                    UNWIND $ids AS tgn_id
+                    MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                    WHERE tgn.id = tgn_id AND ct.id = $id
+                    MERGE (tgn)-[:CONG_SU]->(ct)
+                """, {"id": ct_id, "ids": phu_ids})
+        else:
+            # Fallback cho kiểu cũ
+            if tgn_ids:
+                conn.query("""
+                    UNWIND $tgn_ids AS tgn_id
+                    MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                    WHERE tgn.id = tgn_id AND ct.id = $id
+                    MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
+                """, {"id": ct_id, "tgn_ids": tgn_ids})
+                
         return jsonify({"status": "ok", "message": "Đã cập nhật tác giả ngoài cho công trình."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

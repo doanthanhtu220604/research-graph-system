@@ -144,7 +144,7 @@ def get_all_cong_trinh():
         MATCH (ct:CongTrinhNghienCuu)
         WHERE coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
-        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct)
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct)
         RETURN ct,
                collect(DISTINCT gv.ho_va_ten) AS tac_gia,
                collect(DISTINCT tgn.ho_va_ten) AS tac_gia_ngoai
@@ -172,9 +172,9 @@ def get_cong_trinh_detail(ct_id):
     """, {"id": ct_id})
 
     tac_gia_ngoai_res = conn.query("""
-        MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+        MATCH (tgn:TacGiaNgoai)-[r:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
         WHERE ct.id = $id
-        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi
+        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro
     """, {"id": ct_id})
     
     if not result or not result.get("ct"):
@@ -183,7 +183,7 @@ def get_cong_trinh_detail(ct_id):
     data = dict(result["ct"])
     data["tac_gia"] = result["tac_gia"]
     data["tac_gia_ngoai"] = [
-        {"ten": r["ten"], "don_vi": r["don_vi"]} for r in tac_gia_ngoai_res
+        {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"]} for r in tac_gia_ngoai_res
     ]
     return jsonify({"status": "ok", "data": data})
 

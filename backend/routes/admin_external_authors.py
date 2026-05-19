@@ -93,7 +93,7 @@ def get_tac_gia_ngoai_detail(id):
             
         # Lấy danh sách công trình tham gia
         publications = conn.query("""
-            MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+            MATCH (tgn:TacGiaNgoai)-[:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
             WHERE tgn.id = $id AND coalesce(ct.is_deleted, false) = false
             RETURN ct {.*} as item
             ORDER BY ct.nam_xuat_ban DESC
@@ -101,7 +101,7 @@ def get_tac_gia_ngoai_detail(id):
         
         # Lấy danh sách đề tài tham gia
         projects = conn.query("""
-            MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+            MATCH (tgn:TacGiaNgoai)-[:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
             WHERE tgn.id = $id AND coalesce(dt.is_deleted, false) = false
             RETURN dt {.*} as item
             ORDER BY dt.nam_bat_dau DESC
@@ -109,10 +109,10 @@ def get_tac_gia_ngoai_detail(id):
         
         # Lấy danh sách giảng viên đã hợp tác (từ cả CT và DT)
         collaborators = conn.query("""
-            MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(work)
+            MATCH (tgn:TacGiaNgoai)-[:TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(work)
             WHERE tgn.id = $id AND (work:CongTrinhNghienCuu OR work:DeTaiNghienCuu)
             AND coalesce(work.is_deleted, false) = false
-            MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|CHU_NHIEM|THAM_GIA]->(work)
+            MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(work)
             WITH gv, count(work) AS workCount
             RETURN gv {
                 .id, .ho_va_ten, .hoc_vi, .chuc_danh, .anh_dai_dien,
