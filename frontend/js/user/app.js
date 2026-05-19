@@ -981,7 +981,7 @@ async function showLecturerDetail(gvId) {
                             const vt = item.vai_tro;
                             let roleLabel = '';
                             if (vt === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:var(--accent-blue); font-size:11px; font-weight:600;">(Tác giả chính)</span>';
-                            else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px; font-weight:600;">(Cộng sự)</span>';
+                            else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px; font-weight:600;">(Đồng tác giả)</span>';
 
                             return `
                                 <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail('${ct.id}')">
@@ -1124,7 +1124,7 @@ async function showPublicationDetail(ctId) {
                                     roleText = ' <small style="opacity:0.8;">(Tác giả chính)</small>';
                                     roleColor = 'rgba(79, 142, 247, 0.15)';
                                 } else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') {
-                                    roleText = ' <small style="opacity:0.8;">(Cộng sự)</small>';
+                                    roleText = ' <small style="opacity:0.8;">(Đồng tác giả)</small>';
                                     roleColor = 'rgba(16, 185, 129, 0.1)';
                                     textColor = '#10b981';
                                 }
@@ -1141,17 +1141,25 @@ async function showPublicationDetail(ctId) {
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài trường (${ct.tac_gia_ngoai.length})</h3>
                         <div style="display:flex; flex-direction:column; gap:8px;">
-                            ${ct.tac_gia_ngoai.map(tg => `
-                                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(139,92,246,0.07); border-radius:10px; border-left:3px solid #8b5cf6;">
-                                    <div style="width:32px; height:32px; border-radius:50%; background:rgba(139,92,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                        <i class="fas fa-user" style="color:#8b5cf6; font-size:13px;"></i>
+                            ${ct.tac_gia_ngoai.map(tg => {
+                                let roleText = '';
+                                if (tg.vai_tro === 'TAC_GIA_CHINH') {
+                                    roleText = ' <span style="color:#e67e22; font-size:11px; font-weight:600;">(Tác giả chính)</span>';
+                                } else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA' || tg.vai_tro === 'DONG_TAC_GIA') {
+                                    roleText = ' <span style="color:#8b5cf6; font-size:11px; font-weight:600;">(Đồng tác giả)</span>';
+                                }
+                                return `
+                                    <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(139,92,246,0.07); border-radius:10px; border-left:3px solid #8b5cf6;">
+                                        <div style="width:32px; height:32px; border-radius:50%; background:rgba(139,92,246,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                            <i class="fas fa-user" style="color:#8b5cf6; font-size:13px;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'N/A'}${roleText}</div>
+                                            ${tg.don_vi ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-building" style="margin-right:3px;"></i>${tg.don_vi}</div>` : ''}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'N/A'}</div>
-                                        ${tg.don_vi ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-building" style="margin-right:3px;"></i>${tg.don_vi}</div>` : ''}
-                                    </div>
-                                </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `;

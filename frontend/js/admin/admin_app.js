@@ -2209,7 +2209,7 @@ async function openAdminModal(type, id = null, index = null) {
 
                     <p style="font-size:13px; font-weight:600; color:#10b981; margin-bottom:6px;">
 
-                        <i class="fas fa-users"></i> Cộng sự
+                        <i class="fas fa-users"></i> Đồng tác giả
 
                     </p>
 
@@ -3274,7 +3274,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                         </label>
 
-                                        ${checked ? `<button type="button" class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
+                                        ${checked ? `<button type="button" class="btn-role-switch" onclick="switchAuthorRole('${gv.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Đồng tác giả</button>` : ''}
 
                                     </div>
 
@@ -3288,7 +3288,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                         <div style="flex:1; min-width: 280px;">
 
-                            <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Cộng sự (nội bộ):</b></p>
+                            <p style="margin-bottom:10px; color:#10b981;"><b><i class="fas fa-users"></i> Đồng tác giả (nội bộ):</b></p>
 
                             <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:white;">
 
@@ -3354,7 +3354,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                                             </label>
 
-                                            ${checked ? `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgn.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>` : ''}
+                                            ${checked ? `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgn.id}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Đồng tác giả</button>` : ''}
 
                                         </div>
 
@@ -3368,7 +3368,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                         <div style="flex:1; min-width: 280px;">
 
-                            <p style="margin-bottom:10px; color:#8b5cf6;"><b><i class="fas fa-users"></i> Cộng sự ngoài:</b></p>
+                            <p style="margin-bottom:10px; color:#8b5cf6;"><b><i class="fas fa-users"></i> Đồng tác giả ngoài:</b></p>
 
                             <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background:white;">
 
@@ -3985,7 +3985,7 @@ async function viewLecturerStats(gvId) {
 
                     if (vt === 'TAC_GIA_CHINH') vaiTroLabel = 'Tác giả chính';
 
-                    else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') vaiTroLabel = 'Cộng sự';
+                    else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') vaiTroLabel = 'Đồng tác giả';
 
 
 
@@ -4122,7 +4122,7 @@ async function viewPublicationStats(ctId) {
 
                     if (tg.vai_tro === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:#4F8EF7; font-size:11px;">(Tác giả chính)</span>';
 
-                    else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px;">(Cộng sự)</span>';
+                    else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px;">(Đồng tác giả)</span>';
 
                     
 
@@ -4160,7 +4160,7 @@ async function viewPublicationStats(ctId) {
 
                     } else if (tgn.vai_tro === 'CONG_SU' || tgn.vai_tro === 'LA_TAC_GIA_CUA' || tgn.vai_tro === 'DONG_TAC_GIA') {
 
-                        roleLabel = ' <span style="color:#8b5cf6; font-size:11px;">(Cộng sự)</span>';
+                        roleLabel = ' <span style="color:#8b5cf6; font-size:11px;">(Đồng tác giả)</span>';
 
                     }
 
@@ -4866,7 +4866,7 @@ function updateSwitchButtons(gvId) {
 
             if (!btn) {
 
-                const text = mainRow.id.includes('lead') ? 'Sang Thành viên' : 'Sang Cộng sự';
+                const text = mainRow.id.includes('lead') ? 'Sang Thành viên' : 'Sang Đồng tác giả';
 
                 const func = mainRow.id.includes('lead') ? 'switchMemberRole' : 'switchAuthorRole';
 
@@ -5090,7 +5090,7 @@ function updateTgnPubSwitchButtons(tgnId) {
         let btn = mainRow.querySelector('.btn-role-switch');
         if (mainCb && mainCb.checked) {
             if (!btn) {
-                mainRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgnId}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Cộng sự</button>`);
+                mainRow.insertAdjacentHTML('beforeend', `<button type="button" class="btn-role-switch" onclick="switchTgnPubRole('${tgnId}', 'main')"><i class="fas fa-exchange-alt"></i> Sang Đồng tác giả</button>`);
             }
         } else if (btn) btn.remove();
     }
