@@ -1409,6 +1409,11 @@ body::before {
     display: block;
 }
 
+/* Ẩn thanh cuộn của trang chính khi detail-overlay đang mở */
+body:has(.detail-overlay.active) {
+    overflow: hidden !important;
+}
+
 .detail-header-action {
     margin-bottom: 20px;
 }

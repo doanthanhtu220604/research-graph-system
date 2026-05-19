@@ -154,6 +154,11 @@ body:has(.sidebar) {
     overflow-y: auto; /* Browser scrollbar xuất hiện ở mép phải */
 }
 
+/* Ẩn thanh cuộn của trang chính khi modal mở (hoạt động tự động không cần JS) */
+body:has(.modal-overlay.active) {
+    overflow: hidden !important;
+}
+
 body:has(.sidebar) .main-content {
     margin-left: 260px;
     margin-top: 70px; /* Bù cho fixed top-header */
