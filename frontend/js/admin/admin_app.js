@@ -5197,7 +5197,23 @@ window.initAdminProfile = function() {
     let userInfoRaw = localStorage.getItem('userInfo');
     
     // Tự động khôi phục/gán thông tin admin nếu là tài khoản admin cũ hoặc mock đăng nhập
-    if (localStorage.getItem('isAdmin') === 'true' && (!userRole || !userInfoRaw || !JSON.parse(userInfoRaw).id)) {
+    let needsFallback = false;
+    if (localStorage.getItem('isAdmin') === 'true') {
+        if (!userRole || !userInfoRaw) {
+            needsFallback = true;
+        } else {
+            try {
+                const parsed = JSON.parse(userInfoRaw);
+                if (!parsed.id || parsed.id === 'admin_default') {
+                    needsFallback = true;
+                }
+            } catch(e) {
+                needsFallback = true;
+            }
+        }
+    }
+    
+    if (needsFallback) {
         localStorage.setItem('userRole', 'admin');
         localStorage.setItem('userInfo', JSON.stringify({
             id: 'admin',
