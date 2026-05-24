@@ -41,6 +41,22 @@ def create_app():
     # Cho phép CORS (frontend gọi API)
     CORS(app)
 
+    # Seed default Admin node
+    try:
+        conn = get_neo4j_connection()
+        conn.write("""
+            MERGE (a:Admin {username: 'admin'})
+            ON CREATE SET a.id = 'admin',
+                          a.password = 'admin',
+                          a.ho_va_ten = 'Administrator',
+                          a.email = 'admin@system',
+                          a.anh_dai_dien = ''
+            ON MATCH SET a.id = 'admin'
+        """)
+        print("[INFO] Seeded/Validated default admin account successfully.")
+    except Exception as e:
+        print(f"[ERROR] Failed to seed default admin account: {e}")
+
     # Đăng ký API Blueprint
     app.register_blueprint(api_bp)
     app.register_blueprint(admin_lecturers_bp, url_prefix='/api/admin')

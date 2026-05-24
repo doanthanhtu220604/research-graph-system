@@ -32,23 +32,39 @@ def login():
         
         if not username or not password:
             return jsonify({'status': 'error', 'message': 'Vui lòng nhập tài khoản và mật khẩu'}), 400
+        conn = get_neo4j_connection()
+        # 1. Kiểm tra/Tạo tài khoản Admin (trong CSDL Neo4j)
+        conn.write("""
+            MERGE (a:Admin {username: 'admin'})
+            ON CREATE SET a.id = 'admin',
+                          a.password = 'admin',
+                          a.ho_va_ten = 'Administrator',
+                          a.email = 'admin@system',
+                          a.anh_dai_dien = ''
+            ON MATCH SET a.id = 'admin'
+        """)
             
-        # 1. Kiểm tra tài khoản Admin (tài khoản cứng)
-        if username == 'admin' and password == 'admin':
+        admin_result = conn.query_single("""
+            MATCH (a:Admin)
+            WHERE (a.username = $username OR a.email = $username OR a.id = $username) AND a.password = $password
+            RETURN a.id AS id, a.ho_va_ten AS ten, a.email AS email, a.anh_dai_dien AS avatar
+        """, parameters={'username': username, 'password': password})
+        
+        if admin_result:
             return jsonify({
                 'status': 'ok',
                 'data': {
                     'role': 'admin',
                     'user': {
-                        'id': 0,
-                        'name': 'Administrator',
-                        'email': 'admin@system'
+                        'id': admin_result['id'],
+                        'name': admin_result['ten'],
+                        'email': admin_result['email'],
+                        'avatar': admin_result['avatar'] or ''
                     }
                 }
             })
             
         # 2. Kiểm tra tài khoản Giảng viên (trên Neo4j)
-        conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien)
         WHERE (g.username = $username OR g.email = $username OR g.id = $username) AND g.password = $password
@@ -210,3 +226,138 @@ def verify_reset_token():
 
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+# ============================================================
+# HỒ SƠ & TÀI KHOẢN (PROFILE & PASSWORD)
+# ============================================================
+
+@auth_bp.route('/profile', methods=['GET'])
+def get_profile():
+    try:
+        user_id = request.args.get('id', '').strip()
+        role = request.args.get('role', '').strip()
+        
+        if not user_id or not role:
+            return jsonify({'status': 'error', 'message': 'Thiếu id hoặc role'}), 400
+            
+        conn = get_neo4j_connection()
+        if role == 'admin':
+            result = conn.query_single("""
+                MATCH (a:Admin) WHERE a.id = $id
+                RETURN a.id AS id, a.ho_va_ten AS ho_va_ten, a.email AS email, a.anh_dai_dien AS anh_dai_dien, a.username AS username
+            """, parameters={'id': user_id})
+        else:
+            result = conn.query_single("""
+                MATCH (g:GiangVien) WHERE g.id = $id
+                RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, g.anh_dai_dien AS anh_dai_dien, g.username AS username
+            """, parameters={'id': user_id})
+            
+        if result:
+            return jsonify({
+                'status': 'ok',
+                'data': {
+                    'id': result['id'],
+                    'ho_va_ten': result['ho_va_ten'],
+                    'email': result['email'],
+                    'avatar': result['anh_dai_dien'] or '',
+                    'username': result['username'] or ''
+                }
+            })
+            
+        return jsonify({'status': 'error', 'message': 'Không tìm thấy tài khoản'}), 404
+        
+    except Exception as e:
+        logger.error(f"Error in get_profile: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@auth_bp.route('/profile', methods=['PUT'])
+def update_profile():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'error', 'message': 'Không có dữ liệu'}), 400
+            
+        user_id = data.get('id', '').strip()
+        role = data.get('role', '').strip()
+        ho_va_ten = data.get('ho_va_ten', '').strip()
+        email = data.get('email', '').strip()
+        avatar = data.get('avatar', '').strip()
+        
+        if not user_id or not role or not ho_va_ten or not email:
+            return jsonify({'status': 'error', 'message': 'Vui lòng điền đủ thông tin bắt buộc'}), 400
+            
+        conn = get_neo4j_connection()
+        if role == 'admin':
+            result = conn.write("""
+                MATCH (a:Admin) WHERE a.id = $id
+                SET a.ho_va_ten = $ho_va_ten,
+                    a.email = $email,
+                    a.anh_dai_dien = $avatar
+                RETURN a.id AS id, a.ho_va_ten AS ho_va_ten, a.email AS email, a.anh_dai_dien AS avatar
+            """, {'id': user_id, 'ho_va_ten': ho_va_ten, 'email': email, 'avatar': avatar})
+        else:
+            result = conn.write("""
+                MATCH (g:GiangVien) WHERE g.id = $id
+                SET g.ho_va_ten = $ho_va_ten,
+                    g.email = $email,
+                    g.anh_dai_dien = $avatar
+                RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, g.anh_dai_dien AS avatar
+            """, {'id': user_id, 'ho_va_ten': ho_va_ten, 'email': email, 'avatar': avatar})
+            
+        if result:
+            return jsonify({
+                'status': 'ok',
+                'message': 'Cập nhật thông tin thành công',
+                'data': {
+                    'id': result[0]['id'],
+                    'name': result[0]['ho_va_ten'],
+                    'email': result[0]['email'],
+                    'avatar': result[0]['avatar'] or ''
+                }
+            })
+            
+        return jsonify({'status': 'error', 'message': 'Không tìm thấy tài khoản để cập nhật'}), 404
+        
+    except Exception as e:
+        logger.error(f"Error in update_profile: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@auth_bp.route('/change-password', methods=['PUT'])
+def change_password():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'error', 'message': 'Không có dữ liệu'}), 400
+            
+        user_id = data.get('id', '').strip()
+        role = data.get('role', '').strip()
+        old_password = data.get('old_password', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        if not user_id or not role or not old_password or not new_password:
+            return jsonify({'status': 'error', 'message': 'Vui lòng điền đủ thông tin'}), 400
+            
+        if len(new_password) < 6:
+            return jsonify({'status': 'error', 'message': 'Mật khẩu mới phải từ 6 ký tự'}), 400
+            
+        conn = get_neo4j_connection()
+        if role == 'admin':
+            check = conn.query_single("MATCH (a:Admin) WHERE a.id = $id RETURN a.password AS password", {'id': user_id})
+            if not check or check['password'] != old_password:
+                return jsonify({'status': 'error', 'message': 'Mật khẩu cũ không chính xác'}), 400
+            conn.write("MATCH (a:Admin) WHERE a.id = $id SET a.password = $password", {'id': user_id, 'password': new_password})
+        else:
+            check = conn.query_single("MATCH (g:GiangVien) WHERE g.id = $id RETURN g.password AS password", {'id': user_id})
+            if not check or check['password'] != old_password:
+                return jsonify({'status': 'error', 'message': 'Mật khẩu cũ không chính xác'}), 400
+            conn.write("MATCH (g:GiangVien) WHERE g.id = $id SET g.password = $password", {'id': user_id, 'password': new_password})
+            
+        return jsonify({'status': 'ok', 'message': 'Đổi mật khẩu thành công'})
+        
+    except Exception as e:
+        logger.error(f"Error in change_password: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+

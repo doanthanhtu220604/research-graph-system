@@ -1703,17 +1703,46 @@ function closeLoginModal() {
     document.getElementById('loginForm').reset();
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const errorDiv = document.getElementById('loginError');
 
-    // Simple mock login since there's no backend login API defined yet
-    if (user === 'admin' && pass === 'admin') {
-        localStorage.setItem('isAdmin', 'true');
-        window.location.href = '../admin/index.html';
-    } else {
-        document.getElementById('loginError').style.display = 'block';
+    if (!user || !pass) return;
+
+    errorDiv.style.display = 'none';
+
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: user,
+                password: pass
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'ok') {
+            localStorage.setItem('userRole', data.data.role);
+            localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+            if (data.data.role === 'admin') {
+                localStorage.setItem('isAdmin', 'true');
+                window.location.href = '/admin/index.html';
+            } else if (data.data.role === 'lecturer') {
+                window.location.href = '/lecturer/index.html';
+            }
+        } else {
+            errorDiv.textContent = data.message || 'Sai tên đăng nhập hoặc mật khẩu!';
+            errorDiv.style.display = 'block';
+        }
+    } catch (err) {
+        errorDiv.textContent = 'Lỗi kết nối máy chủ!';
+        errorDiv.style.display = 'block';
     }
 }
 
