@@ -236,9 +236,11 @@
                         <span>Thông tin đăng nhập</span>
                     </div>
                     
+
+                    
                     <div class="form-group required">
-                        <label for="username">Tên tài khoản (Tên đăng nhập)</label>
-                        <input type="text" id="username" placeholder="Nhập tên đăng nhập (ví dụ: nguyenvana)" required autocomplete="username">
+                        <label for="email">Email (Tên đăng nhập)</label>
+                        <input type="email" id="email" placeholder="Nhập địa chỉ email giảng viên" required autocomplete="email">
                     </div>
                     
                     <div class="form-group required">
@@ -296,11 +298,6 @@
                     <div class="form-group required">
                         <label for="ho_va_ten">Họ và tên</label>
                         <input type="text" id="ho_va_ten" placeholder="Nhập họ và tên giảng viên" required>
-                    </div>
-                    
-                    <div class="form-group required">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" placeholder="Nhập địa chỉ email giảng viên" required>
                     </div>
                     
                     <div class="form-group">
@@ -413,7 +410,6 @@
             const submitBtn = document.getElementById('submitBtn');
             
             // Lấy dữ liệu form
-            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const confirmPassword = document.getElementById('confirmPassword').value.trim();
             
@@ -458,7 +454,6 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        username,
                         password,
                         ma_gv,
                         ho_va_ten,

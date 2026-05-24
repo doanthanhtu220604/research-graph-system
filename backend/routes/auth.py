@@ -387,8 +387,10 @@ def register():
         ma_gv = data.get('ma_gv', '').strip()
         ho_va_ten = data.get('ho_va_ten', '').strip()
         email = data.get('email', '').strip()
-        username = data.get('username', '').strip()
         password = data.get('password', '').strip()
+        
+        # Sử dụng email làm tên đăng nhập
+        username = email
         
         if not ma_gv:
             return jsonify({'status': 'error', 'message': 'Mã giảng viên không được để trống'}), 400
@@ -396,8 +398,6 @@ def register():
             return jsonify({'status': 'error', 'message': 'Họ và tên không được để trống'}), 400
         if not email:
             return jsonify({'status': 'error', 'message': 'Email không được để trống'}), 400
-        if not username:
-            return jsonify({'status': 'error', 'message': 'Tên tài khoản không được để trống'}), 400
         if not password:
             return jsonify({'status': 'error', 'message': 'Mật khẩu không được để trống'}), 400
         if len(password) < 6:
@@ -414,23 +414,14 @@ def register():
         if check_ma:
             return jsonify({'status': 'error', 'message': f'Mã giảng viên {ma_gv} đã tồn tại trong hệ thống. Đăng ký thất bại!'}), 400
 
-        # Kiểm tra trùng lặp email
+        # Kiểm tra trùng lặp email (cũng là tên đăng nhập)
         check_email = conn.query_single("""
             MATCH (g:GiangVien)
-            WHERE g.email = $email AND coalesce(g.is_deleted, false) = false
+            WHERE (g.email = $email OR g.username = $username) AND coalesce(g.is_deleted, false) = false
             RETURN g.id AS id
-        """, parameters={'email': email})
+        """, parameters={'email': email, 'username': username})
         if check_email:
-            return jsonify({'status': 'error', 'message': f'Email {email} đã được đăng ký tài khoản. Đăng ký thất bại!'}), 400
-
-        # Kiểm tra trùng lặp tên đăng nhập
-        check_username = conn.query_single("""
-            MATCH (g:GiangVien)
-            WHERE g.username = $username AND coalesce(g.is_deleted, false) = false
-            RETURN g.id AS id
-        """, parameters={'username': username})
-        if check_username:
-            return jsonify({'status': 'error', 'message': f'Tên tài khoản {username} đã được sử dụng. Vui lòng chọn tên đăng nhập khác!'}), 400
+            return jsonify({'status': 'error', 'message': f'Email/Tài khoản {email} đã được đăng ký. Đăng ký thất bại!'}), 400
 
         # Tạo giảng viên mới
         result = conn.write("""
@@ -480,7 +471,7 @@ def register():
                 MERGE (gv)-[:THUOC_BO_MON]->(bm)
             """, {"gv_id": gv_id, "bo_mon": bo_mon})
 
-        return jsonify({'status': 'ok', 'message': 'Đăng ký tài khoản giảng viên thành công! Bạn có thể sử dụng tài khoản này để đăng nhập.'})
+        return jsonify({'status': 'ok', 'message': 'Đăng ký tài khoản giảng viên thành công! Bạn có thể sử dụng Email này để đăng nhập.'})
 
     except Exception as e:
         logger.error(f"Error in register: {e}")
