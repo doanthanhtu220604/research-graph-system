@@ -68,15 +68,16 @@ def login():
         query = """
         MATCH (g:GiangVien)
         WHERE (g.username = $username OR g.email = $username OR g.id = $username) AND g.password = $password
-        RETURN g.id AS id, g.ho_va_ten AS ten, g.email AS email, g.bo_mon AS bo_mon, g.anh_dai_dien AS avatar
+        RETURN g.id AS id, g.ho_va_ten AS ten, g.email AS email, g.bo_mon AS bo_mon, g.anh_dai_dien AS avatar, g.vai_tro AS vai_tro
         """
         result = conn.query_single(query, parameters={'username': username, 'password': password})
         
         if result:
+            user_role = 'admin' if result.get('vai_tro') == 'admin' else 'lecturer'
             return jsonify({
                 'status': 'ok',
                 'data': {
-                    'role': 'lecturer',
+                    'role': user_role,
                     'user': {
                         'id': result['id'],
                         'name': result['ten'],
@@ -242,12 +243,14 @@ def get_profile():
             return jsonify({'status': 'error', 'message': 'Thiếu id hoặc role'}), 400
             
         conn = get_neo4j_connection()
+        result = None
         if role == 'admin':
             result = conn.query_single("""
                 MATCH (a:Admin) WHERE a.id = $id
                 RETURN a.id AS id, a.ho_va_ten AS ho_va_ten, a.email AS email, a.anh_dai_dien AS anh_dai_dien, a.username AS username
             """, parameters={'id': user_id})
-        else:
+            
+        if not result:
             result = conn.query_single("""
                 MATCH (g:GiangVien) WHERE g.id = $id
                 RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, g.anh_dai_dien AS anh_dai_dien, g.username AS username
@@ -289,6 +292,7 @@ def update_profile():
             return jsonify({'status': 'error', 'message': 'Vui lòng điền đủ thông tin bắt buộc'}), 400
             
         conn = get_neo4j_connection()
+        result = None
         if role == 'admin':
             result = conn.write("""
                 MATCH (a:Admin) WHERE a.id = $id
@@ -297,7 +301,8 @@ def update_profile():
                     a.anh_dai_dien = $avatar
                 RETURN a.id AS id, a.ho_va_ten AS ho_va_ten, a.email AS email, a.anh_dai_dien AS avatar
             """, {'id': user_id, 'ho_va_ten': ho_va_ten, 'email': email, 'avatar': avatar})
-        else:
+            
+        if not result:
             result = conn.write("""
                 MATCH (g:GiangVien) WHERE g.id = $id
                 SET g.ho_va_ten = $ho_va_ten,
@@ -344,14 +349,20 @@ def change_password():
             return jsonify({'status': 'error', 'message': 'Mật khẩu mới phải từ 6 ký tự'}), 400
             
         conn = get_neo4j_connection()
+        is_admin_node = False
         if role == 'admin':
             check = conn.query_single("MATCH (a:Admin) WHERE a.id = $id RETURN a.password AS password", {'id': user_id})
-            if not check or check['password'] != old_password:
-                return jsonify({'status': 'error', 'message': 'Mật khẩu cũ không chính xác'}), 400
-            conn.write("MATCH (a:Admin) WHERE a.id = $id SET a.password = $password", {'id': user_id, 'password': new_password})
-        else:
+            if check:
+                is_admin_node = True
+                if check['password'] != old_password:
+                    return jsonify({'status': 'error', 'message': 'Mật khẩu cũ không chính xác'}), 400
+                conn.write("MATCH (a:Admin) WHERE a.id = $id SET a.password = $password", {'id': user_id, 'password': new_password})
+                
+        if not is_admin_node:
             check = conn.query_single("MATCH (g:GiangVien) WHERE g.id = $id RETURN g.password AS password", {'id': user_id})
-            if not check or check['password'] != old_password:
+            if not check:
+                return jsonify({'status': 'error', 'message': 'Không tìm thấy tài khoản'}), 404
+            if check['password'] != old_password:
                 return jsonify({'status': 'error', 'message': 'Mật khẩu cũ không chính xác'}), 400
             conn.write("MATCH (g:GiangVien) WHERE g.id = $id SET g.password = $password", {'id': user_id, 'password': new_password})
             

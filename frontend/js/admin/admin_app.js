@@ -207,6 +207,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // Nếu admin là giảng viên được phân quyền, hiển thị link chuyển sang khu vực giảng viên
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.id && userInfo.id !== 'admin') {
+        const navMenu = document.querySelector('.nav-menu');
+        if (navMenu) {
+            const li = document.createElement('li');
+            li.className = 'nav-item';
+            li.style.borderTop = '1px dashed rgba(255,255,255,0.15)';
+            li.style.marginTop = '10px';
+            li.style.paddingTop = '10px';
+            li.innerHTML = `
+                <a href="/lecturer/index.html" class="nav-link" style="color: #3b82f6;">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Khu vực Giảng viên</span>
+                </a>
+            `;
+            const logoutItem = navMenu.querySelector('li:last-child');
+            if (logoutItem) {
+                navMenu.insertBefore(li, logoutItem);
+            } else {
+                navMenu.appendChild(li);
+            }
+        }
+    }
+
     if (typeof initAdminProfile === 'function') {
         initAdminProfile();
     }
@@ -4600,7 +4625,7 @@ function renderAccountsTable(list) {
 
     if (list.length === 0) {
 
-        tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Không có dữ liệu tài khoản</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">Không có dữ liệu tài khoản</td></tr>';
 
         return;
 
@@ -4668,7 +4693,13 @@ function renderAccountsTable(list) {
 
         }
 
-        
+        const isCreated = !!acc.co_tai_khoan;
+        const roleSelectHtml = `
+            <select class="role-select" onchange="changeAccountRole('${acc.id}', this.value)" ${!isCreated ? 'disabled title="Cần tạo tài khoản trước"' : ''}>
+                <option value="giang_vien" ${acc.vai_tro === 'giang_vien' ? 'selected' : ''}>Giảng viên</option>
+                <option value="admin" ${acc.vai_tro === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+        `;
 
         return `
 
@@ -4682,6 +4713,8 @@ function renderAccountsTable(list) {
 
                 <td>${acc.bo_mon || ''}</td>
 
+                <td>${roleSelectHtml}</td>
+
                 <td>${statusBadge}</td>
 
                 <td>${actions}</td>
@@ -4692,6 +4725,33 @@ function renderAccountsTable(list) {
 
     }).join('');
 
+}
+
+async function changeAccountRole(gvId, newRole) {
+    try {
+        const mainContent = document.getElementById('mainContent');
+        const scrollPos = mainContent ? mainContent.scrollTop : 0;
+
+        const res = await fetch(`${ADMIN_API_BASE}/accounts/${gvId}/role`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vai_tro: newRole })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            await loadAccounts();
+            if (mainContent) {
+                setTimeout(() => {
+                    mainContent.scrollTop = scrollPos;
+                }, 10);
+            }
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Lỗi kết nối máy chủ.');
+    }
 }
 
 

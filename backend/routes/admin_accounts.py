@@ -23,7 +23,8 @@ def get_all_accounts():
                    gv.bo_mon AS bo_mon,
                    gv.hoc_vi AS hoc_vi,
                    CASE WHEN gv.password IS NOT NULL AND gv.password <> '' THEN true ELSE false END AS co_tai_khoan,
-                   gv.trang_thai_tk AS trang_thai_tk
+                   gv.trang_thai_tk AS trang_thai_tk,
+                   gv.vai_tro AS vai_tro
             ORDER BY gv.ho_va_ten
         """)
         accounts = []
@@ -36,7 +37,8 @@ def get_all_accounts():
                 "bo_mon": r["bo_mon"],
                 "hoc_vi": r["hoc_vi"],
                 "co_tai_khoan": r["co_tai_khoan"],
-                "trang_thai_tk": r["trang_thai_tk"] or "Hoạt động"
+                "trang_thai_tk": r["trang_thai_tk"] or "Hoạt động",
+                "vai_tro": r["vai_tro"] or "giang_vien"
             })
         return jsonify({"status": "ok", "data": accounts})
     except Exception as e:
@@ -116,5 +118,27 @@ def set_password(gv_id):
         if not result:
             return jsonify({"status": "error", "message": "Không tìm thấy giảng viên"}), 404
         return jsonify({"status": "ok", "message": "Tạo tài khoản thành công"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_accounts_bp.route("/accounts/<gv_id>/role", methods=["PUT"])
+def update_account_role(gv_id):
+    """Cập nhật vai trò cho tài khoản giảng viên (admin hoặc giang_vien)."""
+    data = request.json or {}
+    role = data.get("vai_tro", "").strip()
+    if role not in ["admin", "giang_vien"]:
+        return jsonify({"status": "error", "message": "Vai trò không hợp lệ"}), 400
+
+    conn = get_neo4j_connection()
+    try:
+        result = conn.write("""
+            MATCH (gv:GiangVien) WHERE gv.id = $id
+            SET gv.vai_tro = $role
+            RETURN gv.id AS id
+        """, {"id": gv_id, "role": role})
+        if not result:
+            return jsonify({"status": "error", "message": "Không tìm thấy giảng viên"}), 404
+        return jsonify({"status": "ok", "message": "Cập nhật vai trò thành công", "vai_tro": role})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

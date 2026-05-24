@@ -25,6 +25,26 @@
         .badge-active   { background: rgba(40,167,69,0.1);  color: #28a745; border: 1px solid #28a745; }
         .badge-locked   { background: rgba(220,53,69,0.1);  color: #dc3545; border: 1px solid #dc3545; }
         .badge-no-acct  { background: rgba(108,117,125,0.1);color: #6c757d; border: 1px solid #6c757d; }
+        .role-select {
+            padding: 5px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .role-select:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(79, 142, 247, 0.1);
+        }
+        .role-select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .stat-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -244,12 +264,13 @@
                                     <th>Họ và tên</th>
                                     <th>Tên đăng nhập / Email</th>
                                     <th>Bộ môn</th>
+                                    <th>Vai trò</th>
                                     <th>Trạng thái TK</th>
                                     <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="adminAccountsBody">
-                                <tr><td colspan="6" class="loading-cell">Đang tải...</td></tr>
+                                <tr><td colspan="7" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>
