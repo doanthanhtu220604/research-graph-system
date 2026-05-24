@@ -372,3 +372,118 @@ def change_password():
         logger.error(f"Error in change_password: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
+# ============================================================
+# ĐĂNG KÝ TÀI KHOẢN GIẢNG VIÊN
+# ============================================================
+
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'error', 'message': 'Không có dữ liệu đăng ký'}), 400
+            
+        ma_gv = data.get('ma_gv', '').strip()
+        ho_va_ten = data.get('ho_va_ten', '').strip()
+        email = data.get('email', '').strip()
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not ma_gv:
+            return jsonify({'status': 'error', 'message': 'Mã giảng viên không được để trống'}), 400
+        if not ho_va_ten:
+            return jsonify({'status': 'error', 'message': 'Họ và tên không được để trống'}), 400
+        if not email:
+            return jsonify({'status': 'error', 'message': 'Email không được để trống'}), 400
+        if not username:
+            return jsonify({'status': 'error', 'message': 'Tên tài khoản không được để trống'}), 400
+        if not password:
+            return jsonify({'status': 'error', 'message': 'Mật khẩu không được để trống'}), 400
+        if len(password) < 6:
+            return jsonify({'status': 'error', 'message': 'Mật khẩu phải từ 6 ký tự trở lên'}), 400
+
+        conn = get_neo4j_connection()
+
+        # Kiểm tra trùng lặp mã giảng viên
+        check_ma = conn.query_single("""
+            MATCH (g:GiangVien)
+            WHERE g.ma_gv = $ma_gv AND coalesce(g.is_deleted, false) = false
+            RETURN g.id AS id
+        """, parameters={'ma_gv': ma_gv})
+        if check_ma:
+            return jsonify({'status': 'error', 'message': f'Mã giảng viên {ma_gv} đã tồn tại trong hệ thống. Đăng ký thất bại!'}), 400
+
+        # Kiểm tra trùng lặp email
+        check_email = conn.query_single("""
+            MATCH (g:GiangVien)
+            WHERE g.email = $email AND coalesce(g.is_deleted, false) = false
+            RETURN g.id AS id
+        """, parameters={'email': email})
+        if check_email:
+            return jsonify({'status': 'error', 'message': f'Email {email} đã được đăng ký tài khoản. Đăng ký thất bại!'}), 400
+
+        # Kiểm tra trùng lặp tên đăng nhập
+        check_username = conn.query_single("""
+            MATCH (g:GiangVien)
+            WHERE g.username = $username AND coalesce(g.is_deleted, false) = false
+            RETURN g.id AS id
+        """, parameters={'username': username})
+        if check_username:
+            return jsonify({'status': 'error', 'message': f'Tên tài khoản {username} đã được sử dụng. Vui lòng chọn tên đăng nhập khác!'}), 400
+
+        # Tạo giảng viên mới
+        result = conn.write("""
+            CREATE (gv:GiangVien {
+                ma_gv: $ma_gv,
+                ho_va_ten: $ho_va_ten,
+                hoc_vi: $hoc_vi,
+                chuc_danh: $chuc_danh,
+                chuc_vu: $chuc_vu,
+                email: $email,
+                dien_thoai: $dien_thoai,
+                chuyen_nganh: $chuyen_nganh,
+                trang_thai_cong_tac: coalesce($trang_thai_cong_tac, 'Đang công tác'),
+                anh_dai_dien: $anh_dai_dien,
+                username: $username,
+                password: $password,
+                trang_thai_tk: 'Hoạt động',
+                vai_tro: 'giang_vien'
+            })
+            SET gv.id = 'gv_' + toString(id(gv))
+            RETURN gv.id AS id
+        """, {
+            'ma_gv': ma_gv,
+            'ho_va_ten': ho_va_ten,
+            'hoc_vi': data.get('hoc_vi', '').strip(),
+            'chuc_danh': data.get('chuc_danh', '').strip(),
+            'chuc_vu': data.get('chuc_vu', '').strip(),
+            'email': email,
+            'dien_thoai': data.get('dien_thoai', '').strip(),
+            'chuyen_nganh': data.get('chuyen_nganh', '').strip(),
+            'trang_thai_cong_tac': data.get('trang_thai_cong_tac', 'Đang công tác'),
+            'anh_dai_dien': data.get('anh_dai_dien', '').strip(),
+            'username': username,
+            'password': password
+        })
+
+        gv_id = result[0]["id"] if result else None
+
+        # Thiết lập bộ môn (nếu có)
+        bo_mon = data.get('bo_mon', '').strip()
+        if bo_mon and gv_id:
+            conn.write("""
+                MATCH (gv:GiangVien) WHERE gv.id = $gv_id
+                MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                ON CREATE SET bm.id = 'bm_' + toString(id(bm)),
+                             bm.created_at = timestamp()
+                MERGE (gv)-[:THUOC_BO_MON]->(bm)
+            """, {"gv_id": gv_id, "bo_mon": bo_mon})
+
+        return jsonify({'status': 'ok', 'message': 'Đăng ký tài khoản giảng viên thành công! Bạn có thể sử dụng tài khoản này để đăng nhập.'})
+
+    except Exception as e:
+        logger.error(f"Error in register: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
