@@ -3248,7 +3248,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                 <div style="background: rgba(79, 142, 247, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent-blue);">
 
-                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-university"></i> NHÂN SỰ TRONG TRƯỜNG</h3>
+                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-university"></i> NHÂN SỰ TRONG KHOA</h3>
 
                     <div style="display:flex; gap: 20px; flex-wrap: wrap;">
 
@@ -3328,7 +3328,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                 <div style="background: rgba(230, 126, 34, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #e67e22;">
 
-                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px; color: #e67e22;"><i class="fas fa-globe"></i> NHÂN SỰ NGOÀI TRƯỜNG</h3>
+                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px; color: #e67e22;"><i class="fas fa-globe"></i> NHÂN SỰ NGOÀI KHOA</h3>
 
                     <div style="display:flex; gap: 20px; flex-wrap: wrap;">
 
@@ -3445,7 +3445,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                 <div style="background: rgba(79, 142, 247, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent-blue);">
 
-                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-university"></i> NHÂN SỰ TRONG TRƯỜNG</h3>
+                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-university"></i> NHÂN SỰ TRONG KHOA</h3>
 
                     <div style="display:flex; gap: 20px; flex-wrap: wrap;">
 
@@ -3527,7 +3527,7 @@ async function openRelationModal(type, entityId, entityName = null) {
 
                 <div style="background: rgba(230, 126, 34, 0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #e67e22;">
 
-                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px; color: #e67e22;"><i class="fas fa-globe"></i> NHÂN SỰ NGOÀI TRƯỜNG</h3>
+                    <h3 style="font-size: 14px; margin-bottom: 15px; display:flex; align-items:center; gap:8px; color: #e67e22;"><i class="fas fa-globe"></i> NHÂN SỰ NGOÀI KHOA</h3>
 
                     <div style="display:flex; gap: 20px; flex-wrap: wrap;">
 
@@ -4436,7 +4436,7 @@ async function viewExternalAuthorDetail(tgnId) {
 
             // Giảng viên cộng tác
 
-            html += `<h4 style="margin-top:20px; color:#2ecc71; padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-handshake"></i> Giảng viên cộng tác trong trường (${detail.collaborators.length})</h4>`;
+            html += `<h4 style="margin-top:20px; color:#2ecc71; padding-bottom: 5px; border-bottom: 1px solid var(--border-color);"><i class="fas fa-handshake"></i> Giảng viên cộng tác trong khoa (${detail.collaborators.length})</h4>`;
 
             if (detail.collaborators.length > 0) {
 
@@ -4476,7 +4476,7 @@ async function viewExternalAuthorDetail(tgnId) {
 
             } else {
 
-                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có lịch sử cộng tác với giảng viên trong trường.</p>`;
+                html += `<p style="color:var(--text-muted); font-size:13px; margin-bottom:15px; margin-top: 5px;">Chưa có lịch sử cộng tác với giảng viên trong khoa.</p>`;
 
             }
 

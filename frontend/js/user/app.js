@@ -1113,7 +1113,7 @@ async function showPublicationDetail(ctId) {
             if (ct.tac_gia && ct.tac_gia.length > 0) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Nhóm tác giả (trong trường)</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Nhóm tác giả (trong khoa)</h3>
                         <div style="display:flex; flex-wrap:wrap; gap:10px;">
                             ${ct.tac_gia.map(tg => {
                                 let roleText = '';
@@ -1139,7 +1139,7 @@ async function showPublicationDetail(ctId) {
             if (ct.tac_gia_ngoai && ct.tac_gia_ngoai.length > 0) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài trường (${ct.tac_gia_ngoai.length})</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài khoa (${ct.tac_gia_ngoai.length})</h3>
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             ${ct.tac_gia_ngoai.map(tg => {
                                 let roleText = '';
@@ -1223,7 +1223,7 @@ async function showProjectDetail(dtId) {
             if (dt.thanh_vien && dt.thanh_vien.length > 0) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Thành viên tham gia (trong trường)</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Thành viên tham gia (trong khoa)</h3>
                         ${dt.thanh_vien.map(tv => `
                             <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid ${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--border-color)'}; display:flex; align-items:center; gap:10px;">
                                 <div style="width:32px; height:32px; border-radius:50%; background:${tv.vai_tro === 'CHU_NHIEM' ? 'rgba(245,158,11,0.15)' : 'rgba(0,0,0,0.05)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
@@ -1242,7 +1242,7 @@ async function showProjectDetail(dtId) {
             if (dt.tac_gia_ngoai && dt.tac_gia_ngoai.length > 0) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài trường (${dt.tac_gia_ngoai.length})</h3>
+                        <h3 style="font-size: 15px; margin-bottom: 12px; color: #8b5cf6;"><i class="fas fa-user-plus"></i> Tác giả ngoài khoa (${dt.tac_gia_ngoai.length})</h3>
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             ${dt.tac_gia_ngoai.map(tg => `
                                 <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(139,92,246,0.07); border-radius:10px; border-left:3px solid #8b5cf6;">
