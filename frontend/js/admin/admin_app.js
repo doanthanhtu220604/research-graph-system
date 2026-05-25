@@ -4671,7 +4671,7 @@ function renderAccountsTable(list) {
 
                 ${infoBtn}
 
-                <button class="btn btn-sm btn-primary" onclick="openPwModal('${acc.id}', 'set')"><i class="fas fa-key"></i> Tạo TK</button>
+                <button class="btn btn-sm btn-primary" onclick="openPwModal('${acc.id}', 'set', '${safeEmail}')"><i class="fas fa-key"></i> Tạo TK</button>
 
             `;
 

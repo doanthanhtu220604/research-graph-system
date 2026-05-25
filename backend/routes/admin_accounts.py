@@ -90,30 +90,33 @@ def toggle_account_status(gv_id):
 
 @admin_accounts_bp.route("/accounts/<gv_id>/set-password", methods=["POST"])
 def set_password(gv_id):
-    """Tạo tài khoản ban đầu cho giảng viên (gồm username và password)."""
+    """Tạo tài khoản ban đầu cho giảng viên (gồm email và password)."""
     data = request.json or {}
-    username = data.get("username", "").strip()
+    email = data.get("email", "").strip()
     password = data.get("password", "").strip()
     
-    if not username:
-        return jsonify({"status": "error", "message": "Tên tài khoản không được để trống"}), 400
+    if not email:
+        return jsonify({"status": "error", "message": "Email không được để trống"}), 400
     if not password:
         return jsonify({"status": "error", "message": "Mật khẩu không được để trống"}), 400
+    if len(password) < 6:
+        return jsonify({"status": "error", "message": "Mật khẩu phải từ 6 ký tự"}), 400
 
     conn = get_neo4j_connection()
     try:
-        # Kiểm tra xem username đã tồn tại chưa
-        check = conn.query("MATCH (g:GiangVien) WHERE g.username = $un OR g.email = $un RETURN g.id AS id", {"un": username})
+        # Kiểm tra trùng lặp email (với các giảng viên khác)
+        check = conn.query("MATCH (g:GiangVien) WHERE (g.email = $email OR g.username = $email) AND coalesce(g.is_deleted, false) = false RETURN g.id AS id", {"email": email})
         if check and any(r["id"] != gv_id for r in check):
-            return jsonify({"status": "error", "message": "Tên tài khoản này đã được sử dụng"}), 400
+            return jsonify({"status": "error", "message": "Địa chỉ email/tên đăng nhập này đã được sử dụng"}), 400
 
         result = conn.write("""
             MATCH (gv:GiangVien) WHERE gv.id = $id
-            SET gv.password = $password,
-                gv.username = $username,
+            SET gv.email = $email,
+                gv.username = $email,
+                gv.password = $password,
                 gv.trang_thai_tk = 'Hoạt động'
             RETURN gv.id AS id
-        """, {"id": gv_id, "password": password, "username": username})
+        """, {"id": gv_id, "password": password, "email": email})
         
         if not result:
             return jsonify({"status": "error", "message": "Không tìm thấy giảng viên"}), 404

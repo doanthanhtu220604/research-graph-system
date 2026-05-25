@@ -286,8 +286,8 @@
             <input type="hidden" id="pwTargetId">
             <input type="hidden" id="pwTargetMode">
             <div id="usernameContainer" style="margin-bottom: 16px; display: none;">
-                <label for="usernameInput">Tên tài khoản <span style="color:red">*</span></label>
-                <input type="text" id="usernameInput" placeholder="Nhập tên tài khoản..." autocomplete="new-password">
+                <label for="usernameInput">Email (Tên đăng nhập) <span style="color:red">*</span></label>
+                <input type="text" id="usernameInput" placeholder="Nhập địa chỉ email..." autocomplete="email">
             </div>
             <div style="margin-bottom: 16px;">
                 <label for="pwInput">Mật khẩu mới <span style="color:red">*</span></label>
@@ -334,7 +334,7 @@
     <script src="../js/admin/admin_app.js"></script>
     <script>
         // ── Password Modal helpers ──────────────────────────────────
-        function openPwModal(gvId, mode) {
+        function openPwModal(gvId, mode, email) {
             document.getElementById('pwTargetId').value = gvId;
             document.getElementById('pwTargetMode').value = mode;
             document.getElementById('pwInput').value = '';
@@ -343,7 +343,7 @@
             if (mode === 'set') {
                 document.getElementById('pwModalTitle').innerHTML = '<i class="fas fa-key"></i> Tạo tài khoản';
                 document.getElementById('usernameContainer').style.display = 'block';
-                document.getElementById('usernameInput').value = '';
+                document.getElementById('usernameInput').value = email && email !== 'null' && email !== 'undefined' ? email : '';
                 document.querySelector('label[for="pwInput"]').innerHTML = 'Mật khẩu <span style="color:red">*</span>';
                 document.getElementById('pwInput').placeholder = 'Nhập mật khẩu...';
                 setTimeout(() => document.getElementById('usernameInput').focus(), 50);
@@ -373,7 +373,7 @@
             const pw = document.getElementById('pwInput').value.trim();
             const cf = document.getElementById('pwConfirm').value.trim();
             
-            if (mode === 'set' && !un) { alert('Vui lòng nhập tên tài khoản.'); return; }
+            if (mode === 'set' && !un) { alert('Vui lòng nhập địa chỉ email.'); return; }
             if (!pw) { alert('Vui lòng nhập mật khẩu.'); return; }
             if (pw !== cf) { alert('Mật khẩu xác nhận không khớp.'); return; }
             if (pw.length < 4) { alert('Mật khẩu phải có ít nhất 4 ký tự.'); return; }
@@ -381,7 +381,7 @@
             const endpoint = mode === 'set'
                 ? `/api/admin/accounts/${gvId}/set-password`
                 : `/api/admin/accounts/${gvId}/reset-password`;
-            const body = mode === 'set' ? { username: un, password: pw } : { new_password: pw };
+            const body = mode === 'set' ? { email: un, password: pw } : { new_password: pw };
             try {
                 const mainContent = document.getElementById('mainContent');
                 const scrollPos = mainContent ? mainContent.scrollTop : 0;
