@@ -12,9 +12,9 @@ Cải tiến v2:
 """
 
 import re
-from typing import Optional
+from typing import Optional, Any
 import json
-import os
+from pathlib import Path
 from flask import Blueprint, jsonify, request
 from rapidfuzz import fuzz
 from pyvi import ViPosTagger
@@ -23,7 +23,7 @@ from backend.services.gemini_service import gemini_service
 
 chat_api_bp = Blueprint("chat_api", __name__)
 
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'chat_intents.json')
+CONFIG_PATH = str(Path(__file__).parent.parent / 'config' / 'chat_intents.json')
 with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
     CHAT_CONFIG = json.load(f)
 
@@ -410,7 +410,7 @@ def handle_search_lecturer(question: str, entities: Optional[dict] = None):
             MATCH (gv:GiangVien)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name) AND coalesce(gv.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
-            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
             RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh, gv.chuc_vu AS chuc_vu,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh,
@@ -465,7 +465,7 @@ def handle_search_lecturer(question: str, entities: Optional[dict] = None):
 
     # Fallback: top giảng viên theo công trình
     results = conn.query("""
-        MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, count(ct) AS so_cong_trinh
         ORDER BY so_cong_trinh DESC
         LIMIT 5
@@ -486,7 +486,7 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
     if name:
         results = conn.query(
             """
-            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
               AND coalesce(gv.is_deleted, false) = false
               AND coalesce(ct.is_deleted, false) = false
@@ -516,7 +516,7 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
             """
             MATCH (ct:CongTrinhNghienCuu)
             WHERE ct.nam_xuat_ban = $year AND coalesce(ct.is_deleted, false) = false
-            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
             WHERE coalesce(gv.is_deleted, false) = false
             RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, collect(gv.ho_va_ten) AS tac_gia
             LIMIT 8
@@ -536,7 +536,7 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
     # Công trình mới nhất
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
-        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
         RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
         ORDER BY ct.nam_xuat_ban DESC
         LIMIT 5
@@ -641,13 +641,43 @@ def handle_search_by_field(question: str, include_pubs: bool = True, entities: O
             return "Các lĩnh vực nghiên cứu hiện có:\n" + "\n".join(f"- {f}" for f in fields)
         return "Bạn muốn tìm lĩnh vực nào? Ví dụ: AI, Machine Learning, Bảo mật, IoT..."
 
+    # Bộ từ điển đồng nghĩa để hỗ trợ truy vấn song ngữ Anh - Việt
+    FIELD_SYNONYMS = {
+        "khoa học dữ liệu": ["data science", "khoa học dữ liệu"],
+        "data science": ["khoa học dữ liệu", "data science"],
+        "học máy": ["machine learning", "học máy", "applied machine learning"],
+        "machine learning": ["học máy", "machine learning", "applied machine learning"],
+        "trí tuệ nhân tạo": ["artificial intelligence", "trí tuệ nhân tạo", "ai"],
+        "ai": ["artificial intelligence", "trí tuệ nhân tạo", "ai"],
+        "khai thác dữ liệu": ["data mining", "khai thác dữ liệu", "khai phá dữ liệu"],
+        "data mining": ["khai thác dữ liệu", "data mining", "khai phá dữ liệu"],
+        "khai phá dữ liệu": ["data mining", "khai thác dữ liệu", "khai phá dữ liệu"],
+        "dữ liệu lớn": ["big data", "dữ liệu lớn"],
+        "big data": ["big data", "dữ liệu lớn"],
+        "hệ thống thông tin": ["information systems", "hệ thống thông tin"],
+        "information systems": ["information systems", "hệ thống thông tin"],
+        "cơ sở dữ liệu": ["database", "cơ sở dữ liệu"],
+        "database": ["database", "cơ sở dữ liệu"],
+        "an ninh mạng": ["network security", "an ninh mạng", "bảo mật"],
+        "bảo mật": ["network security", "an ninh mạng", "bảo mật"],
+        "network security": ["network security", "an ninh mạng", "bảo mật"],
+        "xử lý ngôn ngữ tự nhiên": ["natural language processing", "nlp", "xử lý ngôn ngữ tự nhiên"],
+        "nlp": ["natural language processing", "nlp", "xử lý ngôn ngữ tự nhiên"],
+        "natural language processing": ["natural language processing", "nlp", "xử lý ngôn ngữ tự nhiên"]
+    }
+
+    field_lower = field.lower().strip()
+    search_terms = [field]
+    if field_lower in FIELD_SYNONYMS:
+        search_terms.extend(FIELD_SYNONYMS[field_lower])
+    search_terms = list(dict.fromkeys(search_terms))
+
     # Truy vấn giảng viên (có filter bộ môn nếu có)
     cypher_gv = """
         MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        WHERE toLower(lv.ten_linh_vuc) CONTAINS toLower($field)
-           OR toLower($field) CONTAINS toLower(lv.ten_linh_vuc)
+        WHERE any(term IN $search_terms WHERE toLower(lv.ten_linh_vuc) CONTAINS toLower(term) OR toLower(term) CONTAINS toLower(lv.ten_linh_vuc))
     """
-    params_gv = {"field": field}
+    params_gv: dict[str, Any] = {"search_terms": search_terms}
     
     if dept:
         cypher_gv += " MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept) "
@@ -664,19 +694,17 @@ def handle_search_by_field(question: str, include_pubs: bool = True, entities: O
     
     lecturers = conn.query(cypher_gv, params_gv)
 
-    if include_pubs:
+    if include_pubs and lecturers:
+        lecturer_ids = [r["id"] for r in lecturers]
         pubs = conn.query(
             """
-            MATCH (ct:CongTrinhNghienCuu)
-            WHERE toLower(coalesce(ct.tu_khoa,'')) CONTAINS toLower($field)
-               OR toLower($field) CONTAINS toLower(coalesce(ct.tu_khoa,''))
-               OR toLower(coalesce(ct.ten_cong_trinh,'')) CONTAINS toLower($field)
-               OR toLower($field) CONTAINS toLower(coalesce(ct.ten_cong_trinh,''))
-            RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
+            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+            WHERE coalesce(gv.id, 'gv_' + toString(id(gv))) IN $lecturer_ids AND coalesce(ct.is_deleted, false) = false
+            RETURN DISTINCT coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam
             ORDER BY ct.nam_xuat_ban DESC
             LIMIT 5
             """,
-            {"field": field}
+            {"lecturer_ids": lecturer_ids}
         )
     else:
         pubs = []
@@ -728,7 +756,7 @@ def handle_collaboration(question: str, entities: Optional[dict] = None):
         # Hợp tác qua công trình
         results = conn.query(
             """
-            MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
+            MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
             WHERE toLower(gv1.ho_va_ten) CONTAINS toLower($name) AND gv1 <> gv2
             RETURN coalesce(gv2.id, 'gv_' + toString(id(gv2))) AS id, gv2.ho_va_ten AS dong_nghiep, count(ct) AS so_ct
             ORDER BY so_ct DESC
@@ -759,7 +787,7 @@ def handle_collaboration(question: str, entities: Optional[dict] = None):
 
     # Cặp hợp tác nhiều nhất
     results = conn.query("""
-        MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA]-(gv2:GiangVien)
+        MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
         WHERE id(gv1) < id(gv2)
         RETURN coalesce(gv1.id, 'gv_' + toString(id(gv1))) AS id1, coalesce(gv2.id, 'gv_' + toString(id(gv2))) AS id2, gv1.ho_va_ten AS gv1, gv2.ho_va_ten AS gv2, count(ct) AS so_ct
         ORDER BY so_ct DESC
@@ -786,7 +814,7 @@ def handle_department(question: str, entities: Optional[dict] = None):
             """
             MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
             WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept)
-            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC, gv.ho_va_ten
@@ -827,7 +855,7 @@ def handle_top_lecturers(question: str, entities: Optional[dict] = None):
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (gv:GiangVien)
-        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
@@ -925,7 +953,7 @@ def handle_search_by_journal(question: str, entities: Optional[dict] = None):
             MATCH (ct:CongTrinhNghienCuu)
             WHERE toLower(coalesce(ct.tap_chi,'')) CONTAINS toLower($journal)
                OR toLower(coalesce(ct.loai_cong_trinh,'')) CONTAINS toLower($journal)
-            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+            OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
             RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam,
                    ct.tap_chi AS tap_chi, collect(gv.ho_va_ten) AS tac_gia
             ORDER BY ct.nam_xuat_ban DESC
@@ -1037,7 +1065,7 @@ def handle_lecturer_info(question: str, entities: Optional[dict] = None):
         WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
         OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh, gv.chuc_vu AS chuc_vu,
                gv.email AS email, bm.ten_bo_mon AS bo_mon,
@@ -1092,7 +1120,7 @@ def handle_unknown(question: str, entities: Optional[dict] = None):
         """
         MATCH (ct:CongTrinhNghienCuu)
         WHERE toLower(ct.ten_cong_trinh) CONTAINS toLower($q)
-        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct)
+        OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
         RETURN coalesce(ct.id, 'ct_' + toString(id(ct))) AS id, ct.ten_cong_trinh AS ten, ct.nam_xuat_ban AS nam, collect(gv.ho_va_ten) AS tac_gia
         LIMIT 3
         """,
@@ -1173,14 +1201,29 @@ def ask():
         }), 400
 
     try:
-        # 1. Thử dùng Gemini (AI Upgrade) nếu có API Key
-        ai_analysis = gemini_service.analyze_question(question)
-        if ai_analysis and ai_analysis.get("intent") != "unknown":
-            intent = ai_analysis["intent"]
-            print(f"[CHAT AI] Intent detected: {intent} ({ai_analysis.get('explanation')})")
+        # 1. Ưu tiên phân tích bằng Rule-based cục bộ trước (rất nhanh, < 10ms)
+        intent = detect_intent(question)
+        entities = None
+
+        if intent != "unknown":
+            # Trích xuất thực thể bằng các hàm cục bộ
+            entities = {
+                "name": extract_name(question),
+                "year": extract_year(question),
+                "field": extract_field(question),
+                "department": extract_department(question),
+                "project_level": extract_project_level(question),
+                "journal": extract_journal(question),
+                "project_name": None,
+            }
         else:
-            # 2. Fallback dùng rule-based (v2)
-            intent = detect_intent(question)
+            # 2. Chỉ gọi Gemini phân tích intent khi Rule-based không nhận dạng được
+            if gemini_service.is_available():
+                ai_analysis = gemini_service.analyze_question(question)
+                if ai_analysis and ai_analysis.get("intent") != "unknown":
+                    intent = ai_analysis["intent"]
+                    entities = ai_analysis.get("entities")
+                    print(f"[CHAT AI] Intent detected via Gemini: {intent} ({ai_analysis.get('explanation')})")
 
         handler_map = {
             "statistics": handle_statistics,
@@ -1199,12 +1242,18 @@ def ask():
             "unknown": handle_unknown,
         }
 
-        entities = ai_analysis.get("entities") if ai_analysis else None
         handler = handler_map.get(intent, handle_unknown)
-        answer = handler(question, entities=entities)
+        raw_answer = handler(question, entities=entities)
 
-        # Build mini graph from entities mentioned in answer
-        graph = build_graph_for_answer(answer)
+        # 3. Sử dụng Gemini để viết lại câu trả lời tự nhiên
+        answer = raw_answer
+        if gemini_service.is_available():
+            natural_answer = gemini_service.generate_natural_answer(question, raw_answer)
+            if natural_answer:
+                answer = natural_answer
+
+        # Build mini graph from entities mentioned in raw_answer
+        graph = build_graph_for_answer(raw_answer)
 
         return jsonify({
             "status": "ok",

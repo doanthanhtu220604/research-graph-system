@@ -325,12 +325,17 @@ def search():
                 str(item.get("ho_va_ten") or ""),
                 str(item.get("ten_cong_trinh") or ""),
                 str(item.get("ten_de_tai") or ""),
+                str(item.get("cap_de_tai") or ""),
+                str(item.get("loai_an_pham") or ""),
                 str(item.get("ten_bo_mon") or ""),
                 str(item.get("ten_khoa") or ""),
                 str(item.get("email") or ""),
                 str(item.get("hoc_vi") or ""),
                 str(item.get("chuc_danh") or ""),
-                str(item.get("chuc_vu") or "")
+                str(item.get("chuc_vu") or ""),
+                str(item.get("nam_xuat_ban") or ""),
+                str(item.get("nam_bat_dau") or ""),
+                str(item.get("trang_thai") or "")
             ])
             
             normalized_search_text = remove_accents(search_text)

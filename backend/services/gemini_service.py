@@ -86,6 +86,36 @@ class GeminiService:
             print(f"[Gemini Error] {e}")
             return None
 
+    def generate_natural_answer(self, question: str, search_result: str) -> Optional[str]:
+        """
+        Dùng Gemini để viết lại câu trả lời thô (từ các handler) thành câu trả lời tự nhiên, trôi chảy.
+        """
+        if not self.model:
+            return None
+
+        prompt = f"""
+        Bạn là một trợ lý thông minh cho hệ thống Quản lý Nghiên cứu Khoa học của Khoa CNTT.
+        Người dùng đã hỏi câu hỏi sau: "{question}"
+        
+        Dưới đây là kết quả tra cứu được từ cơ sở dữ liệu (dạng thô/markdown):
+        \"\"\"
+        {search_result}
+        \"\"\"
+
+        Nhiệm vụ của bạn:
+        1. Dựa trên kết quả tra cứu trên, hãy biên soạn lại thành một câu trả lời bằng tiếng Việt tự nhiên, thân thiện và mạch lạc.
+        2. Nếu kết quả tra cứu cho thấy không tìm thấy dữ liệu hoặc lỗi, hãy thông báo lịch sự và gợi ý hướng xử lý thích hợp cho người dùng (ví dụ: gợi ý từ khóa tìm kiếm khác).
+        3. Định dạng câu trả lời bằng Markdown sinh động (sử dụng in đậm, danh sách gạch đầu dòng, icon/emoji phù hợp) để dễ đọc.
+        4. CỰC KỲ QUAN TRỌNG: GIỮ NGUYÊN các liên kết Markdown có sẵn trong kết quả tra cứu dạng [Tên hiển thị](javascript:showLecturerDetail('id')), [Tên công trình](javascript:showPublicationDetail('id')), [Tên đề tài](javascript:showProjectDetail('id')) để đảm bảo các tính năng click xem chi tiết trên giao diện web hoạt động bình thường. Không được thay đổi phần URL 'javascript:show...'.
+        """
+
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"[Gemini Generate Answer Error] {e}")
+            return None
+
     def translate(self, text: str, target_lang: str = "vi") -> Optional[str]:
         """
         Translates text to target language using Gemini.

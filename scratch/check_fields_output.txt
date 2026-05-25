@@ -1,0 +1,52 @@
+--- All LinhVucNghienCuu in DB ---
+- Information systems
+- Data science
+- Mạng máy tính và ứng dụng
+- Trí tuệ nhân tạo
+- Applied machine learning
+- Graph neural networks
+- Machine learning
+- Natural language processing (NLP)
+- Applied mathematics
+- Các hệ thống gợi ý
+- Khoa học dữ liệu
+- Dữ liệu lớn
+- Phân cụm dữ liệu không gian địa lý
+- Lập trình di động
+- Thiết kế và cài đặt mặt
+- Đánh giá hiệu năng mạng
+- Học máy
+- Khai thác dữ liệu
+- Phân tích số liệu
+- System Analysis and Design
+- Business Intelligence
+- Data Science
+- Data Mining
+- Machine Learning
+- Big Data
+- Phát triển Web
+- Di động
+- Network computer
+- Network security
+- Database
+- XML and Semantic Web
+- Text mining and Computational Statistics
+- GIS
+
+--- NGHIEN_CUU relationships count ---
+Total NGHIEN_CUU: 30
+
+--- GiangVien relationship types ---
+- GiangVien -[THUOC_BO_MON]-> BoMon: 26
+- GiangVien -[THAM_GIA]-> DeTaiNghienCuu: 24
+- GiangVien -[CONG_SU]-> CongTrinhNghienCuu: 23
+- GiangVien -[CHU_NHIEM]-> DeTaiNghienCuu: 45
+- GiangVien -[NGHIEN_CUU]-> LinhVucNghienCuu: 30
+- GiangVien -[TAC_GIA_CHINH]-> CongTrinhNghienCuu: 152
+
+--- Properties on GiangVien nodes (first 5) ---
+- Nguyễn Thanh Quỳnh Châu: keys: ['chuc_danh', 'password', 'hoc_vi', 'chuyen_nganh', 'dien_thoai', 'ma_gv', 'trang_thai_cong_tac', 'chuc_vu', 'id', 'anh_dai_dien', 'ho_va_ten', 'email']
+- Lê Thị Bích Hằng: keys: ['chuc_danh', 'password', 'hoc_vi', 'chuyen_nganh', 'dien_thoai', 'ma_gv', 'trang_thai_cong_tac', 'chuc_vu', 'id', 'anh_dai_dien', 'ho_va_ten', 'email']
+- Nguyễn Đình Hưng: keys: ['chuc_danh', 'password', 'hoc_vi', 'chuyen_nganh', 'dien_thoai', 'ma_gv', 'trang_thai_cong_tac', 'chuc_vu', 'id', 'anh_dai_dien', 'ho_va_ten', 'email']
+- Bùi Thị Hồng Minh: keys: ['chuc_danh', 'password', 'hoc_vi', 'chuyen_nganh', 'dien_thoai', 'ma_gv', 'trang_thai_cong_tac', 'chuc_vu', 'id', 'anh_dai_dien', 'ho_va_ten', 'email']
+- Phạm Thị Kim Ngoan: keys: ['chuc_danh', 'password', 'hoc_vi', 'dien_thoai', 'ma_gv', 'trang_thai_cong_tac', 'id', 'anh_dai_dien', 'ho_va_ten', 'email']

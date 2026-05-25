@@ -581,7 +581,7 @@ const searchSuggestionPool = [
     { type: 'giang_vien', text: 'Giảng viên', icon: 'fa-user-tie', queries: ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Trưởng khoa', 'Tiến sĩ', 'Phó Giáo sư', 'Khoa CNTT'] },
     { type: 'linh_vuc', text: 'Lĩnh vực', icon: 'fa-microscope', queries: ['Trí tuệ nhân tạo', 'Học máy', 'Khai phá dữ liệu', 'Thị giác máy tính', 'Mạng máy tính', 'Phần mềm', 'IoT'] },
     { type: 'cong_trinh', text: 'Công trình', icon: 'fa-file-alt', queries: ['Hệ thống', 'Mô hình', 'Ứng dụng', 'Nghiên cứu', 'Phân tích', 'Xây dựng', 'Giải pháp'] },
-    { type: 'de_tai', text: 'Đề tài', icon: 'fa-flask', queries: ['Cấp Bộ', 'Cấp Cơ sở', 'Nafosted', 'Cấp Nhà nước', 'Tỉnh', 'Nghiên cứu khoa học'] }
+    { type: 'de_tai', text: 'Đề tài', icon: 'fa-flask', queries: ['Cấp Nhà nước', 'Cấp Bộ', 'Cấp Tỉnh/Thành phố', 'Cấp Trường', 'Đề tài Doanh nghiệp'] }
 ];
 
 function renderRandomSuggestions() {
