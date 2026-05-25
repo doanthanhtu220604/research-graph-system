@@ -7,11 +7,54 @@ from backend.services.neo4j_connection import get_neo4j_connection
 
 admin_lecturers_bp = Blueprint("admin_lecturers_api", __name__)
 
+def clean_str(val, default=""):
+    if val is None:
+        return default
+    return str(val).strip()
+
 @admin_lecturers_bp.route("/giang-vien", methods=["POST"])
 def create_giang_vien():
-    data = request.json
+    data = request.json or {}
     conn = get_neo4j_connection()
     try:
+        ma_gv = clean_str(data.get("ma_gv"))
+        ho_va_ten = clean_str(data.get("ho_va_ten"))
+        email = clean_str(data.get("email"))
+
+        if not ma_gv:
+            return jsonify({"status": "error", "message": "Mã giảng viên không được để trống hoặc chỉ chứa khoảng trắng."}), 400
+        if not ho_va_ten:
+            return jsonify({"status": "error", "message": "Họ và tên không được để trống hoặc chỉ chứa khoảng trắng."}), 400
+        if not email:
+            return jsonify({"status": "error", "message": "Email không được để trống hoặc chỉ chứa khoảng trắng."}), 400
+
+        # Kiểm tra trùng lặp mã giảng viên hoặc email
+        check_query = """
+            MATCH (gv:GiangVien)
+            WHERE gv.ma_gv = $ma_gv OR (gv.email = $email AND $email <> "")
+            RETURN gv.id AS id, gv.ma_gv AS ma_gv, gv.email AS email
+        """
+        dup = conn.query(check_query, {"ma_gv": ma_gv, "email": email})
+        if dup:
+            for d in dup:
+                if d["ma_gv"] == ma_gv:
+                    return jsonify({"status": "error", "message": f"Mã giảng viên '{ma_gv}' đã tồn tại trong hệ thống."}), 400
+                if email and d["email"] == email:
+                    return jsonify({"status": "error", "message": f"Email '{email}' đã tồn tại trong hệ thống."}), 400
+
+        props = {
+            "ma_gv": ma_gv,
+            "ho_va_ten": ho_va_ten,
+            "hoc_vi": clean_str(data.get("hoc_vi")),
+            "chuc_danh": clean_str(data.get("chuc_danh")),
+            "chuc_vu": clean_str(data.get("chuc_vu")),
+            "email": email,
+            "dien_thoai": clean_str(data.get("dien_thoai")),
+            "chuyen_nganh": clean_str(data.get("chuyen_nganh")),
+            "trang_thai_cong_tac": clean_str(data.get("trang_thai_cong_tac"), "Đang công tác"),
+            "anh_dai_dien": clean_str(data.get("anh_dai_dien"))
+        }
+
         # Tạo Node GiangVien
         result = conn.write("""
             CREATE (gv:GiangVien {
@@ -23,12 +66,12 @@ def create_giang_vien():
                 email: $email,
                 dien_thoai: $dien_thoai,
                 chuyen_nganh: $chuyen_nganh,
-                trang_thai_cong_tac: coalesce($trang_thai_cong_tac, 'Đang công tác'),
+                trang_thai_cong_tac: $trang_thai_cong_tac,
                 anh_dai_dien: $anh_dai_dien
             })
             SET gv.id = 'gv_' + toString(id(gv))
             RETURN gv.id AS id
-        """, data)
+        """, props)
         gv_id = result[0]["id"] if result else None
 
         # Thiết lập quan hệ Bộ môn (nếu có)
@@ -65,9 +108,48 @@ def create_giang_vien():
 
 @admin_lecturers_bp.route("/giang-vien/<id>", methods=["PUT"])
 def update_giang_vien(id):
-    data = request.json
+    data = request.json or {}
     conn = get_neo4j_connection()
     try:
+        ma_gv = clean_str(data.get("ma_gv"))
+        ho_va_ten = clean_str(data.get("ho_va_ten"))
+        email = clean_str(data.get("email"))
+
+        if not ma_gv:
+            return jsonify({"status": "error", "message": "Mã giảng viên không được để trống hoặc chỉ chứa khoảng trắng."}), 400
+        if not ho_va_ten:
+            return jsonify({"status": "error", "message": "Họ và tên không được để trống hoặc chỉ chứa khoảng trắng."}), 400
+        if not email:
+            return jsonify({"status": "error", "message": "Email không được để trống hoặc chỉ chứa khoảng trắng."}), 400
+
+        # Kiểm tra trùng lặp mã giảng viên hoặc email với giảng viên khác
+        check_query = """
+            MATCH (gv:GiangVien)
+            WHERE gv.id <> $id AND (gv.ma_gv = $ma_gv OR (gv.email = $email AND $email <> ""))
+            RETURN gv.id AS id, gv.ma_gv AS ma_gv, gv.email AS email
+        """
+        dup = conn.query(check_query, {"id": id, "ma_gv": ma_gv, "email": email})
+        if dup:
+            for d in dup:
+                if d["ma_gv"] == ma_gv:
+                    return jsonify({"status": "error", "message": f"Mã giảng viên '{ma_gv}' đã tồn tại ở một giảng viên khác."}), 400
+                if email and d["email"] == email:
+                    return jsonify({"status": "error", "message": f"Email '{email}' đã tồn tại ở một giảng viên khác."}), 400
+
+        props = {
+            "id": id,
+            "ma_gv": ma_gv,
+            "ho_va_ten": ho_va_ten,
+            "hoc_vi": clean_str(data.get("hoc_vi")),
+            "chuc_danh": clean_str(data.get("chuc_danh")),
+            "chuc_vu": clean_str(data.get("chuc_vu")),
+            "email": email,
+            "dien_thoai": clean_str(data.get("dien_thoai")),
+            "chuyen_nganh": clean_str(data.get("chuyen_nganh")),
+            "trang_thai_cong_tac": clean_str(data.get("trang_thai_cong_tac"), "Đang công tác"),
+            "anh_dai_dien": clean_str(data.get("anh_dai_dien"))
+        }
+
         conn.write("""
             MATCH (gv:GiangVien) WHERE gv.id = $id
             SET gv.ma_gv = $ma_gv,
@@ -78,9 +160,9 @@ def update_giang_vien(id):
                 gv.email = $email,
                 gv.dien_thoai = $dien_thoai,
                 gv.chuyen_nganh = $chuyen_nganh,
-                gv.trang_thai_cong_tac = coalesce($trang_thai_cong_tac, 'Đang công tác'),
+                gv.trang_thai_cong_tac = $trang_thai_cong_tac,
                 gv.anh_dai_dien = $anh_dai_dien
-        """, {"id": id, **data})
+        """, props)
 
         if "bo_mon" in data:
             # Xóa quan hệ bộ môn cũ

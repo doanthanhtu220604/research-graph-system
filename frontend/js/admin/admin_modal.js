@@ -306,14 +306,32 @@ async function handleFormSubmit(e) {
     const config = ENTITY_CONFIG[type];
 
     const formData = {};
-    config.fields.forEach(f => {
-        const val = document.getElementById(`field_${f.name}`).value;
+    let hasError = false;
+
+    for (const f of config.fields) {
+        const inputEl = document.getElementById(`field_${f.name}`);
+        if (!inputEl) continue;
+
+        let val = inputEl.value;
+        if (typeof val === 'string') {
+            val = val.trim();
+        }
+
+        if (f.required && !val) {
+            alert(`Trường "${f.label}" là bắt buộc và không được để trống hoặc chỉ chứa khoảng trắng.`);
+            inputEl.focus();
+            hasError = true;
+            break;
+        }
+
         if (f.type === 'number') {
             formData[f.name] = val ? parseInt(val, 10) : null;
         } else {
             formData[f.name] = val;
         }
-    });
+    }
+
+    if (hasError) return;
 
     // Thu thập lĩnh vực nghiên cứu từ text input (cho giảng viên)
     if (type === 'giang-vien') {

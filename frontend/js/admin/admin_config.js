@@ -19,7 +19,7 @@ const ENTITY_CONFIG = {
             { name: 'chuc_danh', label: 'Chức danh', type: 'text' },
             { name: 'chuc_vu', label: 'Chức vụ', type: 'text' },
             { name: 'bo_mon', label: 'Tên Bộ môn', type: 'select', options: [] },
-            { name: 'email', label: 'Email', type: 'email' },
+            { name: 'email', label: 'Email', type: 'email', required: true },
             { name: 'dien_thoai', label: 'Điện thoại', type: 'text' },
             { name: 'chuyen_nganh', label: 'Chuyên ngành', type: 'text' },
             { name: 'trang_thai_cong_tac', label: 'Trạng thái công tác', type: 'select', default: 'Đang công tác', options: [

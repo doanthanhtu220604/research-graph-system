@@ -87,22 +87,44 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
         }
 
         try:
-            # MERGE theo email nếu có, ngược lại MERGE theo ho_va_ten
-            merge_key = "email" if props["email"] else "ho_va_ten"
-            result = conn.write(f"""
-                MERGE (gv:GiangVien {{{merge_key}: ${merge_key}}})
-                ON CREATE SET
-                    gv.id = 'gv_' + toString(id(gv)),
-                    gv.created_at = timestamp(),
-                    gv += $props
-                ON MATCH SET
-                    gv += $props
-                RETURN gv.id AS gv_id,
-                       (CASE WHEN gv.created_at = timestamp() THEN 'created' ELSE 'updated' END) AS action
-            """, {merge_key: props[merge_key], "props": props})
+            # Tìm giảng viên đã tồn tại bằng email hoặc ma_gv (nếu có), hoặc ho_va_ten làm fallback
+            email = props["email"]
+            ma_gv = props["ma_gv"]
+            ho_va_ten = props["ho_va_ten"]
 
-            gv_id   = result[0]["gv_id"]
-            action  = result[0]["action"]
+            existing = None
+            if email or ma_gv:
+                existing = conn.query_single("""
+                    MATCH (gv:GiangVien)
+                    WHERE (gv.email = $email AND $email <> "")
+                       OR (gv.ma_gv = $ma_gv AND $ma_gv <> "")
+                    RETURN gv.id AS gv_id
+                """, {"email": email, "ma_gv": ma_gv})
+
+            if not existing and ho_va_ten:
+                existing = conn.query_single("""
+                    MATCH (gv:GiangVien {ho_va_ten: $ho_va_ten})
+                    RETURN gv.id AS gv_id
+                """, {"ho_va_ten": ho_va_ten})
+
+            if existing:
+                gv_id = existing["gv_id"]
+                conn.write("""
+                    MATCH (gv:GiangVien {id: $gv_id})
+                    SET gv += $props
+                """, {"gv_id": gv_id, "props": props})
+                action = "updated"
+            else:
+                result = conn.write("""
+                    CREATE (gv:GiangVien)
+                    SET gv.id = 'gv_' + toString(id(gv)),
+                        gv.created_at = timestamp(),
+                        gv += $props
+                    RETURN gv.id AS gv_id
+                """, {"props": props})
+                gv_id = result[0]["gv_id"]
+                action = "created"
+
             if action == "created":
                 created += 1
             else:
