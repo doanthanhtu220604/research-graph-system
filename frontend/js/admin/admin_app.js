@@ -410,6 +410,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // ── Submenu Toggle Logic ──
+    const submenuToggle = document.querySelector('.submenu-toggle');
+    if (submenuToggle) {
+        submenuToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const parent = submenuToggle.closest('.has-submenu');
+            const submenu = parent.querySelector('.submenu');
+            if (submenu) {
+                const isHidden = submenu.style.display === 'none' || submenu.style.display === '';
+                submenu.style.display = isHidden ? 'block' : 'none';
+                if (isHidden) {
+                    parent.classList.add('open');
+                } else {
+                    parent.classList.remove('open');
+                }
+            }
+        });
+    }
+
+    // ── Auto-expand and highlight active submenu items based on URL ──
+    const pathName = window.location.pathname;
+    const pageName = pathName.substring(pathName.lastIndexOf('/') + 1) || 'index.html';
+    
+    if (pageName === 'import.html' || pageName === 'export.html') {
+        const parent = document.getElementById('menu-data');
+        if (parent) {
+            parent.classList.add('open');
+            const submenu = parent.querySelector('.submenu');
+            if (submenu) submenu.style.display = 'block';
+            
+            if (pageName === 'import.html') {
+                const subImport = document.getElementById('submenu-import');
+                if (subImport) subImport.classList.add('active');
+            } else if (pageName === 'export.html') {
+                const subExport = document.getElementById('submenu-export');
+                if (subExport) subExport.classList.add('active');
+            }
+        }
+    }
+
 });
 
 

@@ -70,11 +70,16 @@
                     <span>Quản lý Tài khoản</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="import.html" class="nav-link">
-                    <i class="fas fa-file-import"></i>
-                    <span>Import Dữ liệu</span>
+            <li class="nav-item has-submenu" id="menu-data">
+                <a href="#" class="nav-link submenu-toggle">
+                    <i class="fas fa-database"></i>
+                    <span>Dữ liệu</span>
+                    <i class="fas fa-chevron-down submenu-arrow" style="margin-left: auto; font-size: 10px; transition: transform 0.3s;"></i>
                 </a>
+                <ul class="submenu" style="display: none; list-style: none; padding-left: 20px; margin-top: 4px; margin-bottom: 4px;">
+                    <li class="submenu-item" id="submenu-import"><a href="import.html" class="nav-link" style="padding: 10px 16px; border-radius: var(--radius-sm);"><i class="fas fa-file-import"></i><span>Import dữ liệu</span></a></li>
+                    <li class="submenu-item" id="submenu-export"><a href="export.html" class="nav-link" style="padding: 10px 16px; border-radius: var(--radius-sm);"><i class="fas fa-file-export"></i><span>Xuất dữ liệu</span></a></li>
+                </ul>
             </li>
             <li class="nav-item">
                 <a href="trash.html" class="nav-link" style="color:#ef4444;">
@@ -105,7 +110,7 @@
             <h1 class="page-title" id="pageTitle">Quản lý Tác giả ngoài</h1>
             <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
                 <div id="realtimeClock" style="font-weight: 600; color: var(--accent-blue); background: var(--bg-hover); padding: 5px 12px; border-radius: 6px; font-size: 14px;"></div>
-                <button id="exportCsvBtn" class="btn" style="background: #28a745; color: white; border: none; padding: 6px 12px; font-size: 14px;"><i class="fas fa-file-csv"></i> Xuất CSV</button>
+                
                 <span style="font-weight: 500; color: var(--text-secondary);">Xin chào, Admin</span>
             </div>
         </header>

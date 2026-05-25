@@ -133,7 +133,17 @@
             <li class="nav-item"><a href="projects.html" class="nav-link"><i class="fas fa-flask"></i><span>Quản lý Đề tài</span></a></li>
             <li class="nav-item"><a href="research_fields.html" class="nav-link"><i class="fas fa-layer-group"></i><span>Quản lý Lĩnh vực Nghiên cứu</span></a></li>
             <li class="nav-item"><a href="accounts.html" class="nav-link"><i class="fas fa-users-cog"></i><span>Quản lý Tài khoản</span></a></li>
-            <li class="nav-item active"><a href="import.html" class="nav-link"><i class="fas fa-file-import"></i><span>Import Dữ liệu</span></a></li>
+            <li class="nav-item has-submenu" id="menu-data">
+                <a href="#" class="nav-link submenu-toggle">
+                    <i class="fas fa-database"></i>
+                    <span>Dữ liệu</span>
+                    <i class="fas fa-chevron-down submenu-arrow" style="margin-left: auto; font-size: 10px; transition: transform 0.3s;"></i>
+                </a>
+                <ul class="submenu" style="display: none; list-style: none; padding-left: 20px; margin-top: 4px; margin-bottom: 4px;">
+                    <li class="submenu-item" id="submenu-import"><a href="import.html" class="nav-link" style="padding: 10px 16px; border-radius: var(--radius-sm);"><i class="fas fa-file-import"></i><span>Import dữ liệu</span></a></li>
+                    <li class="submenu-item" id="submenu-export"><a href="export.html" class="nav-link" style="padding: 10px 16px; border-radius: var(--radius-sm);"><i class="fas fa-file-export"></i><span>Xuất dữ liệu</span></a></li>
+                </ul>
+            </li>
             <li class="nav-item"><a href="trash.html" class="nav-link" style="color:#ef4444;"><i class="fas fa-trash-alt"></i><span>Thùng rác <span id="trashNavBadge" style="background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none;"></span></span></a></li>
             <li class="nav-item"><a href="/" class="nav-link"><i class="fas fa-home"></i><span>Về trang chủ</span></a></li>
             <li class="nav-item"><a href="#" onclick="logoutAdmin()" class="nav-link" style="color:var(--accent-red);"><i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span></a></li>

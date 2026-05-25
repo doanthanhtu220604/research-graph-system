@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Xuất dữ liệu hàng loạt từ hệ thống Knowledge Map">
+    <title>Xuất Dữ liệu - Knowledge Map Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin_fix.css">
+    <style>
+        /* ── Export Page Specific Styles ── */
+        .export-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 24px;
+            padding: 24px 0;
+        }
+
+        .export-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            min-height: 310px;
+        }
+
+        .export-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .export-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .export-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .export-title-area h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .export-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            background: rgba(59,130,246,0.08);
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .export-card-body {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+
+        .export-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .export-columns-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .export-columns-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .export-col-tag {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .export-btn {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-gv { background: var(--gradient-primary); }
+        .btn-ct { background: var(--gradient-green); }
+        .btn-dt { background: var(--gradient-orange); }
+        .btn-bm { background: var(--gradient-red); }
+        .btn-tgn { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+        .btn-lv { background: linear-gradient(135deg, #14b8a6, #06b6d4); }
+
+        .export-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .export-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            filter: none;
+        }
+
+        /* Modal styling overrides */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-col-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-col-row:last-child {
+            border-bottom: none;
+        }
+        
+        .modal-col-name {
+            font-weight: 600;
+            color: var(--accent-blue);
+            width: 150px;
+            font-size: 13px;
+            font-family: monospace;
+            flex-shrink: 0;
+        }
+        
+        .modal-col-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-user-shield"></i>
+                <span class="logo-text">KnowledgeMap Admin</span>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-th-large"></i><span>Tổng quan hệ thống</span></a></li>
+            <li class="nav-item"><a href="lecturers.html" class="nav-link"><i class="fas fa-user-tie"></i><span>Quản lý Giảng viên</span></a></li>
+            <li class="nav-item"><a href="departments.html" class="nav-link"><i class="fas fa-building"></i><span>Quản lý Bộ môn</span></a></li>
+            <li class="nav-item"><a href="external_authors.html" class="nav-link"><i class="fas fa-user-friends"></i><span>Quản lý Tác giả ngoài</span></a></li>
+            <li class="nav-item"><a href="publications.html" class="nav-link"><i class="fas fa-file-alt"></i><span>Quản lý Công trình</span></a></li>
+            <li class="nav-item"><a href="projects.html" class="nav-link"><i class="fas fa-flask"></i><span>Quản lý Đề tài</span></a></li>
+            <li class="nav-item"><a href="research_fields.html" class="nav-link"><i class="fas fa-layer-group"></i><span>Quản lý Lĩnh vực Nghiên cứu</span></a></li>
+            <li class="nav-item"><a href="accounts.html" class="nav-link"><i class="fas fa-users-cog"></i><span>Quản lý Tài khoản</span></a></li>
+            <li class="nav-item has-submenu" id="menu-data">
+                <a href="#" class="nav-link submenu-toggle">
+                    <i class="fas fa-database"></i>
+                    <span>Dữ liệu</span>
+                    <i class="fas fa-chevron-down submenu-arrow" style="margin-left: auto; font-size: 10px; transition: transform 0.3s;"></i>
+                </a>
+                <ul class="submenu" style="display: none; list-style: none; padding-left: 20px; margin-top: 4px; margin-bottom: 4px;">
+                    <li class="submenu-item" id="submenu-import"><a href="import.html" class="nav-link" style="padding: 10px 16px; border-radius: var(--radius-sm);"><i class="fas fa-file-import"></i><span>Import dữ liệu</span></a></li>
+                    <li class="submenu-item" id="submenu-export"><a href="export.html" class="nav-link" style="padding: 10px 16px; border-radius: var(--radius-sm);"><i class="fas fa-file-export"></i><span>Xuất dữ liệu</span></a></li>
+                </ul>
+            </li>
+            <li class="nav-item"><a href="trash.html" class="nav-link" style="color:#ef4444;"><i class="fas fa-trash-alt"></i><span>Thùng rác <span id="trashNavBadge" style="background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;display:none;"></span></span></a></li>
+            <li class="nav-item"><a href="/" class="nav-link"><i class="fas fa-home"></i><span>Về trang chủ</span></a></li>
+            <li class="nav-item"><a href="#" onclick="logoutAdmin()" class="nav-link" style="color:var(--accent-red);"><i class="fas fa-sign-out-alt"></i><span>Đăng xuất</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="mainContent">
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title" id="pageTitle">Xuất Dữ liệu</h1>
+            <div class="header-actions" style="display:flex;align-items:center;gap:15px;">
+                <div id="realtimeClock" style="font-weight:600;color:var(--accent-blue);background:var(--bg-hover);padding:5px 12px;border-radius:6px;font-size:14px;"></div>
+                <span style="font-weight:500;color:var(--text-secondary);">Xin chào, Admin</span>
+            </div>
+        </header>
+
+        <section class="page active" style="display:block;padding:28px;">
+            <div style="margin-bottom: 24px; background: rgba(59,130,246,.04); border: 1px solid rgba(59,130,246,.15); border-radius: 12px; padding: 16px 20px;">
+                <p style="font-size: 14px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fas fa-info-circle" style="color:var(--accent-blue); margin-right: 6px;"></i>
+                    Hệ thống cho phép xuất dữ liệu hiện tại ra file định dạng CSV tương thích trực tiếp với cấu trúc Import.
+                </p>
+            </div>
+
+            <div class="export-grid">
+                <!-- GIANG VIEN -->
+                <div class="export-card">
+                    <div>
+                        <div class="export-card-header">
+                            <div class="export-icon" style="background: var(--gradient-primary);"><i class="fas fa-user-tie"></i></div>
+                            <div class="export-title-area">
+                                <h3>Giảng viên</h3>
+                                <span class="export-count" id="count-giang-vien"><i class="fas fa-spinner fa-spin"></i> Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="export-card-body">
+                            <p class="export-desc">Xuất thông tin tất cả giảng viên, chức vụ, bộ môn, và thông tin liên lạc.</p>
+                            <div class="export-columns-label">
+                                <span>Cột xuất ra</span>
+                                <span style="color: var(--accent-blue); cursor: pointer; font-size: 11px; text-transform: none; display: flex; align-items: center; gap: 4px;" onclick="showColumnDetails('giang-vien')"><i class="fas fa-eye"></i> Xem tất cả</span>
+                            </div>
+                            <div class="export-columns-list">
+                                <span class="export-col-tag">ho_va_ten</span>
+                                <span class="export-col-tag">ma_gv</span>
+                                <span class="export-col-tag">hoc_vi</span>
+                                <span class="export-col-tag">chuc_danh</span>
+                                <span class="export-col-tag">bo_mon</span>
+                                <span class="export-col-tag">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="export-btn btn-gv" onclick="exportData('giang-vien', this)">
+                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    </button>
+                </div>
+
+                <!-- CONG TRINH -->
+                <div class="export-card">
+                    <div>
+                        <div class="export-card-header">
+                            <div class="export-icon" style="background: var(--gradient-green);"><i class="fas fa-file-alt"></i></div>
+                            <div class="export-title-area">
+                                <h3>Công trình Nghiên cứu</h3>
+                                <span class="export-count" id="count-cong-trinh"><i class="fas fa-spinner fa-spin"></i> Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="export-card-body">
+                            <p class="export-desc">Xuất danh sách công trình, bài báo khoa học, nơi xuất bản và các tác giả tham gia.</p>
+                            
+                            <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                                <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap;"><i class="far fa-calendar-alt"></i> Bộ lọc theo năm:</label>
+                                <select id="filter-year-cong-trinh" style="flex: 1; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 12px; outline: none; cursor: pointer;">
+                                    <option value="all">Tất cả các năm</option>
+                                </select>
+                            </div>
+
+                            <div class="export-columns-label">
+                                <span>Cột xuất ra</span>
+                                <span style="color: var(--accent-blue); cursor: pointer; font-size: 11px; text-transform: none; display: flex; align-items: center; gap: 4px;" onclick="showColumnDetails('cong-trinh')"><i class="fas fa-eye"></i> Xem tất cả</span>
+                            </div>
+                            <div class="export-columns-list">
+                                <span class="export-col-tag">ten_cong_trinh</span>
+                                <span class="export-col-tag">nam_xuat_ban</span>
+                                <span class="export-col-tag">tom_tat</span>
+                                <span class="export-col-tag">link</span>
+                                <span class="export-col-tag">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="export-btn btn-ct" onclick="exportData('cong-trinh', this)">
+                        <i class="fas fa-file-export"></i> Xuất file CSV
+                    </button>
+                </div>
+
+                <!-- DE TAI -->
+                <div class="export-card">
+                    <div>
+                        <div class="export-card-header">
+                            <div class="export-icon" style="background: var(--gradient-orange);"><i class="fas fa-flask"></i></div>
+                            <div class="export-title-area">
+                                <h3>Đề tài Nghiên cứu</h3>
+                                <span class="export-count" id="count-de-tai"><i class="fas fa-spinner fa-spin"></i> Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="export-card-body">
+                            <p class="export-desc">Xuất danh sách đề tài khoa học các cấp, chủ nhiệm, thành viên và tiến độ thực hiện.</p>
+                            
+                            <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                                <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap;"><i class="far fa-calendar-alt"></i> Năm bắt đầu:</label>
+                                <select id="filter-year-de-tai" style="flex: 1; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 12px; outline: none; cursor: pointer;">
+                                    <option value="all">Tất cả các năm</option>
+                                </select>
+                            </div>
+
+                            <div class="export-columns-label">
+                                <span>Cột xuất ra</span>
+                                <span style="color: var(--accent-blue); cursor: pointer; font-size: 11px; text-transform: none; display: flex; align-items: center; gap: 4px;" onclick="showColumnDetails('de-tai')"><i class="fas fa-eye"></i> Xem tất cả</span>
+                            </div>
+                            <div class="export-columns-list">
+                                <span class="export-col-tag">ten_de_tai</span>
+                                <span class="export-col-tag">cap_de_tai</span>
+                                <span class="export-col-tag">nam_bat_dau</span>
+                                <span class="export-col-tag">chu_nhiem</span>
+                                <span class="export-col-tag">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="export-btn btn-dt" onclick="exportData('de-tai', this)">
+                        <i class="fas fa-file-export"></i> Xuất file CSV
+                    </button>
+                </div>
+
+                <!-- BO MON -->
+                <div class="export-card">
+                    <div>
+                        <div class="export-card-header">
+                            <div class="export-icon" style="background: var(--gradient-red);"><i class="fas fa-building"></i></div>
+                            <div class="export-title-area">
+                                <h3>Bộ môn</h3>
+                                <span class="export-count" id="count-bo-mon"><i class="fas fa-spinner fa-spin"></i> Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="export-card-body">
+                            <p class="export-desc">Xuất danh sách các bộ môn trong khoa, mô tả và trưởng bộ môn phụ trách.</p>
+                            <div class="export-columns-label">
+                                <span>Cột xuất ra</span>
+                                <span style="color: var(--accent-blue); cursor: pointer; font-size: 11px; text-transform: none; display: flex; align-items: center; gap: 4px;" onclick="showColumnDetails('bo-mon')"><i class="fas fa-eye"></i> Xem tất cả</span>
+                            </div>
+                            <div class="export-columns-list">
+                                <span class="export-col-tag">ten_bo_mon</span>
+                                <span class="export-col-tag">mo_ta</span>
+                                <span class="export-col-tag">truong_bo_mon</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="export-btn btn-bm" onclick="exportData('bo-mon', this)">
+                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    </button>
+                </div>
+
+                <!-- TAC GIA NGOAI -->
+                <div class="export-card">
+                    <div>
+                        <div class="export-card-header">
+                            <div class="export-icon" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);"><i class="fas fa-user-friends"></i></div>
+                            <div class="export-title-area">
+                                <h3>Tác giả Ngoài</h3>
+                                <span class="export-count" id="count-tac-gia-ngoai"><i class="fas fa-spinner fa-spin"></i> Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="export-card-body">
+                            <p class="export-desc">Xuất danh sách tác giả bên ngoài, cộng tác viên nghiên cứu ngoài đơn vị.</p>
+                            <div class="export-columns-label">
+                                <span>Cột xuất ra</span>
+                                <span style="color: var(--accent-blue); cursor: pointer; font-size: 11px; text-transform: none; display: flex; align-items: center; gap: 4px;" onclick="showColumnDetails('tac-gia-ngoai')"><i class="fas fa-eye"></i> Xem tất cả</span>
+                            </div>
+                            <div class="export-columns-list">
+                                <span class="export-col-tag">ho_va_ten</span>
+                                <span class="export-col-tag">don_vi_cong_tac</span>
+                                <span class="export-col-tag">hoc_vi</span>
+                                <span class="export-col-tag">email</span>
+                                <span class="export-col-tag">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="export-btn btn-tgn" onclick="exportData('tac-gia-ngoai', this)">
+                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    </button>
+                </div>
+
+                <!-- LINH VUC -->
+                <div class="export-card">
+                    <div>
+                        <div class="export-card-header">
+                            <div class="export-icon" style="background: linear-gradient(135deg, #14b8a6, #06b6d4);"><i class="fas fa-layer-group"></i></div>
+                            <div class="export-title-area">
+                                <h3>Lĩnh vực Nghiên cứu</h3>
+                                <span class="export-count" id="count-linh-vuc"><i class="fas fa-spinner fa-spin"></i> Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="export-card-body">
+                            <p class="export-desc">Xuất toàn bộ danh sách các lĩnh vực nghiên cứu khoa học được định nghĩa trên hệ thống.</p>
+                            <div class="export-columns-label">
+                                <span>Cột xuất ra</span>
+                                <span style="color: var(--accent-blue); cursor: pointer; font-size: 11px; text-transform: none; display: flex; align-items: center; gap: 4px;" onclick="showColumnDetails('linh-vuc')"><i class="fas fa-eye"></i> Xem tất cả</span>
+                            </div>
+                            <div class="export-columns-list">
+                                <span class="export-col-tag">ten_linh_vuc</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="export-btn btn-lv" onclick="exportData('linh-vuc', this)">
+                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL CHI TIẾT CỘT -->
+    <div id="columnDetailsModal" style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+        <div style="background-color: var(--bg-card); margin: auto; padding: 24px; border: 1px solid var(--border-color); width: 90%; max-width: 550px; border-radius: 12px; box-shadow: var(--shadow-glow); position: relative; animation: modalFadeIn 0.25s ease; display: flex; flex-direction: column;">
+            <span onclick="closeColumnModal()" style="position: absolute; right: 20px; top: 16px; font-size: 24px; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: color 0.2s;">&times;</span>
+            <h3 id="modalTitle" style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <i class="fas fa-list-ul" style="color: var(--accent-blue);"></i> Chi tiết cấu trúc cột xuất ra
+            </h3>
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 8px;" id="modalColumnsContainer">
+                <!-- Nội dung các cột sẽ được chèn động ở đây -->
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <button class="btn" style="background: var(--accent-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="closeColumnModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/admin/admin_app.js?v=1.1"></script>
+    <script>
+        // Data columns configuration for Modal view
+        const COLUMN_SCHEMAS = {
+            'giang-vien': [
+                { name: 'ho_va_ten', desc: 'Họ và tên của giảng viên (Bắt buộc)' },
+                { name: 'ma_gv', desc: 'Mã số giảng viên (Bắt buộc, duy nhất)' },
+                { name: 'hoc_vi', desc: 'Học vị cao nhất (Ví dụ: Tiến sĩ, Thạc sĩ, Cử nhân)' },
+                { name: 'chuc_danh', desc: 'Chức danh khoa học (Ví dụ: Giáo sư, Phó giáo sư)' },
+                { name: 'chuc_vu', desc: 'Chức vụ hành chính (Ví dụ: Trưởng khoa, Trưởng bộ môn)' },
+                { name: 'email', desc: 'Địa chỉ thư điện tử chính thức' },
+                { name: 'dien_thoai', desc: 'Số điện thoại liên lạc' },
+                { name: 'chuyen_nganh', desc: 'Chuyên ngành nghiên cứu chuyên sâu' },
+                { name: 'trang_thai_cong_tac', desc: 'Trạng thái công tác hiện tại (Đang công tác, Nghỉ hưu...)' },
+                { name: 'bo_mon', desc: 'Bộ môn trực thuộc giảng viên đang công tác' },
+                { name: 'linh_vuc_nghien_cuu', desc: 'Danh sách các lĩnh vực nghiên cứu (ngăn cách bằng dấu gạch đứng |)' }
+            ],
+            'cong-trinh': [
+                { name: 'ten_cong_trinh', desc: 'Tên công trình nghiên cứu, bài báo khoa học (Bắt buộc)' },
+                { name: 'nam_xuat_ban', desc: 'Năm công bố hoặc xuất bản (Ví dụ: 2024)' },
+                { name: 'tom_tat', desc: 'Tóm tắt nội dung chính hoặc abstract' },
+                { name: 'trang_thai', desc: 'Trạng thái xuất bản (Đã xuất bản, Đang nhận xét...)' },
+                { name: 'link', desc: 'Đường dẫn URL liên kết đến bài báo gốc' },
+                { name: 'tac_gia_giang_vien', desc: 'Họ tên các giảng viên trong trường tham gia (Ngăn cách bằng dấu |)' },
+                { name: 'tac_gia_ngoai', desc: 'Họ tên các tác giả bên ngoài trường tham gia (Ngăn cách bằng dấu |)' }
+            ],
+            'de-tai': [
+                { name: 'ten_de_tai', desc: 'Tên đề tài nghiên cứu khoa học các cấp (Bắt buộc)' },
+                { name: 'cap_de_tai', desc: 'Cấp quản lý đề tài (Cơ sở, Tỉnh, Bộ, Nhà nước...)' },
+                { name: 'nam_bat_dau', desc: 'Năm bắt đầu thực hiện đề tài' },
+                { name: 'nam_ket_thuc', desc: 'Năm hoàn thành / nghiệm thu đề tài' },
+                { name: 'tom_tat', desc: 'Tóm tắt mục tiêu và nội dung của đề tài' },
+                { name: 'trang_thai', desc: 'Trạng thái thực hiện (Đang thực hiện, Đã nghiệm thu, Hủy...)' },
+                { name: 'link', desc: 'Liên kết tới thuyết minh đề tài hoặc tài liệu đính kèm' },
+                { name: 'chu_nhiem', desc: 'Họ và tên giảng viên chủ nhiệm đề tài' },
+                { name: 'thanh_vien', desc: 'Họ tên các giảng viên tham gia thực hiện (Ngăn cách bằng dấu |)' },
+                { name: 'tac_gia_ngoai', desc: 'Họ tên các tác giả ngoài trường tham gia thực hiện (Ngăn cách bằng dấu |)' }
+            ],
+            'bo-mon': [
+                { name: 'ten_bo_mon', desc: 'Tên bộ môn chuyên ngành (Bắt buộc, duy nhất)' },
+                { name: 'mo_ta', desc: 'Mô tả tóm tắt về bộ môn' },
+                { name: 'truong_bo_mon', desc: 'Họ và tên giảng viên là Trưởng bộ môn phụ trách' }
+            ],
+            'tac-gia-ngoai': [
+                { name: 'ho_va_ten', desc: 'Họ và tên của tác giả bên ngoài trường (Bắt buộc)' },
+                { name: 'don_vi_cong_tac', desc: 'Tên cơ quan, trường học hoặc tổ chức đang công tác (Bắt buộc)' },
+                { name: 'hoc_vi', desc: 'Học vị cao nhất của tác giả' },
+                { name: 'chuc_danh', desc: 'Chức danh khoa học của tác giả' },
+                { name: 'chuc_vu', desc: 'Chức vụ hiện giữ tại đơn vị công tác' },
+                { name: 'email', desc: 'Địa chỉ email để liên hệ trao đổi học thuật' }
+            ],
+            'linh-vuc': [
+                { name: 'ten_linh_vuc', desc: 'Tên lĩnh vực nghiên cứu khoa học / công nghệ (Bắt buộc, duy nhất)' }
+            ]
+        };
+
+        const TITLES = {
+            'giang-vien': 'Giảng viên',
+            'cong-trinh': 'Công trình Nghiên cứu',
+            'de-tai': 'Đề tài Nghiên cứu',
+            'bo-mon': 'Bộ môn',
+            'tac-gia-ngoai': 'Tác giả Ngoài',
+            'linh-vuc': 'Lĩnh vực Nghiên cứu'
+        };
+
+        // Show column details inside a Modal
+        function showColumnDetails(dataType) {
+            const schema = COLUMN_SCHEMAS[dataType];
+            const title = TITLES[dataType];
+            if (!schema) return;
+
+            document.getElementById('modalTitle').innerHTML = `
+                <i class="fas fa-list-ul" style="color: var(--accent-blue);"></i> Cấu trúc cột xuất CSV: ${title}
+            `;
+
+            let containerHtml = '<div style="display:flex; flex-direction:column; gap:4px;">';
+            schema.forEach(col => {
+                containerHtml += `
+                    <div class="modal-col-row">
+                        <div class="modal-col-name">${col.name}</div>
+                        <div class="modal-col-desc">${col.desc}</div>
+                    </div>
+                `;
+            });
+            containerHtml += '</div>';
+
+            document.getElementById('modalColumnsContainer').innerHTML = containerHtml;
+            
+            const modal = document.getElementById('columnDetailsModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeColumnModal() {
+            document.getElementById('columnDetailsModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('columnDetailsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Populate Year dropdown lists dynamically
+        function populateYearDropdowns(overviewData) {
+            const allYears = new Set();
+            if (overviewData.cong_trinh_theo_nam) {
+                overviewData.cong_trinh_theo_nam.forEach(r => { if (r.nam) allYears.add(r.nam); });
+            }
+            if (overviewData.de_tai_theo_nam) {
+                overviewData.de_tai_theo_nam.forEach(r => { if (r.nam) allYears.add(r.nam); });
+            }
+
+            const sortedYears = Array.from(allYears).sort((a, b) => b - a); // Newest first
+
+            const ctSelect = document.getElementById('filter-year-cong-trinh');
+            const dtSelect = document.getElementById('filter-year-de-tai');
+
+            sortedYears.forEach(y => {
+                const optCT = document.createElement('option');
+                optCT.value = y;
+                optCT.textContent = 'Năm ' + y;
+                ctSelect.appendChild(optCT);
+
+                const optDT = document.createElement('option');
+                optDT.value = y;
+                optDT.textContent = 'Năm ' + y;
+                dtSelect.appendChild(optDT);
+            });
+        }
+
+        // Load counts of elements on page load
+        async function loadExportStats() {
+            try {
+                const overviewRes = await fetch('/api/stats/overview');
+                const overviewData = await overviewRes.json();
+                if (overviewData.status === 'ok') {
+                    document.getElementById('count-giang-vien').innerHTML = `<i class="fas fa-user-tie"></i> ${overviewData.stats.giang_vien} bản ghi`;
+                    document.getElementById('count-cong-trinh').innerHTML = `<i class="fas fa-file-alt"></i> ${overviewData.stats.cong_trinh} bản ghi`;
+                    document.getElementById('count-de-tai').innerHTML = `<i class="fas fa-flask"></i> ${overviewData.stats.de_tai} bản ghi`;
+                    document.getElementById('count-bo-mon').innerHTML = `<i class="fas fa-building"></i> ${overviewData.stats.bo_mon} bản ghi`;
+                    
+                    // Populate years from this overview data
+                    populateYearDropdowns(overviewData);
+                }
+                
+                const fieldsRes = await fetch('/api/linh-vuc');
+                const fieldsData = await fieldsRes.json();
+                if (fieldsData.status === 'ok') {
+                    document.getElementById('count-linh-vuc').innerHTML = `<i class="fas fa-layer-group"></i> ${fieldsData.data.length} bản ghi`;
+                }
+                
+                const authorsRes = await fetch('/api/admin/tac-gia-ngoai');
+                const authorsData = await authorsRes.json();
+                if (authorsData.status === 'ok') {
+                    document.getElementById('count-tac-gia-ngoai').innerHTML = `<i class="fas fa-user-friends"></i> ${authorsData.data.length} bản ghi`;
+                }
+            } catch(e) {
+                console.error("Error loading export stats: ", e);
+                const loadFails = document.querySelectorAll('.export-count');
+                loadFails.forEach(el => el.textContent = 'Hiện có');
+            }
+        }
+
+        // Fetch data from backend and export to CSV
+        async function exportData(dataType, btn) {
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...';
+
+            const endpoints = {
+                'giang-vien': '/api/giang-vien',
+                'cong-trinh': '/api/cong-trinh',
+                'de-tai': '/api/de-tai',
+                'linh-vuc': '/api/linh-vuc',
+                'tac-gia-ngoai': '/api/admin/tac-gia-ngoai',
+                'bo-mon': '/api/admin/bo-mon'
+            };
+
+            // Get selected year filter for filtering if applicable
+            let selectedYear = 'all';
+            if (dataType === 'cong-trinh') {
+                selectedYear = document.getElementById('filter-year-cong-trinh').value;
+            } else if (dataType === 'de-tai') {
+                selectedYear = document.getElementById('filter-year-de-tai').value;
+            }
+
+            const suffix = selectedYear !== 'all' ? `_nam_${selectedYear}` : '';
+            const filenames = {
+                'giang-vien': 'danh_sach_giang_vien.csv',
+                'cong-trinh': `danh_sach_cong_trinh${suffix}.csv`,
+                'de-tai': `danh_sach_de_tai${suffix}.csv`,
+                'linh-vuc': 'danh_sach_linh_vuc.csv',
+                'tac-gia-ngoai': 'danh_sach_tac_gia_ngoai.csv',
+                'bo-mon': 'danh_sach_bo_mon.csv'
+            };
+
+            try {
+                const res = await fetch(endpoints[dataType]);
+                const data = await res.json();
+
+                if (data.status !== 'ok') {
+                    alert('Lỗi khi tải dữ liệu từ máy chủ: ' + (data.message || 'Không rõ nguyên nhân'));
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    return;
+                }
+
+                let list = data.data || [];
+                
+                // Filter by year client-side
+                if (selectedYear !== 'all') {
+                    if (dataType === 'cong-trinh') {
+                        list = list.filter(ct => String(ct.nam_xuat_ban) === selectedYear);
+                    } else if (dataType === 'de-tai') {
+                        list = list.filter(dt => String(dt.nam_bat_dau) === selectedYear);
+                    }
+                }
+
+                if (list.length === 0) {
+                    alert('Không có dữ liệu phù hợp để xuất file.');
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,\ufeff";
+
+                if (dataType === 'giang-vien') {
+                    csvContent += "ho_va_ten,ma_gv,hoc_vi,chuc_danh,chuc_vu,email,dien_thoai,chuyen_nganh,trang_thai_cong_tac,bo_mon,linh_vuc_nghien_cuu\n";
+                    list.forEach(gv => {
+                        const linhVuc = Array.isArray(gv.linh_vuc) ? gv.linh_vuc.join('|') : (gv.linh_vuc || '');
+                        csvContent += `"${gv.ho_va_ten || ''}","${gv.ma_gv || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.email || ''}","${gv.dien_thoai || ''}","${gv.chuyen_nganh || ''}","${gv.trang_thai_cong_tac || ''}","${gv.bo_mon || ''}","${linhVuc}"\n`;
+                    });
+                } else if (dataType === 'cong-trinh') {
+                    csvContent += "ten_cong_trinh,nam_xuat_ban,tom_tat,trang_thai,link,tac_gia_giang_vien,tac_gia_ngoai\n";
+                    list.forEach(ct => {
+                        const tacGiaGV = Array.isArray(ct.tac_gia) ? ct.tac_gia.join('|') : (ct.tac_gia || '');
+                        const tacGiaNgoai = Array.isArray(ct.tac_gia_ngoai) ? ct.tac_gia_ngoai.join('|') : (ct.tac_gia_ngoai || '');
+                        csvContent += `"${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}","${(ct.tom_tat || '').replace(/"/g, '""')}","${ct.trang_thai || ''}","${ct.link || ''}","${tacGiaGV}","${tacGiaNgoai}"\n`;
+                    });
+                } else if (dataType === 'de-tai') {
+                    csvContent += "ten_de_tai,cap_de_tai,nam_bat_dau,nam_ket_thuc,tom_tat,trang_thai,link,chu_nhiem,thanh_vien,tac_gia_ngoai\n";
+                    list.forEach(dt => {
+                        const chuNhiem = Array.isArray(dt.chu_nhiem) ? dt.chu_nhiem.join('|') : (dt.chu_nhiem || '');
+                        const thanhVien = Array.isArray(dt.thanh_vien) ? dt.thanh_vien.join('|') : (dt.thanh_vien || '');
+                        const tacGiaNgoai = Array.isArray(dt.tac_gia_ngoai) ? dt.tac_gia_ngoai.join('|') : (dt.tac_gia_ngoai || '');
+                        csvContent += `"${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam_bat_dau || ''}","${dt.nam_ket_thuc || ''}","${(dt.tom_tat || '').replace(/"/g, '""')}","${dt.trang_thai || ''}","${dt.link || ''}","${chuNhiem}","${thanhVien}","${tacGiaNgoai}"\n`;
+                    });
+                } else if (dataType === 'linh-vuc') {
+                    csvContent += "ten_linh_vuc\n";
+                    list.forEach(lv => {
+                        csvContent += `"${(lv.ten_linh_vuc || '').replace(/"/g, '""')}"\n`;
+                    });
+                } else if (dataType === 'tac-gia-ngoai') {
+                    csvContent += "ho_va_ten,don_vi_cong_tac,hoc_vi,chuc_danh,chuc_vu,email\n";
+                    list.forEach(tgn => {
+                        csvContent += `"${tgn.ho_va_ten || ''}","${tgn.don_vi_cong_tac || ''}","${tgn.hoc_vi || ''}","${tgn.chuc_danh || ''}","${tgn.chuc_vu || ''}","${tgn.email || ''}"\n`;
+                    });
+                } else if (dataType === 'bo-mon') {
+                    csvContent += "ten_bo_mon,mo_ta,truong_bo_mon\n";
+                    list.forEach(bm => {
+                        csvContent += `"${bm.ten_bo_mon || ''}","${(bm.mo_ta || '').replace(/"/g, '""')}","${bm.truong_bo_mon || ''}"\n`;
+                    });
+                }
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", filenames[dataType]);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show success temporary feedback
+                btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất thành công!';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    btn.style.background = '';
+                }, 2000);
+
+            } catch(e) {
+                console.error("Export error: ", e);
+                alert("Đã xảy ra lỗi trong quá trình xuất dữ liệu: " + e.message);
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        }
+
+        // Clock initialization
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('realtimeClock').textContent =
+                now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Run stats load on page init
+        loadExportStats();
+
+        function logoutAdmin() {
+            fetch('/api/auth/logout', { method: 'POST' }).finally(() => { window.location.href = '/admin/login.html'; });
+        }
+    </script>
+</body>
+</html>
