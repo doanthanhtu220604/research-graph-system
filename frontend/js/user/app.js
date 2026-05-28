@@ -608,9 +608,22 @@ async function loadKnowledgeGraphForExplore() {
             renderGraph('explore-graph', data.nodes, data.edges, (network) => {
                 exploreGraph = network;
             });
+            if (data.legend) {
+                renderLegend(data.legend, 'exploreGraphLegend');
+            }
         }
     } catch (err) {
         console.error('Explore graph error:', err);
+    }
+}
+
+function focusNodeInExploreGraph(nodeId) {
+    if (exploreGraph && nodeId) {
+        exploreGraph.selectNodes([nodeId]);
+        exploreGraph.focus(nodeId, {
+            scale: 1.3,
+            animation: { duration: 800, easingFunction: 'easeInOutQuad' }
+        });
     }
 }
 
@@ -643,6 +656,8 @@ async function performSearch() {
                 'BoMon': 'fa-building',
                 'Khoa': 'fa-university',
                 'TacGiaNgoai': 'fa-user',
+                'LinhVucNghienCuu': 'fa-tags',
+                'NhomNghienCuu': 'fa-users',
             };
 
             const labelNames = {
@@ -652,6 +667,8 @@ async function performSearch() {
                 'BoMon': 'Bộ môn',
                 'Khoa': 'Khoa',
                 'TacGiaNgoai': 'Tác giả ngoài',
+                'LinhVucNghienCuu': 'Lĩnh vực',
+                'NhomNghienCuu': 'Nhóm NC',
             };
 
             listContainer.innerHTML = data.data.map(item => {
@@ -659,12 +676,19 @@ async function performSearch() {
                 const icon = labelIcons[label] || 'fa-circle';
                 const typeName = labelNames[label] || label;
                 const name = item.ho_va_ten || item.ten_cong_trinh || item.ten_de_tai
-                          || item.ten_bo_mon || item.ten_khoa || 'N/A';
+                          || item.ten_bo_mon || item.ten_khoa || item.ten_linh_vuc
+                          || item.ten_nhom || 'N/A';
 
                 let clickAction = '';
-                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail('${item.id}')`;
-                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail('${item.id}')`;
-                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail('${item.id}')`;
+                if (label === 'GiangVien' && item.id) {
+                    clickAction = `showLecturerDetail('${item.id}');`;
+                } else if (label === 'CongTrinhNghienCuu' && item.id) {
+                    clickAction = `showPublicationDetail('${item.id}');`;
+                } else if (label === 'DeTaiNghienCuu' && item.id) {
+                    clickAction = `showProjectDetail('${item.id}');`;
+                } else if (item.id) {
+                    clickAction = `showGenericEntityDetail('${item.id}', '${label}', '${name.replace(/'/g, "\\'")}');`;
+                }
 
                 return `
                     <div class="modal-list-item" style="cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-color);"
@@ -741,6 +765,8 @@ async function performLiveSearch(query) {
                 'BoMon': 'fa-building',
                 'Khoa': 'fa-university',
                 'TacGiaNgoai': 'fa-user',
+                'LinhVucNghienCuu': 'fa-tags',
+                'NhomNghienCuu': 'fa-users',
             };
 
             const labelNames = {
@@ -750,6 +776,8 @@ async function performLiveSearch(query) {
                 'BoMon': 'Bộ môn',
                 'Khoa': 'Khoa',
                 'TacGiaNgoai': 'Tác giả ngoài',
+                'LinhVucNghienCuu': 'Lĩnh vực',
+                'NhomNghienCuu': 'Nhóm NC',
             };
 
             suggestionsEl.innerHTML = data.data.slice(0, 8).map(item => {
@@ -757,12 +785,19 @@ async function performLiveSearch(query) {
                 const icon = labelIcons[label] || 'fa-circle';
                 const typeName = labelNames[label] || label;
                 const name = item.ho_va_ten || item.ten_cong_trinh || item.ten_de_tai
-                          || item.ten_bo_mon || item.ten_khoa || 'N/A';
+                          || item.ten_bo_mon || item.ten_khoa || item.ten_linh_vuc
+                          || item.ten_nhom || 'N/A';
 
                 let clickAction = '';
-                if (label === 'GiangVien' && item.id) clickAction = `showLecturerDetail('${item.id}')`;
-                else if (label === 'CongTrinhNghienCuu' && item.id) clickAction = `showPublicationDetail('${item.id}')`;
-                else if (label === 'DeTaiNghienCuu' && item.id) clickAction = `showProjectDetail('${item.id}')`;
+                if (label === 'GiangVien' && item.id) {
+                    clickAction = `showLecturerDetail('${item.id}');`;
+                } else if (label === 'CongTrinhNghienCuu' && item.id) {
+                    clickAction = `showPublicationDetail('${item.id}');`;
+                } else if (label === 'DeTaiNghienCuu' && item.id) {
+                    clickAction = `showProjectDetail('${item.id}');`;
+                } else if (item.id) {
+                    clickAction = `showGenericEntityDetail('${item.id}', '${label}', '${name.replace(/'/g, "\\'")}');`;
+                }
 
                 return `
                     <div class="suggestion-item" onclick="${clickAction}; hideSuggestions();">
@@ -1273,6 +1308,110 @@ async function showProjectDetail(dtId) {
     } catch (err) { console.error(err); }
 }
 
+async function showGenericEntityDetail(nodeId, label, name) {
+    try {
+        const resGraph = await fetch(`${API_BASE}/graph/node/${nodeId}`);
+        const dataGraph = await resGraph.json();
+
+        if (dataGraph.status === 'ok') {
+            const labelNames = {
+                'GiangVien': 'Giảng viên',
+                'CongTrinhNghienCuu': 'Công trình nghiên cứu',
+                'DeTaiNghienCuu': 'Đề tài nghiên cứu',
+                'BoMon': 'Bộ môn',
+                'Khoa': 'Khoa',
+                'TacGiaNgoai': 'Tác giả ngoài',
+                'LinhVucNghienCuu': 'Lĩnh vực nghiên cứu',
+                'NhomNghienCuu': 'Nhóm nghiên cứu',
+            };
+            const labelIcons = {
+                'GiangVien': 'fa-user-tie',
+                'CongTrinhNghienCuu': 'fa-file-alt',
+                'DeTaiNghienCuu': 'fa-flask',
+                'BoMon': 'fa-building',
+                'Khoa': 'fa-university',
+                'TacGiaNgoai': 'fa-user',
+                'LinhVucNghienCuu': 'fa-tags',
+                'NhomNghienCuu': 'fa-users',
+            };
+            const labelColors = {
+                'GiangVien': '#4F8EF7',
+                'CongTrinhNghienCuu': '#2ECC71',
+                'DeTaiNghienCuu': '#F39C12',
+                'BoMon': '#E74C3C',
+                'Khoa': '#9B59B6',
+                'LinhVucNghienCuu': '#1ABC9C',
+                'NhomNghienCuu': '#E67E22',
+                'TacGiaNgoai': '#95A5A6',
+            };
+
+            const typeName = labelNames[label] || label;
+            const icon = labelIcons[label] || 'fa-circle';
+            const color = labelColors[label] || '#95A5A6';
+
+            document.getElementById('detailTitle').textContent = name || typeName;
+            document.getElementById('detailSubtitle').textContent = typeName;
+            
+            const iconEl = document.getElementById('detailIcon');
+            iconEl.innerHTML = `<i class="fas ${icon}" style="color: ${color};"></i>`;
+            
+            const r = parseInt(color.slice(1,3), 16);
+            const g = parseInt(color.slice(3,5), 16);
+            const b = parseInt(color.slice(5,7), 16);
+            iconEl.style.background = `rgba(${r}, ${g}, ${b}, 0.1)`;
+
+            document.getElementById('detailFieldsGrid').innerHTML = `
+                <div><span style="color:var(--text-muted);font-size:12px;">Phân loại thực thể</span><br><b>${typeName}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Mã thực thể</span><br><b>${nodeId}</b></div>
+            `;
+
+            let bodyHtml = '<h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-link"></i> Thực thể liên quan</h3>';
+            const neighbors = (dataGraph.nodes || []).filter(n => n.id !== nodeId);
+            
+            if (neighbors.length === 0) {
+                bodyHtml += '<p style="color: var(--text-muted); padding: 10px;">Không có thực thể liên quan trực tiếp.</p>';
+            } else {
+                bodyHtml += `<div style="display: flex; flex-direction: column; gap: 8px;">`;
+                neighbors.forEach(n => {
+                    const nLabel = n.group || 'Unknown';
+                    const nTypeName = labelNames[nLabel] || nLabel;
+                    const nIcon = labelIcons[nLabel] || 'fa-circle';
+                    
+                    let clickFn = '';
+                    if (nLabel === 'GiangVien') clickFn = `showLecturerDetail('${n.id}')`;
+                    else if (nLabel === 'CongTrinhNghienCuu') clickFn = `showPublicationDetail('${n.id}')`;
+                    else if (nLabel === 'DeTaiNghienCuu') clickFn = `showProjectDetail('${n.id}')`;
+                    else clickFn = `showGenericEntityDetail('${n.id}', '${nLabel}', '${n.label.replace(/'/g, "\\'")}')`;
+
+                    bodyHtml += `
+                        <div style="padding: 10px; background: rgba(0,0,0,0.02); border-radius: 6px; border-left: 3px solid ${labelColors[nLabel] || '#ccc'}; cursor: pointer; display: flex; align-items: center; gap: 10px;"
+                             onclick="${clickFn}">
+                            <i class="fas ${nIcon}" style="color: ${labelColors[nLabel] || '#ccc'}; width: 16px; text-align: center;"></i>
+                            <div>
+                                <strong>${n.label}</strong>
+                                <span style="color: var(--text-muted); font-size: 12px;"> — ${nTypeName}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                bodyHtml += `</div>`;
+            }
+            
+            document.getElementById('detailBodyContent').innerHTML = bodyHtml;
+            document.getElementById('globalDetailOverlay').classList.add('active');
+
+            setTimeout(() => {
+                renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
+                    window.detailGraph = network;
+                });
+                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
+            }, 50);
+        }
+    } catch (err) {
+        console.error('Generic detail error:', err);
+    }
+}
+
 // ============================================================
 // PUBLICATIONS PAGE
 // ============================================================
@@ -1440,8 +1579,97 @@ async function loadStatistics() {
         // ── 4. Render Charts ──────────────────────────────────────────────────
         renderCharts(data);
 
+        // ── 5. Render New Trends & Keywords ───────────────────────────────────
+        loadResearchTrends();
+
     } catch (err) {
         console.error('Statistics error:', err);
+    }
+}
+
+
+async function loadResearchTrends() {
+    const trendsContainer = document.getElementById('trendsListContainer');
+    const keywordsContainer = document.getElementById('keywordsCloudContainer');
+    if (!trendsContainer || !keywordsContainer) return;
+    
+    try {
+        const res = await fetch(`${API_BASE}/stats/trends`);
+        const data = await res.json();
+        
+        if (data.status !== 'ok') {
+            trendsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Không thể tải xu hướng.</div>';
+            keywordsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Không thể tải từ khóa.</div>';
+            return;
+        }
+        
+        // 1. Render Trends list
+        const trends = data.trends || [];
+        if (trends.length === 0) {
+            trendsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding: 20px;">Chưa có dữ liệu xu hướng.</div>';
+        } else {
+            trendsContainer.innerHTML = trends.map((item, idx) => {
+                const badgeClass = item.growth_rate > 50 ? 'badge-red' : (item.growth_rate > 20 ? 'badge-orange' : 'badge-blue');
+                const lecturersHtml = item.giang_vien_chot && item.giang_vien_chot.length > 0
+                    ? `<span style="font-size: 11px; color: var(--text-muted); margin-left: 10px;"><i class="fas fa-user-tie"></i> Giảng viên tiêu biểu: ${item.giang_vien_chot.join(', ')}</span>`
+                    : '';
+                return `
+                    <div onclick="window.location.href='explore.html?q=' + encodeURIComponent('${item.ten_linh_vuc}')"
+                         style="padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 15px; cursor: pointer; transition: all 0.2s;"
+                         onmouseover="this.style.background='rgba(59, 130, 246, 0.05)'; this.style.borderColor='var(--accent-blue)';"
+                         onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='var(--border-color)';">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 600; font-size: 13.5px; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                <span style="color: var(--accent-blue); font-weight: 700; margin-right: 5px;">#${idx+1}</span> ${item.ten_linh_vuc}
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                                <span style="font-size: 11.5px; color: var(--text-secondary);"><i class="fas fa-file-alt"></i> ${item.tong_so_bai} công trình</span>
+                                <span style="font-size: 11.5px; color: var(--text-secondary);"><i class="fas fa-history"></i> ${item.so_bai_gan_day} bài mới (2023+)</span>
+                                ${lecturersHtml}
+                            </div>
+                        </div>
+                        <div style="text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <span class="badge ${badgeClass}" style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">+${item.growth_rate}% tăng trưởng</span>
+                            <span style="font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">Điểm xu hướng: <b>${item.trend_score}</b></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 2. Render Keywords Cloud
+        const keywords = data.keywords || [];
+        if (keywords.length === 0) {
+            keywordsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding: 20px; width: 100%;">Chưa có dữ liệu từ khóa.</div>';
+        } else {
+            keywordsContainer.innerHTML = keywords.map(kw => {
+                const sizes = ['11px', '12px', '13px', '14px'];
+                const randomSize = sizes[Math.min(Math.floor(kw.score / 2), sizes.length - 1)];
+                const opacity = Math.min(0.5 + kw.score / 15, 1.0);
+                return `
+                    <span class="badge" 
+                        onclick="window.location.href='explore.html?q=' + encodeURIComponent('${kw.keyword}')"
+                        style="
+                        font-size: ${randomSize}; 
+                        font-weight: 600; 
+                        padding: 6px 12px; 
+                        border-radius: 20px; 
+                        background: rgba(139, 92, 246, 0.08); 
+                        color: rgba(139, 92, 246, ${opacity}); 
+                        border: 1px solid rgba(139, 92, 246, 0.15);
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='rgba(139,92,246,0.15)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.08)'; this.style.transform='scale(1)'">
+                        <i class="fas fa-hashtag" style="font-size: 10px; margin-right: 3px; opacity: 0.7;"></i>${kw.keyword}
+                    </span>
+                `;
+            }).join('');
+        }
+        
+    } catch (err) {
+        console.error('Trends error:', err);
+        trendsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Lỗi kết nối.</div>';
+        keywordsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Lỗi kết nối.</div>';
     }
 }
 

@@ -434,6 +434,43 @@
                 </div>
             </div>
 
+            <!-- ─── XÁC ĐỊNH HƯỚNG NGHIÊN CỨU MỚI (NEW TRENDS) ─── -->
+            <div class="top-lecturers-section" style="margin-bottom: 28px;">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-magic" style="color: #8b5cf6;"></i>
+                        Hướng nghiên cứu mới & Xu hướng công nghệ nổi bật
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Tự động phân tích từ cơ sở dữ liệu tri thức Neo4j</div>
+                </div>
+
+                <div class="trends-grid-layout" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                    <!-- Bảng các hướng nghiên cứu xu hướng -->
+                    <div style="background: var(--bg-body); border-radius: 12px; border: 1px solid var(--border-color); padding: 18px;">
+                        <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);"><i class="fas fa-chart-line" style="color: var(--accent-blue); margin-right: 6px;"></i> Lực đẩy tăng trưởng lĩnh vực nghiên cứu (Top Lĩnh Vực)</h4>
+                        <div id="trendsListContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Đang phân tích...</div>
+                        </div>
+                    </div>
+
+                    <!-- Đám mây từ khóa mới nổi -->
+                    <div style="background: var(--bg-body); border-radius: 12px; border: 1px solid var(--border-color); padding: 18px; display: flex; flex-direction: column;">
+                        <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);"><i class="fas fa-tags" style="color: #8b5cf6; margin-right: 6px;"></i> Từ khóa công nghệ nổi bật</h4>
+                        <div id="keywordsCloudContainer" style="display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; flex: 1;">
+                            <div style="text-align:center; padding:20px; color:var(--text-muted); width: 100%;"><i class="fas fa-spinner fa-spin"></i> Đang trích xuất...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                @media (max-width: 800px) {
+                    .trends-grid-layout {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            </style>
+
             <!-- ─── BIỂU ĐỒ XU HƯỚNG & CƠ CẤU ─── -->
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 28px;" class="charts-grid-layout">
                 <!-- Biểu đồ xu hướng -->

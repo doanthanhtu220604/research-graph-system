@@ -675,3 +675,240 @@ def get_overview_stats():
             "error": str(e),
             "trace": traceback.format_exc()
         }), 500
+
+
+@api_bp.route("/stats/trends")
+def get_stats_trends():
+    """Phân tích và xác định các hướng nghiên cứu mới nổi và từ khóa công nghệ mới."""
+    try:
+        conn = get_neo4j_connection()
+        
+        # 1. Phân tích xu hướng theo lĩnh vực nghiên cứu (LinhVucNghienCuu)
+        # Lấy tất cả lĩnh vực
+        lv_nodes = conn.query("""
+            MATCH (lv:LinhVucNghienCuu)
+            WHERE coalesce(lv.is_deleted, false) = false
+            RETURN lv.id AS id, lv.ten_linh_vuc AS ten_linh_vuc
+        """)
+        
+        # Lấy tất cả giảng viên và quan hệ nghiên cứu
+        gv_lv_relations = conn.query("""
+            MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+            WHERE coalesce(gv.is_deleted, false) = false AND coalesce(lv.is_deleted, false) = false
+            RETURN gv.ho_va_ten AS gv_ten, lv.ten_linh_vuc AS lv_ten
+        """)
+        
+        # Lấy tất cả bài báo cùng tác giả
+        ct_nodes = conn.query("""
+            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+            WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+            RETURN ct.id AS id, ct.ten_cong_trinh AS title, ct.tom_tat AS summary, ct.nam_xuat_ban AS nam, gv.ho_va_ten AS gv_ten
+        """)
+
+        # Xây dựng danh sách lĩnh vực của từng giảng viên
+        gv_fields = {}
+        for r in gv_lv_relations:
+            gv = r["gv_ten"]
+            lv = r["lv_ten"]
+            if gv not in gv_fields:
+                gv_fields[gv] = []
+            gv_fields[gv].append(lv)
+
+        # Tạo cấu trúc lưu trữ công trình theo lĩnh vực
+        field_papers = {lv["ten_linh_vuc"]: {"total": set(), "recent": set(), "lecturers": set(), "id": lv["id"]} for lv in lv_nodes}
+
+        def to_int(v):
+            try:
+                return int(v)
+            except:
+                return 0
+
+        # Hàm kiểm tra trùng khớp từ khóa
+        import re
+        def check_match(title, summary, field_name):
+            text = f"{title or ''} {summary or ''}"
+            text_norm = remove_accents(text.lower())
+            field_norm = remove_accents(field_name.lower())
+            
+            if field_norm in text_norm:
+                return True
+                
+            mappings = {
+                "machine learning": ["hoc may", "machine learning", "ml", "classification", "deep learning", "neural network", "svm", "knn", "random forest"],
+                "data science": ["khoa hoc du lieu", "data science", "analytics", "prediction", "du bao", "statistical"],
+                "business intelligence": ["tri tue kinh doanh", "business intelligence", "dashboard", "kho du lieu", "data warehouse", "bi "],
+                "data mining": ["khai pha du lieu", "data mining", "clustering", "association rule", "apriori", "phan cum"],
+                "big data": ["du lieu lon", "big data", "hadoop", "spark", "mapreduce", "nosql", "cloud computing"],
+                "system analysis and design": ["thiet ke he thong", "system analysis", "uml", "use case", "diagram", "analysing", "software design"]
+            }
+            
+            for key, terms in mappings.items():
+                if key in field_norm:
+                    for term in terms:
+                        if term in text_norm:
+                            return True
+            
+            ignore_words = {"and", "or", "design", "analysis", "system", "phan", "tich", "thiet", "ke", "he", "thong", "cua", "trong", "cho"}
+            field_words = [w for w in re.findall(r'\b\w+\b', field_norm) if w not in ignore_words and len(w) > 2]
+            for w in field_words:
+                if w in text_norm:
+                    return True
+                    
+            return False
+
+        # Phân phối bài báo vào lĩnh vực tương ứng của giảng viên dựa trên từ khóa tiêu đề/tóm tắt
+        for ct in ct_nodes:
+            ct_id = ct["id"]
+            title = ct["title"]
+            summary = ct["summary"]
+            nam = ct["nam"]
+            gv = ct["gv_ten"]
+            
+            fields_of_gv = gv_fields.get(gv, [])
+            if not fields_of_gv:
+                continue
+                
+            matched_any = False
+            for field in fields_of_gv:
+                if field in field_papers:
+                    if check_match(title, summary, field):
+                        field_papers[field]["total"].add(ct_id)
+                        if nam and to_int(nam) >= 2023:
+                            field_papers[field]["recent"].add(ct_id)
+                        field_papers[field]["lecturers"].add(gv)
+                        matched_any = True
+            
+            # Fallback: Nếu không khớp từ khóa đặc trưng nào, gán tạm vào lĩnh vực đầu tiên của giảng viên
+            if not matched_any and fields_of_gv:
+                first_field = fields_of_gv[0]
+                if first_field in field_papers:
+                    field_papers[first_field]["total"].add(ct_id)
+                    if nam and to_int(nam) >= 2023:
+                        field_papers[first_field]["recent"].add(ct_id)
+                    field_papers[first_field]["lecturers"].add(gv)
+
+        trends = []
+        for field, stats in field_papers.items():
+            tong = len(stats["total"])
+            ganday = len(stats["recent"])
+            cugiang = tong - ganday
+            
+            # Tính toán tỷ lệ tăng trưởng và điểm xu hướng
+            growth_rate = round((ganday / (cugiang + 1)) * 100, 1)
+            trend_score = round((ganday * 2.0) + (growth_rate * 0.05), 1)
+            
+            if tong > 0:
+                trends.append({
+                    "id": stats["id"],
+                    "ten_linh_vuc": field,
+                    "tong_so_bai": tong,
+                    "so_bai_gan_day": ganday,
+                    "growth_rate": growth_rate,
+                    "trend_score": trend_score,
+                    "giang_vien_chot": list(stats["lecturers"])[:3]
+                })
+            
+        # Sắp xếp theo điểm xu hướng giảm dần
+        trends = sorted(trends, key=lambda x: x["trend_score"], reverse=True)
+        
+        # 2. Phân tích trích xuất từ khóa mới nổi từ tiêu đề và tóm tắt bài báo
+        pubs = conn.query("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE coalesce(ct.is_deleted, false) = false AND ct.nam_xuat_ban IS NOT NULL
+            RETURN ct.ten_cong_trinh AS title, ct.tom_tat AS summary, toInteger(ct.nam_xuat_ban) AS nam
+        """)
+        
+        # Trích xuất từ khóa bằng NLP cơ bản
+        import re
+        stopwords = {
+            # Tiếng Việt có dấu
+            "và", "của", "là", "trong", "cho", "với", "các", "những", "được", "về", "một", "đã", "có", "tại", "để", "này", "từ", 
+            "sự", "trên", "nhằm", "vào", "đến", "theo", "qua", "như", "bằng", "đối", "tượng", "kết", "quả", "ứng", "dụng", "nghiên", 
+            "cứu", "phát", "triển", "đề", "tài", "hệ", "thống", "xây", "dựng", "phân", "tích", "đánh", "giá", "giải", "pháp", "học", 
+            "tập", "quản", "lý", "dữ", "liệu", "thông", "tin", "khoa", "học", "công", "nghệ", "một", "số", "chủ", "đề", "dựa", "hiệu",
+            "quả", "nâng", "cao", "tối", "ưu", "thực", "trạng", "nhu", "cầu", "thế", "hệ", "mới", "hướng", "dẫn", "khảo", "sát",
+            "thiết", "kế", "chương", "trình", "mô", "hình", "phương", "pháp", "kiểu", "loại", "mục", "tiêu", "nhiệm", "vụ", "nội", "dung",
+            "bài", "báo", "cáo", "xuất", "bản", "tập", "thể", "cá", "nhân", "trường", "đại", "học",
+            # Tiếng Việt không dấu
+            "va", "cua", "la", "trong", "cho", "voi", "cac", "nhung", "duoc", "ve", "mot", "da", "co", "tai", "de", "nay", "tu", 
+            "su", "tren", "nham", "vao", "den", "theo", "qua", "nhu", "bang", "doi", "tuong", "ket", "qua", "ung", "dung", "nghien", 
+            "cuu", "phat", "trien", "de", "tai", "he", "thong", "xay", "dung", "phan", "tich", "danh", "gia", "giai", "phap", "hoc", 
+            "tap", "quan", "ly", "du", "lieu", "thong", "tin", "khoa", "hoc", "cong", "nghe", "mot", "so", "chu", "de", "dua", "hieu",
+            "qua", "nang", "cao", "toi", "uu", "thuc", "trang", "nhu", "cau", "the", "he", "moi", "huong", "dan", "khao", "sat",
+            "thiet", "ke", "chuong", "trinh", "mo", "hinh", "phuong", "phap", "kieu", "loai", "muc", "tieu", "niem", "vu", "noi", "dung",
+            "bai", "bao", "cao", "xuat", "ban", "tap", "the", "ca", "nhan", "truong", "dai", "hoc",
+            # Tiếng Anh
+            "and", "the", "a", "of", "in", "to", "for", "with", "on", "at", "by", "an", "is", "are", "was", "were", "be", "been",
+            "has", "have", "had", "it", "its", "they", "their", "this", "that", "these", "those", "from", "using", "based", 
+            "analysis", "design", "development", "implementation", "study", "research", "system", "model", "method", "approach",
+            "evaluation", "application", "framework", "algorithm", "paper", "data", "results", "proposed", "new", "using", "use"
+        }
+        
+        def is_stopword(w):
+            w_lower = w.lower()
+            w_no_accents = remove_accents(w_lower)
+            return (
+                w_lower in stopwords or 
+                w_no_accents in stopwords or 
+                len(w_no_accents) <= 2 or 
+                w_no_accents.isdigit()
+            )
+        
+        recent_year = 2022
+        word_counts = {}
+        for p in pubs:
+            if not p["nam"] or p["nam"] < recent_year:
+                continue
+            text = f"{p.get('title', '')} {p.get('summary', '') or ''}"
+            words = re.findall(r'\b\w+\b', text.lower())
+            
+            # Extract unigrams, bigrams, and trigrams
+            for i in range(len(words)):
+                w1 = words[i]
+                if not is_stopword(w1):
+                    word_counts[w1] = word_counts.get(w1, 0) + 1.0
+                
+                if i < len(words) - 1:
+                    w2 = words[i+1]
+                    if not is_stopword(w1) and not is_stopword(w2):
+                        bigram = f"{w1} {w2}"
+                        word_counts[bigram] = word_counts.get(bigram, 0) + 1.8
+                        
+                if i < len(words) - 2:
+                    w2 = words[i+1]
+                    w3 = words[i+2]
+                    if not is_stopword(w1) and not is_stopword(w2) and not is_stopword(w3):
+                        trigram = f"{w1} {w2} {w3}"
+                        word_counts[trigram] = word_counts.get(trigram, 0) + 2.5
+                        
+        sorted_kws = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
+        keywords = []
+        seen = set()
+        for kw, score in sorted_kws:
+            display_kw = kw.title()
+            if any(is_stopword(w) for w in kw.split()):
+                continue
+                
+            # Lọc các từ đơn tiếng Việt (thường là các âm tiết đơn lẻ như "Toán", "Mạng"...)
+            if " " not in kw:
+                has_non_ascii = any(ord(c) > 127 for c in kw)
+                if has_non_ascii or len(kw) <= 3:
+                    continue
+                    
+            if display_kw not in seen:
+                seen.add(display_kw)
+                keywords.append({
+                    "keyword": display_kw,
+                    "score": round(score, 1)
+                })
+                if len(keywords) >= 15:
+                    break
+                    
+        return jsonify({
+            "status": "ok",
+            "trends": trends[:8],
+            "keywords": keywords
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
