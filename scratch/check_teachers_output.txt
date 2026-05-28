@@ -1,0 +1,77 @@
+--- PROPERTIES FOR PHAM THI THU THUY/THUY ---
+Nguyễn Thủy Đoan Trang
+  chuc_danh: 'Giảng viên'
+  password: '123456'
+  hoc_vi: 'Thạc sĩ'
+  ma_gv: '2005002'
+  trang_thai_cong_tac: 'Đang công tác'
+  id: 'gv_15'
+  anh_dai_dien: 'https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/325'
+  ho_va_ten: 'Nguyễn Thủy Đoan Trang'
+  email: 'nguyenthuydoantrang@ntu.edu.vn'
+Phạm Thị Thu Thúy
+  chuc_danh: 'Giảng viên chính'
+  password: '123456'
+  hoc_vi: 'Tiến sĩ'
+  chuyen_nganh: 'Kỹ thuật máy tính'
+  dien_thoai: '0901905679'
+  ma_gv: '2001025'
+  trang_thai_cong_tac: 'Đang công tác'
+  chuc_vu: 'Trưởng Khoa CNTT'
+  id: 'gv_16'
+  anh_dai_dien: 'https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/305'
+  ho_va_ten: 'Phạm Thị Thu Thúy'
+  email: 'thuthuy@ntu.edu.vn'
+
+--- RELATIONSHIPS FOR MATCHED TEACHERS ---
+  Nguyễn Thủy Đoan Trang -[CHU_NHIEM]-> (DeTaiNghienCuu: Xây dựng khóa học trực tuyến Hướng dẫn giảng viên triển khai giảng dạy bằng công cụ Elearning trong đào tạo)
+  Nguyễn Thủy Đoan Trang -[CHU_NHIEM]-> (DeTaiNghienCuu: Xây dựng khóa học trực tuyến Hướng dẫn giảng viên triển khai giảng dạy bằng công cụ E-Learning trong mô hình đào tạo kết hợp (Blended learning) tại trường Đại học Nha Trang)
+  Nguyễn Thủy Đoan Trang -[THUOC_BO_MON]-> (BoMon: Bộ môn Hệ thống thông tin)
+  Nguyễn Thủy Đoan Trang -[THAM_GIA]-> (DeTaiNghienCuu: Kế hoạch xúc tiến kinh doanh của Trung tâm đào tạo an ninh mạng thành lập tại Việt Nam)
+  Nguyễn Thủy Đoan Trang -[NGHIEN_CUU]-> (LinhVucNghienCuu: Phân cụm dữ liệu không gian địa lý)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: A COMMUNITY-AWARE GRAPH NEURAL NETWORK APPLIED TO GEOGRAPHICAL LOCATION-BASED REPRESENTATION LEARNING AND CLUSTERING WITHIN GIS)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: GEOSPATIAL DATA CLUSTERING IN NETWORK SPACE: A SURVEY)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: NS-IDBSCAN: AN EFFICIENT INCREMENTAL CLUSTERING METHOD FOR GEOSPATIAL DATA IN NETWORK SPACE)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: EFFICIENT STRATEGIES FOR SPATIAL DATA CLUSTERING USING TOPOLOGICAL RELATIONS)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: AN EFFICIENT TOPOLOGICAL-BASED CLUSTERING METHOD ON SPATIAL DATA IN NETWORK SPACE)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: GIẢI PHÁP CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG CHO MÔ HÌNH ĐÀO TẠO KẾT HỢP TẠI TRƯỜNG ĐẠI HỌC NHA TRANG)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: A METHOD FOR EFFICIENT CLUSTERING OF SPATIAL DATA IN NETWORK SPACE)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: PHƯƠNG PHÁP LUẬN SÁNG TẠO - MỘT NĂNG LỰC CẦN TRANG BỊ CHO SINH VIÊN TRONG KỶ NGUYÊN 4.0)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: GIẢI PHÁP THÚC ĐẨY TINH THẦN TỰ HỌC CỦA SINH VIÊN TRONG THỜI ĐẠI CÁCH MẠNG CÔNG NGHIỆP 4.0)
+  Nguyễn Thủy Đoan Trang -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: MỘT VÀI ĐỀ XUẤT NHẰM NÂNG CAO CHẤT LƯỢNG ĐÀO TẠO NGUỒN NHÂN LỰC)
+  Nguyễn Thủy Đoan Trang -[CONG_SU]-> (CongTrinhNghienCuu: CAUSAL REASONING OVER ONTOLOGY-ENRICHED GRAPHS FOR INTERPRETABLE MEDICAL AI)
+  Phạm Thị Thu Thúy -[CHU_NHIEM]-> (DeTaiNghienCuu: Xây dựng phần mềm quản lý phòng máy thực hành tại Trường đại học Nha Trang.)
+  Phạm Thị Thu Thúy -[CHU_NHIEM]-> (DeTaiNghienCuu: Ứng dụng công nghệ GIS và công nghệ di động trên thiết bị Android hỗ trợ cho tàu cá hoạt động trên biển)
+  Phạm Thị Thu Thúy -[CHU_NHIEM]-> (DeTaiNghienCuu: Ứng dụng công nghệ thông tin để quản lý cơ sở dữ liệu nghệ thuật bài chòi ở Khánh Hòa)
+  Phạm Thị Thu Thúy -[CHU_NHIEM]-> (DeTaiNghienCuu: Kế hoạch xúc tiến kinh doanh của Trung tâm đào tạo an ninh mạng thành lập tại Việt Nam)
+  Phạm Thị Thu Thúy -[CHU_NHIEM]-> (DeTaiNghienCuu: Xây dựng phần mềm quản lý phòng máy thực hành tại Trường đại học Nha Trang)
+  Phạm Thị Thu Thúy -[THUOC_BO_MON]-> (BoMon: Bộ môn Hệ thống thông tin)
+  Phạm Thị Thu Thúy -[THAM_GIA]-> (DeTaiNghienCuu: Xây dựng phần mềm hỗ trợ soạn thảo văn bản hành chính tại Trường Đại học Nha Trang)
+  Phạm Thị Thu Thúy -[NGHIEN_CUU]-> (LinhVucNghienCuu: Database)
+  Phạm Thị Thu Thúy -[NGHIEN_CUU]-> (LinhVucNghienCuu: XML and Semantic Web)
+  Phạm Thị Thu Thúy -[NGHIEN_CUU]-> (LinhVucNghienCuu: Text mining and Computational Statistics)
+  Phạm Thị Thu Thúy -[NGHIEN_CUU]-> (LinhVucNghienCuu: GIS)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: TRANSFORMING VALID XML INTO RDF VIA RDF SCHEMA)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: VIEWER PERCEPTION OF SUPERELLIPSOID-BASED ACCELEROMETER VISUALIZATION TECHNIQUES)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: EXPLOITING XML SCHEMA FOR INTERPRETING XML DOCUMENTS AS RDF)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: DTD2OWL: AUTOMATIC TRANSFORMING XML DOCUMENTS INTO OWL ONTOLOGY)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: EXTRACTING OWL ONTOLOGY FROM XML INSTANCES VIA XML SCHEMA)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: XSD2RDFS AND XML2RDF TRANSFORMATION: A SEMANTIC APPROACH)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: SEMANTIC AND STRUCTURAL SIMILARITIES BETWEEN XML SCHEMAS FOR INTEGRATION OF UBIQUITOUS HEALTHCARE DATA)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: SEMANTIC AND STRUCTURAL SIMILARITY ANALYSIS FOR INTEGRATION OF UBIQUITOUS XML HEALTHCARE DATA)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: S-TRANS: SEMANTIC TRANSFORMATION OF XML HEALTHCARE DATA INTO OWL ONTOLOGY)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: R2SIM: A NOVEL SEMANTIC SIMILARITY MEASURE FOR MATCHING BETWEEN RDF SCHEMAS)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: A SEMANTIC APPROACH FOR TRANSFORMING XML DATA INTO RDF ONTOLOGY)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: SEMANTIC AND STRUCTURAL SIMILARITY BETWEEN XML SCHEMAS FOR INTEGRATION OF UBIQUITOUS HEALTHCARE DATA)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: COMPUTING THE SIMILARITY BETWEEN DUPLICATE ELEMENTS IN XML SCHEMA)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: ỨNG DỤNG PHẦN MỀM PREZI TRONG XÂY DỰNG SLIDES BÀI GIẢNG/ BÁO CÁO)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: ONTOLOGY-ENHANCED MACHINE LEARNING MODELS FOR BREAST CANCER DIAGNOSIS)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: ONTOLOGY-BASED PARALLEL SPLITTING FOR KEY PLAYER IDENTIFICATION)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: APPLY AND IMPROVE THE ASSOCIATION RULES IN PREDICTING NATIONAL HIGH SCHOOL ADMISSION SCORES TO NHA TRANG UNIVERSITY)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: SOCIAL NETWORK RECOMMENDATIONS FOR FRIENDS WITH NEO4J GRAPH DATABASE)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: ENHANCING OWL ONTOLOGIES MATCHING BASED ON SEMANTIC SIMILARITY MEASUREMENT)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: THUẬT TOÁN XÁC ĐỊNH ĐỘ TIN CẬY GIỮA BẠN BÈ TRÊN MẠNG XÃ HỘI DỰA VÀO ONTOLOGY)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: AN IMPROVEMENT METHOD FOR SEMANTIC MAPPING DATABASE TO ONTOLOGY)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: XÂY DỰNG KHUNG CƠ SỞ DỮ LIỆU SỐ VỀ HẢI DƯƠNG, MÔI TRƯỜNG VÙNG BIỂN NINH THUẬN - BÌNH THUẬN)
+  Phạm Thị Thu Thúy -[TAC_GIA_CHINH]-> (CongTrinhNghienCuu: CAUSAL REASONING OVER ONTOLOGY-ENRICHED GRAPHS FOR INTERPRETABLE MEDICAL AI)
+  Phạm Thị Thu Thúy -[CONG_SU]-> (CongTrinhNghienCuu: ỨNG DỤNG CÔNG NGHỆ THÔNG TIN ĐỂ QUẢN LÝ CƠ SỞ DỮ LIỆU NGHỆ THUẬT BÀI CHÒI Ở KHÁNH HÒA)

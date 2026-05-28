@@ -320,28 +320,39 @@ def search():
         for r in results:
             item = dict(r["n"])
             
-            # Tính chuỗi tổng hợp của các thuộc tính để tìm kiếm
-            search_text = " ".join([
-                str(item.get("ho_va_ten") or ""),
-                str(item.get("ten_cong_trinh") or ""),
-                str(item.get("ten_de_tai") or ""),
-                str(item.get("cap_de_tai") or ""),
-                str(item.get("loai_an_pham") or ""),
-                str(item.get("ten_bo_mon") or ""),
-                str(item.get("ten_khoa") or ""),
-                str(item.get("email") or ""),
-                str(item.get("hoc_vi") or ""),
-                str(item.get("chuc_danh") or ""),
-                str(item.get("chuc_vu") or ""),
-                str(item.get("nam_xuat_ban") or ""),
-                str(item.get("nam_bat_dau") or ""),
-                str(item.get("trang_thai") or "")
-            ])
+            labels = r["labels"] or []
+            
+            # Xác định trường tên/tiêu đề chính dựa theo loại thực thể để tìm kiếm
+            if "GiangVien" in labels or "TacGiaNgoai" in labels:
+                search_text = item.get("ho_va_ten") or ""
+            elif "CongTrinhNghienCuu" in labels:
+                search_text = item.get("ten_cong_trinh") or ""
+            elif "DeTaiNghienCuu" in labels:
+                search_text = item.get("ten_de_tai") or ""
+            elif "BoMon" in labels:
+                search_text = item.get("ten_bo_mon") or ""
+            elif "Khoa" in labels:
+                search_text = item.get("ten_khoa") or ""
+            elif "LinhVucNghienCuu" in labels:
+                search_text = item.get("ten_linh_vuc") or ""
+            elif "NhomNghienCuu" in labels:
+                search_text = item.get("ten_nhom") or ""
+            else:
+                # Fallback: ghép tất cả các trường tên
+                search_text = " ".join([
+                    str(item.get("ho_va_ten") or ""),
+                    str(item.get("ten_cong_trinh") or ""),
+                    str(item.get("ten_de_tai") or ""),
+                    str(item.get("ten_bo_mon") or ""),
+                    str(item.get("ten_khoa") or ""),
+                    str(item.get("ten_linh_vuc") or ""),
+                    str(item.get("ten_nhom") or "")
+                ])
             
             normalized_search_text = remove_accents(search_text)
             
             if q_normalized in normalized_search_text:
-                item["_labels"] = r["labels"]
+                item["_labels"] = labels
                 data.append(item)
                 
                 # Giới hạn 30 kết quả
