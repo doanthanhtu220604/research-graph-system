@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -97,7 +97,7 @@
         /* ─── Charts grid ─── */
         .admin-charts-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 18px;
             margin-bottom: 24px;
         }
@@ -361,7 +361,7 @@
                 </div>
             </div>
 
-            <!-- ─── 2 Charts ─── -->
+            <!-- ─── 4 Charts ─── -->
             <div class="admin-charts-grid">
                 <div class="admin-chart-card" style="grid-column: 1 / -1;">
                     <div class="adm-chart-header">
@@ -393,9 +393,35 @@
                         <canvas id="admChartByLevel"></canvas>
                     </div>
                 </div>
+
+                <div class="admin-chart-card">
+                    <div class="adm-chart-header">
+                        <div class="adm-chart-title">
+                            <i class="fas fa-chart-bar" style="color:#10b981;"></i>
+                            Giảng viên theo Bộ môn
+                        </div>
+                        <span class="adm-chart-badge badge-green">Nhân sự</span>
+                    </div>
+                    <div style="flex:1; position:relative; min-height: 240px;">
+                        <canvas id="admChartByDept"></canvas>
+                    </div>
+                </div>
+
+                <div class="admin-chart-card">
+                    <div class="adm-chart-header">
+                        <div class="adm-chart-title">
+                            <i class="fas fa-graduation-cap" style="color:#8b5cf6;"></i>
+                            Cơ cấu Giảng viên theo Học vị
+                        </div>
+                        <span class="adm-chart-badge" style="background:rgba(139,92,246,0.1); color:#8b5cf6;">Học vị</span>
+                    </div>
+                    <div style="flex:1; position:relative; min-height: 240px;">
+                        <canvas id="admChartByDegree"></canvas>
+                    </div>
+                </div>
             </div>
 
-            <!-- ─── Bottom: Top Lecturers + Quick Links ─── -->
+            <!-- ─── Bottom: Top Lecturers + Chatbot logs + Quick Links ─── -->
             <div class="admin-bottom-grid">
                 <div class="admin-panel">
                     <div class="admin-panel-header">

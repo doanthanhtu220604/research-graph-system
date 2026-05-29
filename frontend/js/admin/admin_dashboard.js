@@ -5,6 +5,8 @@
 // ─── Admin chart instances ───
 let admChartCombined = null;
 let admChartByLevel  = null;
+let admChartByDept   = null;
+let admChartByDegree = null;
 
 let rawCtNam = [];
 let rawDtNam = [];
@@ -61,6 +63,74 @@ async function initDashboardOverview() {
                 }
             });
         }
+
+        // ── 3.1. Bar chart — lecturers by department ───────────
+        const gvDept = data.giang_vien_theo_bo_mon || [];
+        const ctxDept = document.getElementById('admChartByDept');
+        if (ctxDept) {
+            if (admChartByDept) admChartByDept.destroy();
+            const palette = ['#10b981', '#34d399', '#059669', '#6ee7b7', '#a7f3d0'];
+            admChartByDept = new Chart(ctxDept, {
+                type: 'bar',
+                data: {
+                    labels: gvDept.map(r => r.bo_mon || 'Khác'),
+                    datasets: [{
+                        label: 'Số lượng giảng viên',
+                        data: gvDept.map(r => r.so_luong),
+                        backgroundColor: palette.slice(0, gvDept.length),
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // horizontal bar chart
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8', padding: 10 }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 10 }, precision: 0 } },
+                        y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Inter', size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // ── 3.2. Doughnut chart — lecturers by degree ──────────
+        const gvDegree = data.giang_vien_theo_hoc_vi || [];
+        const ctxDegree = document.getElementById('admChartByDegree');
+        if (ctxDegree) {
+            if (admChartByDegree) admChartByDegree.destroy();
+            const palette = ['#8b5cf6', '#a78bfa', '#7c3aed', '#c084fc', '#ddd6fe'];
+            admChartByDegree = new Chart(ctxDegree, {
+                type: 'doughnut',
+                data: {
+                    labels: gvDegree.map(r => r.hoc_vi || 'Khác'),
+                    datasets: [{
+                        data: gvDegree.map(r => r.so_luong),
+                        backgroundColor: palette.slice(0, gvDegree.length),
+                        borderColor: 'var(--surface, #ffffff)',
+                        borderWidth: 3, hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#64748b', font: { family: 'Inter', size: 11 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b', titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8', padding: 10,
+                            callbacks: { label: ctx => ` ${ctx.parsed} giảng viên` }
+                        }
+                    },
+                    animation: { duration: 800, easing: 'easeOutQuart' }
+                }
+            });
+        }
+
 
         // ── 4. Top lecturers compact list ─────────────────────
         renderAdmTopLecturers(data.top_giang_vien || []);
