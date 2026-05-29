@@ -950,11 +950,16 @@ function renderLecturerPagination(totalPages, currentPage) {
 }
 
 function filterUserLecturers() {
-    const q = (document.getElementById('lecturerSearchInput')?.value || '').toLowerCase();
+    const q = (document.getElementById('lecturerSearchInput')?.value || '').toLowerCase().trim();
     const dept = document.getElementById('lecturerDeptFilter')?.value || '';
     const degree = document.getElementById('lecturerDegreeFilter')?.value || '';
     _filteredLecturers = _allLecturers.filter(gv => {
-        const matchQ = (gv.ho_va_ten || '').toLowerCase().includes(q);
+        const name = (gv.ho_va_ten || '').toLowerCase();
+        const deg = (gv.hoc_vi || '').toLowerCase();
+        const title = (gv.chuc_danh || '').toLowerCase();
+        const fields = (gv.linh_vuc || []).join(' ').toLowerCase();
+        
+        const matchQ = !q || name.includes(q) || deg.includes(q) || title.includes(q) || fields.includes(q);
         const matchDept = !dept || (gv.bo_mon === dept);
         const matchDeg = !degree || ((gv.hoc_vi || '').includes(degree));
         return matchQ && matchDept && matchDeg;
@@ -1475,7 +1480,11 @@ function filterUserPublications() {
     
     const filtered = _allPublications.filter(ct => {
         const title = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
-        const matchQ = title.includes(q);
+        const pubYear = (ct.nam_xuat_ban || '').toString().toLowerCase();
+        const authors = (ct.tac_gia || []).map(a => typeof a === 'object' ? a.ten : a).join(' ').normalize('NFC').toLowerCase();
+        const extAuthors = (ct.tac_gia_ngoai || []).map(a => typeof a === 'object' ? a.ten : a).join(' ').normalize('NFC').toLowerCase();
+        
+        const matchQ = !q || title.includes(q) || pubYear.includes(q) || authors.includes(q) || extAuthors.includes(q);
         const matchYear = !year || (String(ct.nam_xuat_ban) === year);
         return matchQ && matchYear;
     });
@@ -1545,7 +1554,12 @@ function filterUserProjects() {
     
     const filtered = _allProjects.filter(dt => {
         const title = (dt.ten_de_tai || '').normalize('NFC').toLowerCase();
-        const matchQ = title.includes(q);
+        const startYear = (dt.nam_bat_dau || '').toString().toLowerCase();
+        const endYear = (dt.nam_ket_thuc || '').toString().toLowerCase();
+        const levelText = (dt.cap_de_tai || '').normalize('NFC').toLowerCase();
+        const members = (dt.thanh_vien || []).map(m => typeof m === 'object' ? m.ten : m).join(' ').normalize('NFC').toLowerCase();
+        
+        const matchQ = !q || title.includes(q) || startYear.includes(q) || endYear.includes(q) || levelText.includes(q) || members.includes(q);
         const matchLevel = !level || (dt.cap_de_tai === level);
         return matchQ && matchLevel;
     });

@@ -213,7 +213,6 @@ def update_giang_vien(id):
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
 @admin_lecturers_bp.route("/giang-vien/<id>", methods=["DELETE"])
 def delete_giang_vien(id):
     conn = get_neo4j_connection()
@@ -232,3 +231,112 @@ def delete_giang_vien(id):
         return jsonify({"status": "ok", "message": "Đã chuyển vào thùng rác"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_lecturers_bp.route("/giang-vien/<id>/approve-profile", methods=["PUT"])
+def approve_profile_update(id):
+    conn = get_neo4j_connection()
+    try:
+        # Check if the lecturer exists and has pending changes
+        gv = conn.query_single("""
+            MATCH (g:GiangVien) WHERE g.id = $id
+            RETURN g.pending_ho_va_ten AS ho_va_ten,
+                   g.pending_email AS email,
+                   g.pending_anh_dai_dien AS anh_dai_dien,
+                   g.pending_dien_thoai AS dien_thoai,
+                   g.pending_hoc_vi AS hoc_vi,
+                   g.pending_chuc_danh AS chuc_danh,
+                   g.pending_chuc_vu AS chuc_vu,
+                   g.pending_chuyen_nganh AS chuyen_nganh,
+                   g.pending_bo_mon AS bo_mon,
+                   g.pending_linh_vuc AS linh_vuc,
+                   g.profile_edit_status AS profile_edit_status
+        """, {'id': id})
+
+        if not gv or gv.get('profile_edit_status') != 'Chờ duyệt':
+            return jsonify({'status': 'error', 'message': 'Không tìm thấy yêu cầu chỉnh sửa thông tin chờ duyệt.'}), 404
+
+        # Update the properties
+        params = dict(gv)
+        params['id'] = id
+        conn.write("""
+            MATCH (g:GiangVien) WHERE g.id = $id
+            SET g.ho_va_ten = coalesce($ho_va_ten, g.ho_va_ten),
+                g.email = coalesce($email, g.email),
+                g.anh_dai_dien = coalesce($anh_dai_dien, g.anh_dai_dien),
+                g.dien_thoai = $dien_thoai,
+                g.hoc_vi = $hoc_vi,
+                g.chuc_danh = $chuc_danh,
+                g.chuc_vu = $chuc_vu,
+                g.chuyen_nganh = $chuyen_nganh,
+                g.profile_edit_status = 'Phê duyệt',
+                g.pending_ho_va_ten = null,
+                g.pending_email = null,
+                g.pending_anh_dai_dien = null,
+                g.pending_dien_thoai = null,
+                g.pending_hoc_vi = null,
+                g.pending_chuc_danh = null,
+                g.pending_chuc_vu = null,
+                g.pending_chuyen_nganh = null,
+                g.pending_bo_mon = null,
+                g.pending_linh_vuc = null
+        """, params)
+
+        # Update Department
+        if 'bo_mon' in gv:
+            conn.write("""
+                MATCH (g:GiangVien)-[r:THUOC_BO_MON]->(:BoMon) WHERE g.id = $id DELETE r
+            """, {'id': id})
+            if gv['bo_mon']:
+                conn.write("""
+                    MATCH (g:GiangVien) WHERE g.id = $id
+                    MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                    ON CREATE SET bm.id = 'bm_' + toString(id(bm)), bm.created_at = timestamp()
+                    MERGE (g)-[:THUOC_BO_MON]->(bm)
+                """, {'id': id, 'bo_mon': gv['bo_mon']})
+
+        # Update Research Fields
+        if 'linh_vuc' in gv:
+            conn.write("""
+                MATCH (g:GiangVien)-[r:NGHIEN_CUU]->(:LinhVucNghienCuu) WHERE g.id = $id DELETE r
+            """, {'id': id})
+            for lv_name in (gv['linh_vuc'] or []):
+                if lv_name:
+                    conn.write("""
+                        MATCH (g:GiangVien) WHERE g.id = $id
+                        MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
+                        ON CREATE SET lv.id = 'lv_' + toString(id(lv))
+                        MERGE (g)-[:NGHIEN_CUU]->(lv)
+                    """, {'id': id, 'lv_name': lv_name})
+
+        return jsonify({'status': 'ok', 'message': 'Phê duyệt thông tin giảng viên thành công.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_lecturers_bp.route("/giang-vien/<id>/reject-profile", methods=["PUT"])
+def reject_profile_update(id):
+    conn = get_neo4j_connection()
+    try:
+        result = conn.write("""
+            MATCH (g:GiangVien) WHERE g.id = $id AND g.profile_edit_status = 'Chờ duyệt'
+            SET g.profile_edit_status = 'Từ chối',
+                g.pending_ho_va_ten = null,
+                g.pending_email = null,
+                g.pending_anh_dai_dien = null,
+                g.pending_dien_thoai = null,
+                g.pending_hoc_vi = null,
+                g.pending_chuc_danh = null,
+                g.pending_chuc_vu = null,
+                g.pending_chuyen_nganh = null,
+                g.pending_bo_mon = null,
+                g.pending_linh_vuc = null
+            RETURN g.id AS id
+        """, {'id': id})
+
+        if not result:
+            return jsonify({'status': 'error', 'message': 'Không tìm thấy yêu cầu chỉnh sửa thông tin chờ duyệt.'}), 404
+
+        return jsonify({'status': 'ok', 'message': 'Đã từ chối các thay đổi thông tin giảng viên.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500

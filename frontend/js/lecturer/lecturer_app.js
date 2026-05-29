@@ -2312,7 +2312,7 @@ window.initLecturerProfile = function() {
         modalContainer.innerHTML = `
             <!-- Profile Modal -->
             <div class="modal-overlay" id="profileModal" style="display:none; z-index: 1050; justify-content: center; align-items: center;">
-                <div class="modal" style="max-width: 440px; width: 90%;">
+                <div class="modal" style="max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
                     <div class="modal-header">
                         <h2><i class="fas fa-user-edit"></i> Chỉnh sửa thông tin</h2>
                         <button class="modal-close" onclick="closeProfileModal()">&times;</button>
@@ -2337,7 +2337,39 @@ window.initLecturerProfile = function() {
                                 <label for="profileEmail">Email</label>
                                 <input type="email" id="profileEmail" required placeholder="Địa chỉ email" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
                             </div>
-                            <div id="profileMsg" style="margin-top: 10px; display: none; font-size: 13px; font-weight: 500;"></div>
+                            <div class="form-group">
+                                <label for="profilePhone">Số điện thoại</label>
+                                <input type="text" id="profilePhone" placeholder="Số điện thoại" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                            </div>
+                            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div>
+                                    <label for="profileDegree">Học vị</label>
+                                    <input type="text" id="profileDegree" placeholder="Tiến sĩ / Thạc sĩ" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                                </div>
+                                <div>
+                                    <label for="profileTitle">Chức danh</label>
+                                    <input type="text" id="profileTitle" placeholder="Giáo sư / Phó Giáo sư" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                                </div>
+                            </div>
+                            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div>
+                                    <label for="profilePosition">Chức vụ</label>
+                                    <input type="text" id="profilePosition" placeholder="Trưởng bộ môn, v.v." style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                                </div>
+                                <div>
+                                    <label for="profileMajor">Chuyên ngành</label>
+                                    <input type="text" id="profileMajor" placeholder="Ví dụ: Khoa học máy tính" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="profileDept">Bộ môn</label>
+                                <input type="text" id="profileDept" placeholder="Ví dụ: Công nghệ phần mềm" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileFields">Hướng nghiên cứu (Phân tách bằng dấu phẩy)</label>
+                                <input type="text" id="profileFields" placeholder="Ví dụ: Trí tuệ nhân tạo, Học máy" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                            </div>
+                            <div id="profileMsg" style="margin-top: 10px; display: none; font-size: 13px; font-weight: 500; padding: 8px; border-radius: 4px; line-height: 1.4;"></div>
                             <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
                                 <button type="button" class="btn" onclick="closeProfileModal()">Hủy</button>
                                 <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
@@ -2417,6 +2449,50 @@ window.openProfileModal = function(e) {
                 uploadedAvatarUrl = data.data.avatar || '';
                 document.getElementById('profileModalAvatarPreview').src = uploadedAvatarUrl || '/uploads/avatars/default.png';
                 
+                // Populate new fields for lecturer
+                if (document.getElementById('profilePhone')) {
+                    document.getElementById('profilePhone').value = data.data.dien_thoai || '';
+                }
+                if (document.getElementById('profileDegree')) {
+                    document.getElementById('profileDegree').value = data.data.hoc_vi || '';
+                }
+                if (document.getElementById('profileTitle')) {
+                    document.getElementById('profileTitle').value = data.data.chuc_danh || '';
+                }
+                if (document.getElementById('profilePosition')) {
+                    document.getElementById('profilePosition').value = data.data.chuc_vu || '';
+                }
+                if (document.getElementById('profileMajor')) {
+                    document.getElementById('profileMajor').value = data.data.chuyen_nganh || '';
+                }
+                if (document.getElementById('profileDept')) {
+                    document.getElementById('profileDept').value = data.data.bo_mon || '';
+                }
+                if (document.getElementById('profileFields')) {
+                    const fields = data.data.linh_vuc || [];
+                    document.getElementById('profileFields').value = fields.join(', ');
+                }
+
+                // Show status banner if pending approval
+                const msg = document.getElementById('profileMsg');
+                if (msg) {
+                    if (data.data.profile_edit_status === 'Chờ duyệt') {
+                        msg.style.background = '#fef3c7';
+                        msg.style.color = '#d97706';
+                        msg.style.border = '1px solid #fcd34d';
+                        msg.textContent = 'Thông tin chỉnh sửa đang chờ phê duyệt. Bạn có thể gửi yêu cầu chỉnh sửa mới đè lên yêu cầu cũ.';
+                        msg.style.display = 'block';
+                    } else if (data.data.profile_edit_status === 'Từ chối') {
+                        msg.style.background = '#fee2e2';
+                        msg.style.color = '#dc2626';
+                        msg.style.border = '1px solid #fca5a5';
+                        msg.textContent = 'Yêu cầu thay đổi thông tin trước đó đã bị Admin từ chối. Bạn có thể gửi yêu cầu khác.';
+                        msg.style.display = 'block';
+                    } else {
+                        msg.style.display = 'none';
+                    }
+                }
+
                 const modal = document.getElementById('profileModal');
                 if (modal) modal.style.display = 'flex';
             } else {
@@ -2473,57 +2549,81 @@ window.handleProfileUpdate = function(e) {
     const msg = document.getElementById('profileMsg');
 
     if (!name || !email) {
-        msg.style.color = '#ef4444';
+        msg.style.background = '#fee2e2';
+        msg.style.color = '#dc2626';
+        msg.style.border = '1px solid #fca5a5';
         msg.textContent = 'Vui lòng nhập đầy đủ thông tin.';
         msg.style.display = 'block';
         return;
     }
 
+    const payload = {
+        id: userId,
+        role: role,
+        ho_va_ten: name,
+        email: email,
+        avatar: uploadedAvatarUrl
+    };
+
+    if (role === 'lecturer') {
+        payload.dien_thoai = document.getElementById('profilePhone')?.value.trim() || '';
+        payload.hoc_vi = document.getElementById('profileDegree')?.value.trim() || '';
+        payload.chuc_danh = document.getElementById('profileTitle')?.value.trim() || '';
+        payload.chuc_vu = document.getElementById('profilePosition')?.value.trim() || '';
+        payload.chuyen_nganh = document.getElementById('profileMajor')?.value.trim() || '';
+        payload.bo_mon = document.getElementById('profileDept')?.value.trim() || '';
+        payload.linh_vuc = document.getElementById('profileFields')?.value.trim() || '';
+    }
+
     fetch('/api/auth/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            id: userId,
-            role: role,
-            ho_va_ten: name,
-            email: email,
-            avatar: uploadedAvatarUrl
-        })
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
         if (data.status === 'ok') {
-            msg.style.color = '#10b981';
-            msg.textContent = 'Cập nhật thông tin thành công!';
+            msg.style.background = '#d1fae5';
+            msg.style.color = '#065f46';
+            msg.style.border = '1px solid #6ee7b7';
+            msg.textContent = data.message || 'Cập nhật thông tin thành công!';
             msg.style.display = 'block';
             
-            userInfo.name = data.data.name;
-            userInfo.email = data.data.email;
-            userInfo.avatar = data.data.avatar;
-            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            if (role !== 'lecturer') {
+                userInfo.name = data.data.name;
+                userInfo.email = data.data.email;
+                userInfo.avatar = data.data.avatar;
+                localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
-            const btn = document.querySelector('.profile-avatar-btn');
-            if (btn) {
-                btn.innerHTML = data.data.avatar 
-                    ? `<img src="${data.data.avatar}" alt="Avatar">` 
-                    : `<i class="fas fa-chalkboard-teacher" style="font-size: 16px; color: var(--text-secondary);"></i>`;
+                const btn = document.querySelector('.profile-avatar-btn');
+                if (btn) {
+                    btn.innerHTML = data.data.avatar 
+                        ? `<img src="${data.data.avatar}" alt="Avatar">` 
+                        : `<i class="fas fa-chalkboard-teacher" style="font-size: 16px; color: var(--text-secondary);"></i>`;
+                }
+                const nameEl = document.querySelector('.profile-menu-name');
+                if (nameEl) nameEl.textContent = data.data.name;
             }
-            const nameEl = document.querySelector('.profile-menu-name');
-            if (nameEl) nameEl.textContent = data.data.name;
 
             setTimeout(() => {
                 closeProfileModal();
-                window.location.reload();
-            }, 1000);
+                if (role !== 'lecturer') {
+                    window.location.reload();
+                }
+            }, 2000);
         } else {
-            msg.style.color = '#ef4444';
+            msg.style.background = '#fee2e2';
+            msg.style.color = '#dc2626';
+            msg.style.border = '1px solid #fca5a5';
             msg.textContent = data.message;
             msg.style.display = 'block';
         }
     })
     .catch(err => {
         console.error(err);
-        msg.style.color = '#ef4444';
+        msg.style.background = '#fee2e2';
+        msg.style.color = '#dc2626';
+        msg.style.border = '1px solid #fca5a5';
         msg.textContent = 'Không thể kết nối đến máy chủ.';
         msg.style.display = 'block';
     });

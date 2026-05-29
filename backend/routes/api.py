@@ -304,14 +304,18 @@ def search():
 
     try:
         conn = get_neo4j_connection()
-        # Lấy tất cả các node phù hợp (không filter text bằng Cypher)
+        # Lấy tất cả các node phù hợp kèm theo các mối quan hệ tác giả/thành viên
         query = f"""
             MATCH (n{label_filter})
             WHERE coalesce(n.is_deleted, false) = false
               AND NOT (n:TacGiaNgoai AND EXISTS {{
                 MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
             }})
-            RETURN n, labels(n) AS labels
+            OPTIONAL MATCH (tg)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(n)
+            OPTIONAL MATCH (tv)-[:CHU_NHIEM|THAM_GIA]->(n)
+            RETURN n, labels(n) AS labels,
+                   collect(DISTINCT tg.ho_va_ten) AS related_authors,
+                   collect(DISTINCT tv.ho_va_ten) AS related_members
         """
         
         results = conn.query(query)
@@ -319,16 +323,34 @@ def search():
         data = []
         for r in results:
             item = dict(r["n"])
-            
             labels = r["labels"] or []
             
-            # Xác định trường tên/tiêu đề chính dựa theo loại thực thể để tìm kiếm
+            # Xác định các trường để thực hiện tìm kiếm toàn diện
             if "GiangVien" in labels or "TacGiaNgoai" in labels:
-                search_text = item.get("ho_va_ten") or ""
+                search_text = " ".join([
+                    str(item.get("ho_va_ten") or ""),
+                    str(item.get("hoc_vi") or ""),
+                    str(item.get("chuc_danh") or ""),
+                    str(item.get("chuc_vu") or ""),
+                    str(item.get("chuyen_nganh") or "")
+                ])
             elif "CongTrinhNghienCuu" in labels:
-                search_text = item.get("ten_cong_trinh") or ""
+                authors_str = " ".join(r.get("related_authors") or [])
+                search_text = " ".join([
+                    str(item.get("ten_cong_trinh") or ""),
+                    str(item.get("nam_xuat_ban") or ""),
+                    str(item.get("noi_xuat_ban") or ""),
+                    authors_str
+                ])
             elif "DeTaiNghienCuu" in labels:
-                search_text = item.get("ten_de_tai") or ""
+                members_str = " ".join(r.get("related_members") or [])
+                search_text = " ".join([
+                    str(item.get("ten_de_tai") or ""),
+                    str(item.get("nam_bat_dau") or ""),
+                    str(item.get("nam_ket_thuc") or ""),
+                    str(item.get("cap_de_tai") or ""),
+                    members_str
+                ])
             elif "BoMon" in labels:
                 search_text = item.get("ten_bo_mon") or ""
             elif "Khoa" in labels:
@@ -360,6 +382,7 @@ def search():
                     break
 
         return jsonify({"status": "ok", "data": data, "query": q, "type": search_type})
+
 
     except Exception as e:
         print(f"[SEARCH ERROR] {e}")

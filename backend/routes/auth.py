@@ -253,19 +253,59 @@ def get_profile():
         if not result:
             result = conn.query_single("""
                 MATCH (g:GiangVien) WHERE g.id = $id
-                RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, g.anh_dai_dien AS anh_dai_dien, g.username AS username
+                OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon)
+                OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+                RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, 
+                       g.anh_dai_dien AS anh_dai_dien, g.username AS username,
+                       g.dien_thoai AS dien_thoai, g.hoc_vi AS hoc_vi,
+                       g.chuc_danh AS chuc_danh, g.chuc_vu AS chuc_vu,
+                       g.chuyen_nganh AS chuyen_nganh, bm.ten_bo_mon AS bo_mon,
+                       collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc,
+                       g.profile_edit_status AS profile_edit_status,
+                       g.pending_ho_va_ten AS pending_ho_va_ten,
+                       g.pending_email AS pending_email,
+                       g.pending_anh_dai_dien AS pending_anh_dai_dien,
+                       g.pending_dien_thoai AS pending_dien_thoai,
+                       g.pending_hoc_vi AS pending_hoc_vi,
+                       g.pending_chuc_danh AS pending_chuc_danh,
+                       g.pending_chuc_vu AS pending_chuc_vu,
+                       g.pending_chuyen_nganh AS pending_chuyen_nganh,
+                       g.pending_bo_mon AS pending_bo_mon,
+                       g.pending_linh_vuc AS pending_linh_vuc
             """, parameters={'id': user_id})
             
         if result:
+            data = {
+                'id': result['id'],
+                'ho_va_ten': result['ho_va_ten'],
+                'email': result['email'],
+                'avatar': result['anh_dai_dien'] or '',
+                'username': result['username'] or ''
+            }
+            if role == 'lecturer' or 'dien_thoai' in result:
+                data.update({
+                    'dien_thoai': result.get('dien_thoai') or '',
+                    'hoc_vi': result.get('hoc_vi') or '',
+                    'chuc_danh': result.get('chuc_danh') or '',
+                    'chuc_vu': result.get('chuc_vu') or '',
+                    'chuyen_nganh': result.get('chuyen_nganh') or '',
+                    'bo_mon': result.get('bo_mon') or '',
+                    'linh_vuc': result.get('linh_vuc') or [],
+                    'profile_edit_status': result.get('profile_edit_status') or '',
+                    'pending_ho_va_ten': result.get('pending_ho_va_ten') or '',
+                    'pending_email': result.get('pending_email') or '',
+                    'pending_anh_dai_dien': result.get('pending_anh_dai_dien') or '',
+                    'pending_dien_thoai': result.get('pending_dien_thoai') or '',
+                    'pending_hoc_vi': result.get('pending_hoc_vi') or '',
+                    'pending_chuc_danh': result.get('pending_chuc_danh') or '',
+                    'pending_chuc_vu': result.get('pending_chuc_vu') or '',
+                    'pending_chuyen_nganh': result.get('pending_chuyen_nganh') or '',
+                    'pending_bo_mon': result.get('pending_bo_mon') or '',
+                    'pending_linh_vuc': result.get('pending_linh_vuc') or []
+                })
             return jsonify({
                 'status': 'ok',
-                'data': {
-                    'id': result['id'],
-                    'ho_va_ten': result['ho_va_ten'],
-                    'email': result['email'],
-                    'avatar': result['anh_dai_dien'] or '',
-                    'username': result['username'] or ''
-                }
+                'data': data
             })
             
         return jsonify({'status': 'error', 'message': 'Không tìm thấy tài khoản'}), 404
@@ -302,26 +342,71 @@ def update_profile():
                 RETURN a.id AS id, a.ho_va_ten AS ho_va_ten, a.email AS email, a.anh_dai_dien AS avatar
             """, {'id': user_id, 'ho_va_ten': ho_va_ten, 'email': email, 'avatar': avatar})
             
-        if not result:
+            if result:
+                return jsonify({
+                    'status': 'ok',
+                    'message': 'Cập nhật thông tin thành công',
+                    'data': {
+                        'id': result[0]['id'],
+                        'name': result[0]['ho_va_ten'],
+                        'email': result[0]['email'],
+                        'avatar': result[0]['avatar'] or ''
+                    }
+                })
+            
+        elif role == 'lecturer':
+            dien_thoai = data.get('dien_thoai', '').strip()
+            hoc_vi = data.get('hoc_vi', '').strip()
+            chuc_danh = data.get('chuc_danh', '').strip()
+            chuc_vu = data.get('chuc_vu', '').strip()
+            chuyen_nganh = data.get('chuyen_nganh', '').strip()
+            bo_mon = data.get('bo_mon', '').strip()
+            
+            linh_vuc_raw = data.get('linh_vuc', [])
+            if isinstance(linh_vuc_raw, list):
+                linh_vuc = [lv.strip() for lv in linh_vuc_raw if lv.strip()]
+            else:
+                linh_vuc = [lv.strip() for lv in str(linh_vuc_raw).split(',') if lv.strip()]
+                
             result = conn.write("""
                 MATCH (g:GiangVien) WHERE g.id = $id
-                SET g.ho_va_ten = $ho_va_ten,
-                    g.email = $email,
-                    g.anh_dai_dien = $avatar
+                SET g.pending_ho_va_ten = $ho_va_ten,
+                    g.pending_email = $email,
+                    g.pending_anh_dai_dien = $avatar,
+                    g.pending_dien_thoai = $dien_thoai,
+                    g.pending_hoc_vi = $hoc_vi,
+                    g.pending_chuc_danh = $chuc_danh,
+                    g.pending_chuc_vu = $chuc_vu,
+                    g.pending_chuyen_nganh = $chuyen_nganh,
+                    g.pending_bo_mon = $bo_mon,
+                    g.pending_linh_vuc = $linh_vuc,
+                    g.profile_edit_status = 'Chờ duyệt'
                 RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, g.anh_dai_dien AS avatar
-            """, {'id': user_id, 'ho_va_ten': ho_va_ten, 'email': email, 'avatar': avatar})
-            
-        if result:
-            return jsonify({
-                'status': 'ok',
-                'message': 'Cập nhật thông tin thành công',
-                'data': {
-                    'id': result[0]['id'],
-                    'name': result[0]['ho_va_ten'],
-                    'email': result[0]['email'],
-                    'avatar': result[0]['avatar'] or ''
-                }
+            """, {
+                'id': user_id,
+                'ho_va_ten': ho_va_ten,
+                'email': email,
+                'avatar': avatar,
+                'dien_thoai': dien_thoai,
+                'hoc_vi': hoc_vi,
+                'chuc_danh': chuc_danh,
+                'chuc_vu': chuc_vu,
+                'chuyen_nganh': chuyen_nganh,
+                'bo_mon': bo_mon,
+                'linh_vuc': linh_vuc
             })
+            if result:
+                return jsonify({
+                    'status': 'ok',
+                    'message': 'Yêu cầu cập nhật thông tin đã được gửi. Vui lòng chờ Admin phê duyệt.',
+                    'data': {
+                        'id': result[0]['id'],
+                        'name': result[0]['ho_va_ten'],
+                        'email': result[0]['email'],
+                        'avatar': result[0]['avatar'] or '',
+                        'profile_edit_status': 'Chờ duyệt'
+                    }
+                })
             
         return jsonify({'status': 'error', 'message': 'Không tìm thấy tài khoản để cập nhật'}), 404
         
