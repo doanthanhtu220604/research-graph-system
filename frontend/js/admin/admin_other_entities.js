@@ -62,7 +62,10 @@ function renderExternalAuthorsTable(dataList) {
             : `<span class="badge" style="background: rgba(46,204,113,0.1); color: #2ecc71; border: 1px solid rgba(46,204,113,0.2); padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px;"><i class="fas fa-check-circle"></i> Đã duyệt</span>`;
             
         const approveBtn = tgn.trang_thai === 'Chờ duyệt'
-            ? `<button class="btn btn-sm" style="background:#2ecc71;color:#fff;border-color:#2ecc71;" title="Duyệt tác giả" onclick="approveExternalAuthor('${tgn.id}')"><i class="fas fa-check"></i></button>`
+            ? `
+                <button class="btn btn-sm" style="background:#2ecc71;color:#fff;border-color:#2ecc71;" title="Duyệt tác giả" onclick="approveExternalAuthor('${tgn.id}')"><i class="fas fa-check"></i></button>
+                <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Từ chối tác giả" onclick="rejectExternalAuthor('${tgn.id}')"><i class="fas fa-ban"></i></button>
+              `
             : '';
 
         return `
@@ -105,6 +108,27 @@ async function approveExternalAuthor(tgnId) {
         const data = await res.json();
         if (data.status === 'ok') {
             showToast('Duyệt tác giả ngoài thành công');
+            await loadExternalAuthors();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
+        } else {
+            showToast('Lỗi: ' + data.message, 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('Lỗi kết nối', 'error');
+    }
+}
+
+async function rejectExternalAuthor(tgnId) {
+    if (!confirm('Bạn có chắc chắn muốn TỪ CHỐI duyệt tác giả ngoài này không?')) return;
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/tac-gia-ngoai/${tgnId}/reject`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            showToast('Đã từ chối tác giả ngoài thành công');
             await loadExternalAuthors();
             if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
         } else {

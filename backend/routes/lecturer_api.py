@@ -193,11 +193,21 @@ def get_my_publications():
         query = """
         MATCH (g:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         WHERE g.id = $id AND coalesce(ct.is_deleted, false) = false
-        RETURN ct {.*, vai_tro: type(r)} as cong_trinh
-        ORDER BY ct.nam_xuat_ban DESC
+        OPTIONAL MATCH (tv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct) WHERE tv.id <> $id
+        WITH ct, r, collect(DISTINCT tv.id) AS thanh_vien_ids
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CONG_SU]->(ct)
+        RETURN ct {.*, vai_tro: type(r)} AS cong_trinh,
+               thanh_vien_ids,
+               collect(DISTINCT tgn.id) AS tac_gia_ngoai_ids
         """
         results = conn.query(query, parameters={'id': gv_id})
-        publications = [r['cong_trinh'] for r in results]
+        publications = []
+        for r in results:
+            ct = dict(r['cong_trinh'])
+            ct['thanh_vien_ids'] = [x for x in (r.get('thanh_vien_ids') or []) if x]
+            ct['tac_gia_ngoai_ids'] = [x for x in (r.get('tac_gia_ngoai_ids') or []) if x]
+            publications.append(ct)
+        publications.sort(key=lambda x: (x.get('nam_xuat_ban') or 0), reverse=True)
         return jsonify({'status': 'ok', 'data': publications})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -291,10 +301,24 @@ def update_my_publication(ct_id):
 
     try:
         if request.method == 'DELETE':
-            # Check if status is "Đang thực hiện"
+            # Check status
             status_res = conn.query_single("MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id RETURN ct.trang_thai AS status", {'ct_id': ct_id})
-            if status_res and status_res.get('status') == 'Đang thực hiện':
+            status = status_res.get('status') if status_res else None
+            
+            if status == 'Đang thực hiện':
                 return jsonify({'status': 'error', 'message': 'Không thể xóa công trình đang thực hiện. Vui lòng gửi yêu cầu đổi trạng thái trước.'}), 400
+
+            if status == 'Từ chối':
+                query = """
+                MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id
+                SET ct.is_deleted = true,
+                    ct.deleted_at = timestamp(),
+                    ct.old_status = 'Từ chối',
+                    ct.trang_thai = 'Đã vào thùng rác'
+                RETURN ct
+                """
+                conn.write(query, parameters={'ct_id': ct_id})
+                return jsonify({'status': 'ok', 'deleted_directly': True, 'message': 'Đã xóa công trình thành công (chuyển vào thùng rác).'})
 
             query = """
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id
@@ -306,13 +330,23 @@ def update_my_publication(ct_id):
             
         elif request.method == 'PUT':
             data = request.get_json()
-            query = """
+            # Nếu đang ở trạng thái 'Từ chối', cho phép giảng viên nộp lại bằng cách đặt lại thành 'Chờ duyệt'
+            status_res = conn.query_single(
+                "MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id RETURN ct.trang_thai AS status",
+                {'ct_id': ct_id}
+            )
+            # Khi giảng viên sửa thông tin, luôn chuyển về trạng thái 'Chờ duyệt' để Admin phê duyệt lại
+            new_status = "'Chờ duyệt'"
+
+            query = f"""
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
-            SET ct.ten_cong_trinh = toUpper($ten_ct),
+            SET ct.old_status = CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END,
+                ct.ten_cong_trinh = toUpper($ten_ct),
                 ct.nam_xuat_ban = toInteger($nam_xb),
                 ct.noi_xuat_ban = $noi_xb,
                 ct.tom_tat = $tom_tat,
-                ct.link = $link
+                ct.link = $link,
+                ct.trang_thai = {new_status}
             RETURN ct
             """
             conn.write(query, parameters={
@@ -323,7 +357,45 @@ def update_my_publication(ct_id):
                 'tom_tat': data.get('tom_tat', ''),
                 'link': data.get('link', '')
             })
-            return jsonify({'status': 'ok'})
+
+            # Cập nhật thành viên (giảng viên nội bộ) — không cập nhật người tạo (GV hiện tại)
+            thanh_vien_ids = data.get('thanh_vien_ids')
+            if thanh_vien_ids is not None:
+                if not isinstance(thanh_vien_ids, list):
+                    thanh_vien_ids = []
+                # Xóa tất cả liên kết thành viên cũ (ngoại trừ GV hiện tại)
+                conn.write("""
+                    MATCH (tv:GiangVien)-[r:LA_TAC_GIA_CUA|CONG_SU]->(ct:CongTrinhNghienCuu)
+                    WHERE ct.id = $ct_id AND tv.id <> $gv_id
+                    DELETE r
+                """, {'ct_id': ct_id, 'gv_id': gv_id})
+                # Tạo lại
+                if thanh_vien_ids:
+                    conn.write("""
+                        UNWIND $ids AS tv_id
+                        MATCH (tv:GiangVien), (ct:CongTrinhNghienCuu)
+                        WHERE tv.id = tv_id AND ct.id = $ct_id
+                        MERGE (tv)-[:CONG_SU]->(ct)
+                    """, {'ct_id': ct_id, 'ids': thanh_vien_ids})
+
+            # Cập nhật tác giả ngoài
+            tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids')
+            if tac_gia_ngoai_ids is not None:
+                if not isinstance(tac_gia_ngoai_ids, list):
+                    tac_gia_ngoai_ids = []
+                conn.write("""
+                    MATCH (tgn:TacGiaNgoai)-[r]->(ct:CongTrinhNghienCuu)
+                    WHERE ct.id = $ct_id DELETE r
+                """, {'ct_id': ct_id})
+                if tac_gia_ngoai_ids:
+                    conn.write("""
+                        UNWIND $ids AS tgn_id
+                        MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                        WHERE tgn.id = tgn_id AND ct.id = $ct_id
+                        MERGE (tgn)-[:CONG_SU]->(ct)
+                    """, {'ct_id': ct_id, 'ids': tac_gia_ngoai_ids})
+
+            return jsonify({'status': 'ok', 'resubmitted': True})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -337,15 +409,22 @@ def get_my_projects():
         MATCH (g:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         WHERE ((g.id IS NOT NULL AND toString(g.id) = toString($id)) OR (g.id IS NULL AND toString(id(g)) = toString($id)))
           AND coalesce(dt.is_deleted, false) = false
-        RETURN dt {.*, id: coalesce(dt.id, 'dt_' + toString(id(dt))), vai_tro: type(r)} as de_tai
-        ORDER BY dt.nam_bat_dau DESC
+        OPTIONAL MATCH (tv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt) WHERE tv.id <> $id
+        WITH dt, r, collect(DISTINCT tv.id) AS thanh_vien_ids
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:DONG_TAC_GIA]->(dt)
+        RETURN dt {.*, id: coalesce(dt.id, 'dt_' + toString(id(dt))), vai_tro: type(r)} AS de_tai,
+               thanh_vien_ids,
+               collect(DISTINCT tgn.id) AS tac_gia_ngoai_ids
         """
         results = conn.query(query, parameters={'id': gv_id})
-        projects = [r['de_tai'] for r in results]
-        
-        for p in projects:
+        projects = []
+        for r in results:
+            p = dict(r['de_tai'])
             p['vai_tro'] = p.get('vai_tro', 'THAM_GIA')
-                
+            p['thanh_vien_ids'] = [x for x in (r.get('thanh_vien_ids') or []) if x]
+            p['tac_gia_ngoai_ids'] = [x for x in (r.get('tac_gia_ngoai_ids') or []) if x]
+            projects.append(p)
+        projects.sort(key=lambda x: (x.get('nam_bat_dau') or 0), reverse=True)
         return jsonify({'status': 'ok', 'data': projects})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -659,10 +738,24 @@ def update_my_project(dt_id):
 
     try:
         if request.method == 'DELETE':
-            # Check if status is "Đang thực hiện"
+            # Check status
             status_res = conn.query_single("MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id)) RETURN dt.trang_thai AS status", {'dt_id': dt_id})
-            if status_res and status_res.get('status') == 'Đang thực hiện':
+            status = status_res.get('status') if status_res else None
+            
+            if status == 'Đang thực hiện':
                 return jsonify({'status': 'error', 'message': 'Không thể xóa đề tài đang thực hiện. Vui lòng gửi yêu cầu đổi trạng thái trước.'}), 400
+
+            if status == 'Từ chối':
+                query = """
+                MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
+                SET dt.is_deleted = true,
+                    dt.deleted_at = timestamp(),
+                    dt.old_status = 'Từ chối',
+                    dt.trang_thai = 'Đã vào thùng rác'
+                RETURN dt
+                """
+                conn.write(query, parameters={'dt_id': dt_id})
+                return jsonify({'status': 'ok', 'deleted_directly': True, 'message': 'Đã xóa đề tài thành công (chuyển vào thùng rác).'})
 
             query = """
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
@@ -676,15 +769,25 @@ def update_my_project(dt_id):
             data = request.get_json()
             vai_tro = data.get('vai_tro')
             
+            # Nếu đang ở trạng thái 'Từ chối', cho phép giảng viên nộp lại bằng cách đặt lại thành 'Chờ duyệt'
+            status_res = conn.query_single(
+                "MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id)) RETURN dt.trang_thai AS status",
+                {'dt_id': dt_id}
+            )
+            # Khi giảng viên sửa thông tin, luôn chuyển về trạng thái 'Chờ duyệt' để Admin phê duyệt lại
+            new_status = "'Chờ duyệt'"
+
             # Cập nhật thông tin cơ bản
-            query = """
+            query = f"""
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
-            SET dt.ten_de_tai = $ten_dt,
+            SET dt.old_status = CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END,
+                dt.ten_de_tai = $ten_dt,
                 dt.cap_de_tai = $cap,
                 dt.nam_bat_dau = toInteger($nam_bd),
                 dt.nam_ket_thuc = toInteger($nam_kt),
                 dt.tom_tat = $tom_tat,
-                dt.link = $link
+                dt.link = $link,
+                dt.trang_thai = {new_status}
             RETURN dt
             """
             conn.write(query, parameters={
@@ -707,8 +810,47 @@ def update_my_project(dt_id):
                 CREATE (g)-[:{rel_type}]->(dt)
                 """
                 conn.write(rel_query, parameters={'gv_id': gv_id, 'dt_id': dt_id})
-                
-            return jsonify({'status': 'ok'})
+
+            # Cập nhật thành viên (giảng viên nội bộ) — không cập nhật người tạo (GV hiện tại)
+            thanh_vien_ids = data.get('thanh_vien_ids')
+            if thanh_vien_ids is not None:
+                if not isinstance(thanh_vien_ids, list):
+                    thanh_vien_ids = []
+                # Xóa tất cả liên kết thành viên cũ (ngoại trừ GV hiện tại)
+                conn.write("""
+                    MATCH (tv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+                    WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+                      AND tv.id <> $gv_id
+                    DELETE r
+                """, {'dt_id': dt_id, 'gv_id': gv_id})
+                # Tạo lại
+                if thanh_vien_ids:
+                    conn.write("""
+                        UNWIND $ids AS tv_id
+                        MATCH (tv:GiangVien), (dt:DeTaiNghienCuu)
+                        WHERE tv.id = tv_id AND (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+                        MERGE (tv)-[:THAM_GIA]->(dt)
+                    """, {'dt_id': dt_id, 'ids': thanh_vien_ids})
+
+            # Cập nhật tác giả ngoài
+            tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids')
+            if tac_gia_ngoai_ids is not None:
+                if not isinstance(tac_gia_ngoai_ids, list):
+                    tac_gia_ngoai_ids = []
+                conn.write("""
+                    MATCH (tgn:TacGiaNgoai)-[r]->(dt:DeTaiNghienCuu)
+                    WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+                    DELETE r
+                """, {'dt_id': dt_id})
+                if tac_gia_ngoai_ids:
+                    conn.write("""
+                        UNWIND $ids AS tgn_id
+                        MATCH (tgn:TacGiaNgoai), (dt:DeTaiNghienCuu)
+                        WHERE tgn.id = tgn_id AND (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+                        MERGE (tgn)-[:DONG_TAC_GIA]->(dt)
+                    """, {'dt_id': dt_id, 'ids': tac_gia_ngoai_ids})
+
+            return jsonify({'status': 'ok', 'resubmitted': True})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -757,16 +899,58 @@ def restore_my_item(type, id):
     label = "CongTrinhNghienCuu" if type == 'cong-trinh' else "DeTaiNghienCuu"
     try:
         conn = get_neo4j_connection()
+        # Check old_status first
+        status_query = f"""
+        MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(n:{label})
+        WHERE g.id = $gv_id AND n.id = $id AND n.is_deleted = true
+        RETURN n.old_status AS old_status
+        """
+        status_res = conn.query_single(status_query, parameters={'gv_id': gv_id, 'id': id})
+        if not status_res:
+            return jsonify({'status': 'error', 'message': 'Không tìm thấy mục cần khôi phục'}), 404
+            
+        old_status = status_res.get('old_status')
+        if old_status in ['Từ chối', 'Chờ duyệt']:
+            # Restore directly without admin approval
+            query = f"""
+            MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(n:{label})
+            WHERE g.id = $gv_id AND n.id = $id AND n.is_deleted = true
+            SET n.is_deleted = false,
+                n.trang_thai = n.old_status
+            REMOVE n.deleted_at, n.old_status
+            RETURN n
+            """
+            conn.write(query, parameters={'gv_id': gv_id, 'id': id})
+            return jsonify({'status': 'ok', 'restored_directly': True, 'message': 'Đã khôi phục thành công mục về danh sách cá nhân.'})
+        else:
+            # Requires admin approval
+            query = f"""
+            MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(n:{label})
+            WHERE g.id = $gv_id AND n.id = $id AND n.is_deleted = true
+            SET n.trang_thai = 'Yêu cầu khôi phục'
+            RETURN n
+            """
+            conn.write(query, parameters={'gv_id': gv_id, 'id': id})
+            return jsonify({'status': 'ok', 'restored_directly': False, 'message': 'Đã gửi yêu cầu khôi phục tới Admin'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@lecturer_api_bp.route('/trash/<type>/<id>/permanent', methods=['DELETE'])
+def permanent_delete_my_item(type, id):
+    gv_id = request.args.get('gv_id')
+    if not gv_id:
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+        
+    label = "CongTrinhNghienCuu" if type == 'cong-trinh' else "DeTaiNghienCuu"
+    try:
+        conn = get_neo4j_connection()
         query = f"""
         MATCH (g:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA]->(n:{label})
         WHERE g.id = $gv_id AND n.id = $id AND n.is_deleted = true
-        SET n.trang_thai = 'Yêu cầu khôi phục'
-        RETURN n
+        DETACH DELETE n
         """
-        result = conn.write(query, parameters={'gv_id': gv_id, 'id': id})
-        if result:
-            return jsonify({'status': 'ok', 'message': 'Đã gửi yêu cầu khôi phục tới Admin'})
-        return jsonify({'status': 'error', 'message': 'Không tìm thấy mục cần khôi phục'}), 404
+        conn.write(query, parameters={'gv_id': gv_id, 'id': id})
+        return jsonify({'status': 'ok', 'message': 'Đã xóa vĩnh viễn thành công'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 

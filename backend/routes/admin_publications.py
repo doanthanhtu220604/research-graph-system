@@ -99,7 +99,8 @@ def approve_cong_trinh(id):
     try:
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
-            SET ct.trang_thai = 'Đang thực hiện'
+            SET ct.trang_thai = coalesce(ct.old_status, 'Đang thực hiện')
+            REMOVE ct.old_status
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Duyệt công trình thành công"})
     except Exception as e:
@@ -144,5 +145,33 @@ def approve_delete_cong_trinh(id):
                 n.trang_thai = 'Đã vào thùng rác'
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Đã phê duyệt xóa công trình. Công trình đã được chuyển vào thùng rác."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_publications_bp.route("/cong-trinh/<id>/reject", methods=["PUT"])
+def reject_cong_trinh(id):
+    conn = get_neo4j_connection()
+    try:
+        status_res = conn.query_single("MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id RETURN ct.trang_thai AS status", {'id': id})
+        if not status_res:
+            return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
+            
+        status = status_res.get('status')
+        if status == 'Chờ duyệt':
+            conn.write("""
+                MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
+                SET ct.trang_thai = 'Từ chối'
+            """, {"id": id})
+            return jsonify({"status": "ok", "message": "Đã từ chối duyệt tạo mới công trình"})
+        elif status == 'Yêu cầu xóa' or status == 'Yêu cầu đổi trạng thái':
+            conn.write("""
+                MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
+                SET ct.trang_thai = coalesce(ct.old_status, 'Hoàn thành')
+                REMOVE ct.old_status
+            """, {"id": id})
+            return jsonify({"status": "ok", "message": "Đã từ chối yêu cầu hành động và khôi phục trạng thái cũ"})
+        else:
+            return jsonify({"status": "error", "message": "Không hỗ trợ từ chối ở trạng thái hiện tại"}), 400
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

@@ -87,7 +87,8 @@ def approve_de_tai(id):
     try:
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
-            SET dt.trang_thai = 'Đang thực hiện'
+            SET dt.trang_thai = coalesce(dt.old_status, 'Đang thực hiện')
+            REMOVE dt.old_status
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Duyệt đề tài thành công"})
     except Exception as e:
@@ -133,5 +134,33 @@ def approve_delete_de_tai(id):
                 dt.trang_thai = 'Đã vào thùng rác'
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Đã phê duyệt xóa đề tài. Đề tài đã được chuyển vào thùng rác."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_projects_bp.route("/de-tai/<id>/reject", methods=["PUT"])
+def reject_de_tai(id):
+    conn = get_neo4j_connection()
+    try:
+        status_res = conn.query_single("MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id RETURN dt.trang_thai AS status", {'id': id})
+        if not status_res:
+            return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
+            
+        status = status_res.get('status')
+        if status == 'Chờ duyệt':
+            conn.write("""
+                MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
+                SET dt.trang_thai = 'Từ chối'
+            """, {"id": id})
+            return jsonify({"status": "ok", "message": "Đã từ chối duyệt tạo mới đề tài"})
+        elif status == 'Yêu cầu xóa' or status == 'Yêu cầu đổi trạng thái':
+            conn.write("""
+                MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
+                SET dt.trang_thai = coalesce(dt.old_status, 'Hoàn thành')
+                REMOVE dt.old_status
+            """, {"id": id})
+            return jsonify({"status": "ok", "message": "Đã từ chối yêu cầu hành động và khôi phục trạng thái cũ"})
+        else:
+            return jsonify({"status": "error", "message": "Không hỗ trợ từ chối ở trạng thái hiện tại"}), 400
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

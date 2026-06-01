@@ -48,10 +48,16 @@ function renderProjectsTable(dataList) {
             <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
             <td>${dt.cap_de_tai || ''}</td>
             <td>${namThucHien}</td>
-            <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
+            <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight: 600; white-space: nowrap;">${trangThai}</span></td>
             <td>
-                ${trangThai === 'Chờ duyệt'   ? `<button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt đề tài" onclick="approveProject('${dt.id}')"><i class="fas fa-check"></i></button>` : ''}
-                ${trangThai === 'Yêu cầu xóa' ? `<button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Duyệt XÓA đề tài" onclick="approveDeleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
+                ${trangThai === 'Chờ duyệt'   ? `
+                    <button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt đề tài" onclick="approveProject('${dt.id}')"><i class="fas fa-check"></i></button>
+                    <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Từ chối duyệt đề tài" onclick="rejectEntity('de-tai', '${dt.id}')"><i class="fas fa-ban"></i></button>
+                ` : ''}
+                ${trangThai === 'Yêu cầu xóa' ? `
+                    <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Duyệt XÓA đề tài" onclick="approveDeleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash-alt"></i></button>
+                    <button class="btn btn-sm" style="background:#6c757d;color:#fff;border-color:#6c757d;" title="Từ chối yêu cầu xóa" onclick="rejectEntity('de-tai', '${dt.id}')"><i class="fas fa-undo"></i></button>
+                ` : ''}
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewProjectStats('${dt.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}')"><i class="fas fa-link"></i></button>` : ''}
@@ -151,5 +157,28 @@ async function approveProject(id) {
     } catch (err) {
         console.error(err);
         alert('Lỗi khi duyệt đề tài.');
+    }
+}
+
+
+async function rejectEntity(type, id) {
+    const actionLabel = type === 'cong-trinh' ? 'công trình' : 'đề tài';
+    if (!confirm(`Bạn có chắc chắn muốn TỪ CHỐI yêu cầu đối với ${actionLabel} này không?`)) return;
+    try {
+        const res = await fetch(`${ADMIN_API_BASE}/${type}/${id}/reject`, { method: 'PUT' });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            const mainContent = document.getElementById('mainContent');
+            const scrollPos   = mainContent ? mainContent.scrollTop : 0;
+            if (type === 'cong-trinh') await loadPublications();
+            else if (type === 'de-tai') await loadProjects();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
+            if (mainContent) setTimeout(() => { mainContent.scrollTop = scrollPos; }, 10);
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi từ chối yêu cầu.');
     }
 }

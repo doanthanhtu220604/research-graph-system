@@ -146,3 +146,19 @@ def approve_tac_gia_ngoai(id):
         return jsonify({"status": "ok", "message": "Đã duyệt tác giả ngoài thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_external_authors_bp.route("/tac-gia-ngoai/<id>/reject", methods=["PUT"])
+def reject_tac_gia_ngoai(id):
+    conn = get_neo4j_connection()
+    try:
+        conn.write("""
+            MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id
+            SET tgn.is_deleted = true,
+                tgn.deleted_at = timestamp(),
+                tgn.deleted_note = 'Từ chối duyệt tác giả ngoài',
+                tgn.trang_thai = 'Từ chối'
+        """, {"id": id})
+        return jsonify({"status": "ok", "message": "Đã từ chối duyệt tác giả ngoài"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

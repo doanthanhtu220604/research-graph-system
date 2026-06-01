@@ -645,11 +645,30 @@ async function loadPublications() {
 
             tbody.innerHTML = data.data.map((ct) => {
 
-                const statusClass = ct.trang_thai === 'Hoàn thành' ? 'status-completed' : (ct.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : (ct.trang_thai === 'Yêu cầu xóa' ? 'status-request' : ''));
+                const isRejected = ct.trang_thai === 'Từ chối';
 
-                const isPending = ct.trang_thai === 'Yêu cầu xóa';
+                const statusClass = ct.trang_thai === 'Hoàn thành' ? 'status-completed'
+                    : ct.trang_thai === 'Đang thực hiện' ? 'status-ongoing'
+                    : ct.trang_thai === 'Yêu cầu xóa' ? 'status-request'
+                    : ct.trang_thai === 'Chờ duyệt' ? 'status-pending'
+                    : '';
 
-                
+                const isPending = ct.trang_thai === 'Yêu cầu xóa' || ct.trang_thai === 'Chờ duyệt';
+
+                // Khi bị từ chối: chỉ tắt nút đổi trạng thái, vẫn cho xóa và sửa+nộp lại
+                const disableStatusChange = isPending || isRejected;
+                const disableDelete       = isPending;  // Từ chối vẫn cho xóa
+
+                const editTitle = isRejected ? 'Sửa và nộp lại để kiểm duyệt' : 'Chỉnh sửa';
+
+                const editStyle = isRejected
+                    ? 'background: rgba(220,53,69,0.12); color: #dc3545; border: 1px dashed #dc3545; margin-right:4px;'
+                    : 'background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;';
+
+                // Nút xóa: nếu bị từ chối thì xóa thẳng (không cần duyệt admin), ngược lại gửi yêu cầu
+                const deleteOnclick = isRejected
+                    ? `directDeleteRejected('cong-trinh', '${ct.id}')`
+                    : `requestDeleteLecturerEntity('cong-trinh', '${ct.id}')`;
 
                 return `
 
@@ -657,7 +676,7 @@ async function loadPublications() {
 
                     <td>${ct.id}</td>
 
-                    <td><strong style="color: var(--text-primary);">${ct.ten_cong_trinh}</strong></td>
+                    <td><strong style="color: var(--text-primary);">${ct.ten_cong_trinh}</strong>${isRejected ? ' <span style="color:#dc3545;font-size:11px;font-weight:600;"><i class="fas fa-times-circle"></i> Từ chối</span>' : ''}</td>
 
                     <td>${ct.nam_xuat_ban || ''}</td>
 
@@ -667,11 +686,11 @@ async function loadPublications() {
 
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewPublicationDetail('${ct.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
 
-                        <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-view" title="${editTitle}" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="${editStyle}" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas ${isRejected ? 'fa-paper-plane' : 'fa-edit'}"></i></button>
 
-                        <button class="btn btn-sm" title="Đổi trạng thái" onclick="openStatusChangeModal('cong-trinh', '${ct.id}')" style="background: rgba(139,92,246,0.1); color: #8B5CF6; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-exchange-alt"></i></button>
+                        <button class="btn btn-sm" title="Đổi trạng thái" onclick="openStatusChangeModal('cong-trinh', '${ct.id}')" style="background: rgba(139,92,246,0.1); color: #8B5CF6; border: none; margin-right:4px;" ${disableStatusChange ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-exchange-alt"></i></button>
 
-                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="requestDeleteLecturerEntity('cong-trinh', '${ct.id}')" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="${deleteOnclick}" ${disableDelete ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-trash"></i></button>
 
                     </td>
 
@@ -717,11 +736,28 @@ async function loadProjects() {
 
             tbody.innerHTML = data.data.map((dt) => {
 
-                const statusClass = dt.trang_thai === 'Hoàn thành' ? 'status-completed' : (dt.trang_thai === 'Đang thực hiện' ? 'status-ongoing' : (dt.trang_thai === 'Yêu cầu xóa' ? 'status-request' : ''));
+                const isRejected = dt.trang_thai === 'Từ chối';
 
-                const isPending = dt.trang_thai === 'Yêu cầu xóa';
+                const statusClass = dt.trang_thai === 'Hoàn thành' ? 'status-completed'
+                    : dt.trang_thai === 'Đang thực hiện' ? 'status-ongoing'
+                    : dt.trang_thai === 'Yêu cầu xóa' ? 'status-request'
+                    : dt.trang_thai === 'Chờ duyệt' ? 'status-pending'
+                    : '';
 
+                const isPending = dt.trang_thai === 'Yêu cầu xóa' || dt.trang_thai === 'Chờ duyệt';
 
+                const disableStatusChange = isPending || isRejected;
+                const disableDelete       = isPending;
+
+                const editTitle = isRejected ? 'Sửa và nộp lại để kiểm duyệt' : 'Chỉnh sửa';
+
+                const editStyle = isRejected
+                    ? 'background: rgba(220,53,69,0.12); color: #dc3545; border: 1px dashed #dc3545; margin-right:4px;'
+                    : 'background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;';
+
+                const deleteOnclick = isRejected
+                    ? `directDeleteRejected('de-tai', '${dt.id}')`
+                    : `requestDeleteLecturerEntity('de-tai', '${dt.id}')`;
 
                 return `
 
@@ -729,7 +765,7 @@ async function loadProjects() {
 
                     <td>${dt.id}</td>
 
-                    <td><strong style="color: var(--text-primary);">${dt.ten_de_tai}</strong></td>
+                    <td><strong style="color: var(--text-primary);">${dt.ten_de_tai}</strong>${isRejected ? ' <span style="color:#dc3545;font-size:11px;font-weight:600;"><i class="fas fa-times-circle"></i> Từ chối</span>' : ''}</td>
 
                     <td><span style="background: var(--bg-hover); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
 
@@ -741,11 +777,11 @@ async function loadProjects() {
 
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewProjectDetail('${dt.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
 
-                        <button class="btn btn-sm btn-view" title="Chỉnh sửa" onclick="openLecturerModal('de-tai', '${dt.id}')" style="background: rgba(79,142,247,0.1); color: #4F8EF7; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-view" title="${editTitle}" onclick="openLecturerModal('de-tai', '${dt.id}')" style="${editStyle}" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas ${isRejected ? 'fa-paper-plane' : 'fa-edit'}"></i></button>
 
-                        <button class="btn btn-sm" title="Đổi trạng thái" onclick="openStatusChangeModal('de-tai', '${dt.id}')" style="background: rgba(139,92,246,0.1); color: #8B5CF6; border: none; margin-right:4px;" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-exchange-alt"></i></button>
+                        <button class="btn btn-sm" title="Đổi trạng thái" onclick="openStatusChangeModal('de-tai', '${dt.id}')" style="background: rgba(139,92,246,0.1); color: #8B5CF6; border: none; margin-right:4px;" ${disableStatusChange ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-exchange-alt"></i></button>
 
-                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="requestDeleteLecturerEntity('de-tai', '${dt.id}')" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="${deleteOnclick}" ${disableDelete ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-trash"></i></button>
 
                     </td>
 
@@ -813,55 +849,47 @@ function openLecturerModal(type, id = null) {
 
         } else if (f.type === 'lecturers-select') {
 
-            if (id) {
+            const currentIds = id ? ((currentEntitiesData[type] || []).find(x => x.id == id) || {}).thanh_vien_ids || [] : [];
 
-                inputHtml = `<div style="color:var(--text-muted); font-size: 13px; font-style: italic;">Tính năng sửa thành viên hiện chưa hỗ trợ. Vui lòng liên hệ Admin.</div>`;
+            const optionsHtml = allLecturers
 
-            } else {
+                .filter(gv => gv.id != userInfo.id)
 
-                const optionsHtml = allLecturers
+                .map(gv => {
+                    const checked = currentIds.includes(gv.id) ? 'checked' : '';
+                    return `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="member-checkbox" name="${f.name}" value="${gv.id}" ${checked}> ${gv.ho_va_ten} ${gv.bo_mon ? '('+gv.bo_mon+')' : ''}</label></div>`;
+                })
 
-                    .filter(gv => gv.id != userInfo.id)
+                .join('');
 
-                    .map(gv => `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="member-checkbox" name="${f.name}" value="${gv.id}"> ${gv.ho_va_ten} ${gv.bo_mon ? '('+gv.bo_mon+')' : ''}</label></div>`)
-
-                    .join('');
-
-                inputHtml = `<div id="field_${f.name}" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white;">${optionsHtml}</div>`;
-
-            }
+            inputHtml = `<div id="field_${f.name}" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white;">${optionsHtml}</div>`;
 
         } else if (f.type === 'external-authors-select') {
 
-            if (id) {
+            const currentTgnIds = id ? ((currentEntitiesData[type] || []).find(x => x.id == id) || {}).tac_gia_ngoai_ids || [] : [];
 
-                inputHtml = `<div style="color:var(--text-muted); font-size: 13px; font-style: italic;">Tính năng sửa tác giả ngoài hiện chưa hỗ trợ. Vui lòng liên hệ Admin.</div>`;
+            const optionsHtml = allExternalAuthors
 
-            } else {
+                .map(tgn => {
 
-                const optionsHtml = allExternalAuthors
+                    const statusTag = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#f39c12;font-size:10px;font-weight:600;">(Chờ duyệt)</span>' : '';
+                    const checked = currentTgnIds.includes(tgn.id) ? 'checked' : '';
 
-                    .map(tgn => {
+                    return `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="tgn-checkbox" name="${f.name}" value="${tgn.id}" ${checked}> ${tgn.ho_va_ten} ${tgn.don_vi_cong_tac ? '('+tgn.don_vi_cong_tac+')' : ''}${statusTag}</label></div>`;
 
-                        const statusTag = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#f39c12;font-size:10px;font-weight:600;">(Chờ duyệt)</span>' : '';
+                })
 
-                        return `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="tgn-checkbox" name="${f.name}" value="${tgn.id}"> ${tgn.ho_va_ten} ${tgn.don_vi_cong_tac ? '('+tgn.don_vi_cong_tac+')' : ''}${statusTag}</label></div>`;
+                .join('');
 
-                    })
-
-                    .join('');
-
-                inputHtml = `
-                    <div style="display:flex; flex-direction:column; gap:5px; width: 100%;">
-                        <div id="field_${f.name}" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white; width: 100%;">
-                            ${optionsHtml || '<div style="color:var(--text-muted);font-size:12px;padding:5px;">Chưa có tác giả ngoài nào.</div>'}
-                        </div>
-                        <button type="button" class="btn btn-sm" style="align-self: flex-start; background: var(--bg-hover); color: var(--accent-blue); border: 1px solid var(--border-color); font-size: 12px; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="openAddExternalAuthorModal('${f.name}')">
-                            <i class="fas fa-plus-circle"></i> Thêm tác giả ngoài mới
-                        </button>
-                    </div>`;
-
-            }
+            inputHtml = `
+                <div style="display:flex; flex-direction:column; gap:5px; width: 100%;">
+                    <div id="field_${f.name}" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white; width: 100%;">
+                        ${optionsHtml || '<div style="color:var(--text-muted);font-size:12px;padding:5px;">Chưa có tác giả ngoài nào.</div>'}
+                    </div>
+                    <button type="button" class="btn btn-sm" style="align-self: flex-start; background: var(--bg-hover); color: var(--accent-blue); border: 1px solid var(--border-color); font-size: 12px; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="openAddExternalAuthorModal('${f.name}')">
+                        <i class="fas fa-plus-circle"></i> Thêm tác giả ngoài mới
+                    </button>
+                </div>`;
 
         } else if (f.type === 'url' && f.name === 'link') {
 
@@ -1352,19 +1380,30 @@ async function handleFormSubmit(e) {
 
     config.fields.forEach(f => {
 
-        if (f.type === 'lecturers-select' || f.type === 'external-authors-select') {
+        if (f.type === 'lecturers-select') {
 
-            if (!id) {
+            const checkboxes = document.querySelectorAll(`input[name="${f.name}"]:checked`);
 
-                const checkboxes = document.querySelectorAll(`input[name="${f.name}"]:checked`);
+            // Map field name to backend key
+            const backendKey = f.name === 'thanh_vien_ids' ? 'thanh_vien_ids' : f.name;
 
-                formData[f.name] = Array.from(checkboxes).map(cb => cb.value);
+            formData[backendKey] = Array.from(checkboxes).map(cb => cb.value);
 
-            }
+        } else if (f.type === 'external-authors-select') {
+
+            const checkboxes = document.querySelectorAll(`input[name="${f.name}"]:checked`);
+
+            const backendKey = f.name === 'tac_gia_ngoai_ids' ? 'tac_gia_ngoai_ids' : f.name;
+
+            formData[backendKey] = Array.from(checkboxes).map(cb => cb.value);
 
         } else {
 
-            const val = document.getElementById(`field_${f.name}`).value;
+            const el = document.getElementById(`field_${f.name}`);
+
+            if (!el) return;
+
+            const val = el.value;
 
             if (f.type === 'number') {
 
@@ -1407,6 +1446,12 @@ async function handleFormSubmit(e) {
         if (data.status === 'ok') {
 
             closeLecturerModal();
+
+            if (data.resubmitted) {
+
+                alert('Đã nộp lại thành công! Công trình/Đề tài sẽ chuyển về trạng thái "Chờ duyệt" để Admin xem xét.');
+
+            }
 
             if (type === 'cong-trinh') loadPublications();
 
@@ -1474,6 +1519,52 @@ async function requestDeleteLecturerEntity(type, id) {
 
 
 
+async function directDeleteRejected(type, id) {
+
+    if (!confirm('Mục này đang bị Từ chối. Bạn có chắc muốn xóa mục này không? (Công trình/Đề tài sẽ được chuyển vào thùng rác của bạn mà không cần Admin duyệt)')) return;
+
+
+
+    try {
+
+        const res = await fetch(`${API_LECTURER_BASE}/${type}/${id}?gv_id=${userInfo.id}`, {
+
+            method: 'DELETE'
+
+        });
+
+
+
+        const data = await res.json();
+
+
+
+        if (data.status === 'ok') {
+
+            alert('Đã xóa thành công! Công trình/Đề tài đã được đưa vào thùng rác của bạn.');
+
+            if (type === 'cong-trinh') loadPublications();
+
+            else if (type === 'de-tai') loadProjects();
+
+        } else {
+
+            alert('Lỗi: ' + data.message);
+
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert('Có lỗi xảy ra.');
+
+    }
+
+}
+
+
+
 async function loadLecturerTrash() {
 
     const tbody = document.getElementById('lecturerTrashBody');
@@ -1515,12 +1606,17 @@ async function loadLecturerTrash() {
                 let statusHtml = '';
 
                 let isPendingRestore = item.trang_thai === 'Yêu cầu khôi phục';
+                let isPendingDelete  = item.trang_thai === 'Yêu cầu xóa';
 
 
 
                 if (isPendingRestore) {
 
-                    statusHtml = '<span class="status-badge status-request"><i class="fas fa-clock"></i> Đang chờ Admin duyệt khôi phục</span>';
+                    statusHtml = '<span class="status-badge status-request" style="background: rgba(46,204,113,0.1); color: #2ecc71; border: 1px solid #2ecc71;"><i class="fas fa-clock"></i> Đang chờ duyệt khôi phục</span>';
+
+                } else if (isPendingDelete) {
+
+                    statusHtml = '<span class="status-badge status-request" style="background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid #e74c3c;"><i class="fas fa-clock"></i> Đang chờ duyệt xóa vĩnh viễn</span>';
 
                 } else {
 
@@ -1530,7 +1626,7 @@ async function loadLecturerTrash() {
 
 
 
-                const actionButtons = isPendingRestore 
+                const actionButtons = (isPendingRestore || isPendingDelete) 
 
                     ? `<button class="btn btn-sm" disabled style="opacity:0.6; cursor:not-allowed;"><i class="fas fa-hourglass-half"></i> Chờ duyệt</button>`
 
@@ -1539,6 +1635,12 @@ async function loadLecturerTrash() {
                         <button class="btn btn-sm" onclick="restoreLecturerEntity('${item.type}', '${item.id}')" style="background:#2ecc71; color:#fff; border:none; margin-right:5px;" title="Yêu cầu khôi phục">
 
                             <i class="fas fa-undo"></i> Khôi phục
+
+                        </button>
+
+                        <button class="btn btn-sm" onclick="requestPermanentDelete('${item.type}', '${item.id}')" style="background:#e74c3c; color:#fff; border:none;" title="Yêu cầu xóa vĩnh viễn">
+
+                            <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
 
                         </button>
 
@@ -1582,7 +1684,7 @@ async function loadLecturerTrash() {
 
 async function restoreLecturerEntity(type, id) {
 
-    if (!confirm('Bạn có muốn yêu cầu khôi phục mục này? Admin sẽ duyệt yêu cầu của bạn.')) return;
+    if (!confirm('Bạn có chắc chắn muốn khôi phục mục này không?')) return;
 
 
 
@@ -1598,7 +1700,15 @@ async function restoreLecturerEntity(type, id) {
 
         if (data.status === 'ok') {
 
-            alert('Đã gửi yêu cầu khôi phục tới Admin.');
+            if (data.restored_directly) {
+
+                alert('Đã khôi phục thành công mục này về danh sách của bạn!');
+
+            } else {
+
+                alert('Đã gửi yêu cầu khôi phục tới Admin. Vui lòng chờ phê duyệt.');
+
+            }
 
             loadLecturerTrash();
 
@@ -1622,15 +1732,15 @@ async function restoreLecturerEntity(type, id) {
 
 async function requestPermanentDelete(type, id) {
 
-    if (!confirm('Yêu cầu này sẽ được gửi tới Admin để phê duyệt xóa vĩnh viễn. Bạn chắc chắn chứ?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn mục này? Hành động này sẽ xóa hoàn toàn dữ liệu khỏi hệ thống và không thể khôi phục.')) return;
 
 
 
     try {
 
-        const res = await fetch(`${API_LECTURER_BASE}/trash/${type}/${id}/request-delete?gv_id=${userInfo.id}`, {
+        const res = await fetch(`${API_LECTURER_BASE}/trash/${type}/${id}/permanent?gv_id=${userInfo.id}`, {
 
-            method: 'PUT'
+            method: 'DELETE'
 
         });
 
@@ -1638,7 +1748,7 @@ async function requestPermanentDelete(type, id) {
 
         if (data.status === 'ok') {
 
-            alert(data.message);
+            alert('Đã xóa vĩnh viễn thành công.');
 
             loadLecturerTrash();
 
@@ -1727,6 +1837,8 @@ async function viewProjectDetail(dtId) {
         else if (trangThai === 'Đang thực hiện') { stColor = '#007bff'; stBg = 'rgba(0,123,255,0.1)'; }
 
         else if (trangThai === 'Chờ duyệt')     { stColor = '#fd7e14'; stBg = 'rgba(253,126,20,0.1)'; }
+
+        else if (trangThai === 'Từ chối')        { stColor = '#dc3545'; stBg = 'rgba(220,53,69,0.1)'; }
 
 
 
@@ -1883,6 +1995,8 @@ async function viewPublicationDetail(ctId) {
         else if (trangThai === 'Đang thực hiện') { stColor = '#007bff'; stBg = 'rgba(0,123,255,0.1)'; }
 
         else if (trangThai === 'Chờ duyệt')     { stColor = '#fd7e14'; stBg = 'rgba(253,126,20,0.1)'; }
+
+        else if (trangThai === 'Từ chối')        { stColor = '#dc3545'; stBg = 'rgba(220,53,69,0.1)'; }
 
 
 

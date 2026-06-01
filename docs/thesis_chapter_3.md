@@ -586,67 +586,77 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 
 ---
 ### Bảng 3.24. Đặc tả chức năng Yêu cầu thêm công trình cá nhân (Giảng viên)
-* **Mô tả:** Cho phép giảng viên khai báo một bài báo khoa học mới để gửi yêu cầu phê duyệt tích hợp vào hồ sơ lý lịch lên Admin.
+* **Mô tả:** Cho phép giảng viên khai báo một công trình nghiên cứu khoa học mới để gửi yêu cầu phê duyệt tích hợp vào hồ sơ lý lịch lên Admin.
 * **Actor:** Giảng viên
-* **Tiền điều kiện:** Giảng viên đã đăng nhập và đang ở màn hình thêm công trình.
+* **Tiền điều kiện:** Giảng viên đã đăng nhập và đang ở màn hình danh sách công trình cá nhân.
 * **Hậu điều kiện:** Tạo một nút công trình mới có trạng thái 'Chờ duyệt' trong cơ sở dữ liệu.
 * **Đảm bảo tối thiểu:** Yêu cầu thêm mới không được tạo; danh sách công trình hiện tại của giảng viên không bị ảnh hưởng.
-* **Đảm bảo thành công:** Công trình mới được tạo trên Neo4j với thuộc tính trang_thai = 'Chờ duyệt' and liên kết với giảng viên.
-* **Kích hoạt:** Giảng viên nhập thông tin công trình khoa học mới và nhấn nút Gửi phê duyệt.
+* **Đảm bảo thành công:** Công trình mới được tạo trên Neo4j với thuộc tính trang_thai = 'Chờ duyệt' và liên kết với giảng viên.
+* **Kích hoạt:** Giảng viên click nút "Thêm mới", điền thông tin và nhấn nút "Lưu thay đổi".
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên chọn 'Thêm công trình mới'.
-  2. Hệ thống hiển thị form điền thông tin (Tiêu đề bài báo, năm xuất bản, nơi công bố, tác giả khác, tóm tắt).
-  3. Giảng viên điền thông tin bài báo và nhấn 'Gửi yêu cầu phê duyệt'.
-  4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ.
-  5. Backend tạo nút CongTrinhNghienCuu mới trên Neo4j, gán thuộc tính trang_thai = 'Chờ duyệt', tạo quan hệ đồng tác giả và tạo nút MutationRequest.
-  6. Hệ thống hiển thị thông báo gửi yêu cầu thành công.
-  *Use case chức năng “Yêu cầu thêm công trình cá nhân (Giảng viên)” dừng lại.*
+  1. Giảng viên chọn 'Thêm mới' công trình.
+  2. Hệ thống hiển thị form điền thông tin (Tên công trình, Năm xuất bản, Nơi xuất bản, Tóm tắt nội dung, Link bài viết, Thành viên tham gia (Tùy chọn), Tác giả ngoài (Tùy chọn)).
+  3. Giảng viên điền thông tin và nhấn 'Lưu thay đổi'.
+  4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ (yêu cầu trường Tên công trình).
+  5. Backend tạo nút CongTrinhNghienCuu mới trên Neo4j, gán thuộc tính trang_thai = 'Chờ duyệt', thiết lập mối quan hệ tác giả chính (TAC_GIA_CHINH) với giảng viên hiện tại, tạo các quan hệ đồng tác giả trong khoa (CONG_SU) và tác giả ngoài (DONG_TAC_GIA).
+  6. Hệ thống hiển thị thông báo thành công và đóng form.
+     *Use case chức năng “Yêu cầu thêm công trình cá nhân (Giảng viên)” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tiêu đề, năm xuất bản):
-    4.a.1. Hệ thống báo lỗi đỏ tại các trường tương ứng và yêu cầu hoàn tất thông tin.
-    Use case quay lại bước 3.
-  4.b. Tiêu đề bài báo bị trùng lặp hoàn toàn với một công trình đã được duyệt trước đó:
-    4.b.1. Hệ thống cảnh báo bài báo có thể đã tồn tại và yêu cầu kiểm tra lại.
+  4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tên công trình):
+    4.a.1. Hệ thống hiển thị cảnh báo yêu cầu hoàn tất thông tin Tên công trình.
     Use case quay lại bước 3.
 
 ---
 ### Bảng 3.25. Đặc tả chức năng Yêu cầu sửa công trình cá nhân (Giảng viên)
-* **Mô tả:** Cho phép giảng viên gửi yêu cầu chỉnh sửa thông tin của một công trình khoa học hiện có trong hồ sơ của mình.
+* **Mô tả:** Cho phép giảng viên chỉnh sửa thông tin của một công trình khoa học hiện có trong hồ sơ của mình.
 * **Actor:** Giảng viên
 * **Tiền điều kiện:** Đã đăng nhập, chọn công trình cần sửa trong danh sách công trình cá nhân.
-* **Hậu điều kiện:** Yêu cầu thay đổi thông tin công trình được chuyển vào hàng đợi phê duyệt của Admin.
-* **Đảm bảo tối thiểu:** Thông tin công trình cũ và trạng thái phê duyệt trước đó được giữ nguyên.
-* **Đảm bảo thành công:** Lưu các thuộc tính thay đổi tạm thời trên hệ thống và tạo yêu cầu chờ duyệt.
-* **Kích hoạt:** Giảng viên sửa thông tin trên form và nhấn nút Cập nhật công trình.
+* **Hậu điều kiện:** Dữ liệu chỉnh sửa được cập nhật, trạng thái công trình chuyển sang **"Chờ duyệt"** chờ Admin phê duyệt.
+* **Đảm bảo tối thiểu:** Thông tin và trạng thái cũ của công trình được giữ nguyên nếu quá trình lưu thất bại.
+* **Đảm bảo thành công:** Ghi nhận thông tin sửa đổi mới, lưu trạng thái cũ vào thuộc tính `old_status`, chuyển trạng thái công trình thành **'Chờ duyệt'** trên Neo4j.
+* **Kích hoạt:** Giảng viên nhấn nút 'Chỉnh sửa' và nhấn 'Lưu thay đổi'.
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên click nút 'Chỉnh sửa' tại dòng công trình cần cập nhật.
+  1. Giảng viên click nút 'Chỉnh sửa' (biểu tượng bút chì) tại dòng công trình cần cập nhật.
   2. Hệ thống hiển thị form chứa thông tin hiện tại của công trình.
   3. Giảng viên sửa đổi các thông tin cần thiết và nhấn 'Lưu thay đổi'.
-  4. Hệ thống kiểm tra dữ liệu và trạng thái công trình hợp lệ.
-  5. Backend ghi nhận các trường thông tin thay đổi vào hàng đợi yêu cầu chỉnh sửa (MutationRequest) liên kết với công trình đó.
-  6. Hệ thống báo gửi yêu cầu chỉnh sửa thành công.
-  *Use case chức năng “Yêu cầu sửa công trình cá nhân (Giảng viên)” dừng lại.*
+  4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ (yêu cầu trường Tên công trình).
+  5. Backend thực hiện cập nhật các thuộc tính mới của nút `CongTrinhNghienCuu` trên Neo4j, lưu lại trạng thái trước đó (nếu là `'Đang thực hiện'` hoặc `'Hoàn thành'`) vào thuộc tính `old_status`, và đặt trạng thái hoạt động thành **'Chờ duyệt'**.
+  6. Hệ thống hiển thị thông báo đã gửi yêu cầu chỉnh sửa và đang chờ Admin phê duyệt, sau đó đóng form.
+     *(Thông tin mới sẽ chính thức có hiệu lực và công trình trở lại trạng thái cũ sau khi Admin phê duyệt).*
+     *Use case chức năng “Yêu cầu sửa công trình cá nhân (Giảng viên)” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  4.a. Công trình đang trong trạng thái Chờ duyệt của một yêu cầu trước đó chưa xử lý:
-    4.a.1. Hệ thống báo lỗi không thể chỉnh sửa công trình và chặn gửi yêu cầu.
+  1.a. Công trình đang trong trạng thái 'Chờ duyệt' hoặc 'Yêu cầu xóa':
+    1.a.1. Hệ thống vô hiệu hóa (disabled) nút Chỉnh sửa của công trình đó để ngăn chặn chỉnh sửa.
     Use case dừng lại.
+  4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tên công trình):
+    4.a.1. Hệ thống hiển thị cảnh báo yêu cầu nhập Tên công trình.
+    Use case quay lại bước 3.
 
 ---
 ### Bảng 3.26. Đặc tả chức năng Yêu cầu xóa công trình cá nhân (Giảng viên)
-* **Mô tả:** Cho phép giảng viên gửi yêu cầu xóa một công trình khoa học ra khỏi hồ sơ lý lịch khoa học cá nhân của mình.
+* **Mô tả:** Cho phép giảng viên xóa hoặc gửi yêu cầu xóa một công trình khoa học ra khỏi hồ sơ lý lịch khoa học cá nhân của mình.
 * **Actor:** Giảng viên
 * **Tiền điều kiện:** Đã đăng nhập, chọn công trình cần xóa trong danh sách công trình cá nhân.
-* **Hậu điều kiện:** Yêu cầu xóa công trình được gửi đến hàng chờ phê duyệt của Admin.
-* **Đảm bảo tối thiểu:** Công trình vẫn tồn tại trong hồ sơ cá nhân của giảng viên ở trạng thái cũ.
-* **Đảm bảo thành công:** Tạo MutationRequest yêu cầu xóa công trình thành công.
-* **Kích hoạt:** Giảng viên nhấn nút Yêu cầu xóa công trình và xác nhận.
+* **Hậu điều kiện:** Công trình được di chuyển vào thùng rác trực tiếp (nếu ở trạng thái 'Từ chối') hoặc chuyển sang trạng thái chờ Admin duyệt xóa (nếu ở trạng thái 'Hoàn thành').
+* **Đảm bảo tối thiểu:** Công trình vẫn tồn tại trong hồ sơ cá nhân ở trạng thái cũ nếu quá trình thực hiện thất bại.
+* **Đảm bảo thành công:** Công trình được xóa trực tiếp vào thùng rác hoặc được đổi trạng thái thành 'Yêu cầu xóa'.
+* **Kích hoạt:** Giảng viên nhấn nút Xóa công trình và xác nhận.
 * **Chuỗi sự kiện chính:**
   1. Giảng viên click biểu tượng 'Xóa' tại công trình khoa học tương ứng.
-  2. Hệ thống hiển thị popup xác nhận: 'Bạn có chắc chắn muốn gửi yêu cầu xóa công trình này khỏi hồ sơ?'.
+  2. Hệ thống hiển thị popup xác nhận xóa.
   3. Giảng viên nhấn nút 'Xác nhận'.
-  4. Backend tạo một yêu cầu xóa (MutationRequest loại DELETE) liên kết với công trình khoa học tương ứng.
-  5. Hệ thống hiển thị thông báo đã gửi yêu cầu xóa thành công.
-  *Use case chức năng “Yêu cầu xóa công trình cá nhân (Giảng viên)” dừng lại.*
+  4. Backend kiểm tra trạng thái của công trình:
+     - Nếu trạng thái là 'Từ chối', backend thực hiện xóa mềm trực tiếp (đặt is_deleted = true, trang_thai = 'Đã vào thùng rác', old_status = 'Từ chối').
+     - Nếu trạng thái là 'Hoàn thành', backend chuyển trang_thai thành 'Yêu cầu xóa' để chờ Admin duyệt.
+  5. Hệ thống hiển thị thông báo tương ứng với kết quả xử lý.
+     *Use case chức năng “Yêu cầu xóa công trình cá nhân (Giảng viên)” dừng lại.*
+* **Chuỗi sự kiện ngoại lệ:**
+  1.a. Công trình ở trạng thái 'Đang thực hiện':
+    1.a.1. Nút thay đổi trạng thái và nút xóa bị vô hiệu hóa (hoặc backend chặn nếu gửi qua API).
+    Use case dừng lại.
+  1.b. Công trình ở trạng thái 'Chờ duyệt' hoặc 'Yêu cầu xóa':
+    1.b.1. Hệ thống vô hiệu hóa (disabled) nút Xóa của công trình đó.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.27. Đặc tả chức năng Xem danh sách đề tài cá nhân (Giảng viên)
@@ -668,62 +678,75 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ### Bảng 3.28. Đặc tả chức năng Yêu cầu thêm đề tài cá nhân (Giảng viên)
 * **Mô tả:** Cho phép giảng viên đăng ký một đề tài nghiên cứu khoa học mới vào hồ sơ cá nhân và gửi phê duyệt lên Admin.
 * **Actor:** Giảng viên
-* **Tiền điều kiện:** Đã đăng nhập, truy cập màn hình thêm đề tài.
+* **Tiền điều kiện:** Đã đăng nhập, đang ở màn hình đề tài cá nhân.
 * **Hậu điều kiện:** Tạo nút đề tài nghiên cứu mới có trạng thái 'Chờ duyệt' và gửi yêu cầu phê duyệt đến Admin.
 * **Đảm bảo tối thiểu:** Yêu cầu thêm mới không được tạo; danh sách đề tài hiện tại của giảng viên không bị ảnh hưởng.
 * **Đảm bảo thành công:** Tạo thành công nút DeTaiNghienCuu trạng thái 'Chờ duyệt' liên kết với giảng viên làm chủ nhiệm/thành viên trên Neo4j.
-* **Kích hoạt:** Giảng viên điền thông tin đề tài mới và nhấn nút Gửi phê duyệt.
+* **Kích hoạt:** Giảng viên click nút "Thêm mới", điền thông tin và nhấn nút "Lưu thay đổi".
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên chọn 'Thêm đề tài mới'.
-  2. Hệ thống hiển thị form nhập liệu đề tài (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, vai trò, tóm tắt).
-  3. Giảng viên điền thông tin và nhấn 'Gửi yêu cầu'.
-  4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ.
-  5. Backend tạo nút DeTaiNghienCuu mới trạng thái 'Chờ duyệt', thiết lập mối quan hệ tương ứng và tạo MutationRequest phê duyệt.
-  6. Hệ thống thông báo đã gửi yêu cầu phê duyệt thành công.
-  *Use case chức năng “Yêu cầu thêm đề tài cá nhân (Giảng viên)” dừng lại.*
+  1. Giảng viên chọn 'Thêm mới' đề tài.
+  2. Hệ thống hiển thị form nhập liệu đề tài (Tên đề tài, Cấp đề tài, Vai trò của bạn, Năm bắt đầu, Năm kết thúc, Tóm tắt nội dung, Link đề tài, Thành viên tham gia (Tùy chọn), Tác giả ngoài (Tùy chọn)).
+  3. Giảng viên điền thông tin và nhấn 'Lưu thay đổi'.
+  4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ (yêu cầu trường Tên đề tài, Vai trò của bạn).
+  5. Backend tạo nút DeTaiNghienCuu mới trạng thái 'Chờ duyệt', và thiết lập mối quan hệ chủ nhiệm (CHU_NHIEM) hoặc thành viên (THAM_GIA) tương ứng dựa trên vai trò được chọn.
+  6. Hệ thống thông báo gửi yêu cầu thành công và đóng form.
+     *Use case chức năng “Yêu cầu thêm đề tài cá nhân (Giảng viên)” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tên đề tài):
-    4.a.1. Hệ thống hiển thị cảnh báo đỏ và yêu cầu hoàn tất thông tin.
+  4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tên đề tài hoặc vai trò):
+    4.a.1. Hệ thống hiển thị cảnh báo yêu cầu hoàn tất thông tin.
     Use case quay lại bước 3.
 
 ---
 ### Bảng 3.29. Đặc tả chức năng Yêu cầu sửa đề tài cá nhân (Giảng viên)
-* **Mô tả:** Cho phép giảng viên chỉnh sửa thông tin đề tài nghiên cứu khoa học cá nhân và gửi yêu cầu cập nhật lên Admin.
+* **Mô tả:** Cho phép giảng viên chỉnh sửa thông tin đề tài nghiên cứu khoa học cá nhân.
 * **Actor:** Giảng viên
 * **Tiền điều kiện:** Đã đăng nhập, chọn đề tài cần sửa trong danh sách đề tài cá nhân.
-* **Hậu điều kiện:** Tạo yêu cầu thay đổi thông tin đề tài trong hàng đợi phê duyệt của Admin.
-* **Đảm bảo tối thiểu:** Thông tin đề tài cũ và trạng thái phê duyệt trước đó được giữ nguyên.
-* **Đảm bảo thành công:** Hệ thống ghi nhận thông tin chỉnh sửa tạm thời và tạo yêu cầu duyệt tương ứng.
-* **Kích hoạt:** Giảng viên chỉnh sửa thông tin đề tài và nhấn nút Cập nhật đề tài.
+* **Hậu điều kiện:** Dữ liệu chỉnh sửa được cập nhật, trạng thái đề tài chuyển sang **"Chờ duyệt"** chờ Admin phê duyệt.
+* **Đảm bảo tối thiểu:** Thông tin và trạng thái cũ của đề tài được giữ nguyên nếu quá trình lưu thất bại.
+* **Đảm bảo thành công:** Ghi nhận thông tin sửa đổi mới, lưu trạng thái cũ vào thuộc tính `old_status`, chuyển trạng thái đề tài thành **'Chờ duyệt'** trên Neo4j.
+* **Kích hoạt:** Giảng viên nhấn nút 'Chỉnh sửa' và nhấn nút 'Lưu thay đổi'.
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên nhấn 'Chỉnh sửa' tại đề tài tương ứng.
+  1. Giảng viên nhấn 'Chỉnh sửa' (biểu tượng bút chì) tại đề tài tương ứng.
   2. Hệ thống hiển thị form chỉnh sửa đề tài chứa dữ liệu hiện có.
   3. Giảng viên cập nhật các trường dữ liệu và nhấn 'Lưu thay đổi'.
-  4. Hệ thống kiểm tra dữ liệu và trạng thái đề tài hợp lệ.
-  5. Backend ghi nhận thông tin thay đổi vào hàng đợi yêu cầu phê duyệt (MutationRequest) liên kết với đề tài.
-  6. Hệ thống hiển thị thông báo đã gửi yêu cầu chỉnh sửa thành công.
-  *Use case chức năng “Yêu cầu sửa đề tài cá nhân (Giảng viên)” dừng lại.*
+  4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ (yêu cầu Tên đề tài, Vai trò).
+  5. Backend thực hiện cập nhật các thuộc tính mới của nút `DeTaiNghienCuu` trên Neo4j, lưu lại trạng thái trước đó (nếu là `'Đang thực hiện'` hoặc `'Hoàn thành'`) vào thuộc tính `old_status`, và đặt trạng thái hoạt động thành **'Chờ duyệt'**.
+  6. Hệ thống hiển thị thông báo đã gửi yêu cầu chỉnh sửa và đang chờ Admin phê duyệt, sau đó đóng form.
+     *(Thông tin mới sẽ chính thức có hiệu lực và đề tài trở lại trạng thái cũ sau khi Admin phê duyệt).*
+     *Use case chức năng “Yêu cầu sửa đề tài cá nhân (Giảng viên)” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  4.a. Đề tài đang ở trạng thái chờ duyệt của yêu cầu trước đó:
-    4.a.1. Hệ thống báo lỗi và không cho thực hiện chỉnh sửa.
+  1.a. Đề tài đang ở trạng thái Chờ duyệt hoặc Yêu cầu xóa:
+    1.a.1. Hệ thống vô hiệu hóa (disabled) nút Chỉnh sửa của đề tài đó.
     Use case dừng lại.
+  4.a. Giảng viên nhập thiếu thông tin bắt buộc:
+    4.a.1. Hệ thống hiển thị cảnh báo yêu cầu hoàn tất thông tin.
+    Use case quay lại bước 3.
 
 ---
 ### Bảng 3.30. Đặc tả chức năng Yêu cầu xóa đề tài cá nhân (Giảng viên)
-* **Mô tả:** Cho phép giảng viên gửi yêu cầu gỡ bỏ một đề tài nghiên cứu khoa học khỏi hồ sơ lý lịch cá nhân của mình.
+* **Mô tả:** Cho phép giảng viên xóa hoặc gửi yêu cầu xóa một đề tài nghiên cứu khoa học khỏi hồ sơ lý lịch cá nhân của mình.
 * **Actor:** Giảng viên
 * **Tiền điều kiện:** Đã đăng nhập, chọn đề tài cần xóa trong danh sách đề tài cá nhân.
-* **Hậu điều kiện:** Yêu cầu xóa đề tài được chuyển vào danh sách chờ phê duyệt của Admin.
-* **Đảm bảo tối thiểu:** Đề tài vẫn tồn tại trong hồ sơ cá nhân của giảng viên ở trạng thái cũ.
-* **Đảm bảo thành công:** Tạo MutationRequest yêu cầu xóa đề tài thành công.
-* **Kích hoạt:** Giảng viên nhấn nút Yêu cầu xóa đề tài và xác nhận.
+* **Hậu điều kiện:** Đề tài được di chuyển vào thùng rác trực tiếp (nếu ở trạng thái 'Từ chối') hoặc chuyển sang trạng thái chờ Admin duyệt xóa (nếu ở trạng thái 'Hoàn thành').
+* **Đảm bảo tối thiểu:** Đề tài vẫn tồn tại trong hồ sơ cá nhân ở trạng thái cũ nếu quá trình thực hiện thất bại.
+* **Đảm bảo thành công:** Đề tài được xóa trực tiếp vào thùng rác hoặc được đổi trạng thái thành 'Yêu cầu xóa'.
+* **Kích hoạt:** Giảng viên nhấn nút Xóa đề tài và xác nhận.
 * **Chuỗi sự kiện chính:**
   1. Giảng viên click chọn nút 'Xóa' đề tài.
-  2. Hệ thống hiển thị popup xác nhận yêu cầu xóa đề tài.
+  2. Hệ thống hiển thị popup xác nhận xóa.
   3. Giảng viên nhấn 'Xác nhận'.
-  4. Backend tạo một yêu cầu xóa (MutationRequest loại DELETE) liên kết với đề tài tương ứng.
-  5. Hệ thống báo đã gửi yêu cầu xóa đề tài thành công.
-  *Use case chức năng “Yêu cầu xóa đề tài cá nhân (Giảng viên)” dừng lại.*
+  4. Backend kiểm tra trạng thái của đề tài:
+     - Nếu trạng thái là 'Từ chối', backend thực hiện xóa mềm trực tiếp (đặt is_deleted = true, trang_thai = 'Đã vào thùng rác', old_status = 'Từ chối').
+     - Nếu trạng thái là 'Hoàn thành', backend chuyển trang_thai thành 'Yêu cầu xóa' để chờ Admin duyệt.
+  5. Hệ thống hiển thị thông báo tương ứng với kết quả xử lý.
+     *Use case chức năng “Yêu cầu xóa đề tài cá nhân (Giảng viên)” dừng lại.*
+* **Chuỗi sự kiện ngoại lệ:**
+  1.a. Đề tài ở trạng thái 'Đang thực hiện':
+    1.a.1. Nút thay đổi trạng thái và nút xóa bị vô hiệu hóa (hoặc backend chặn nếu gửi qua API).
+    Use case dừng lại.
+  1.b. Đề tài ở trạng thái 'Chờ duyệt' hoặc 'Yêu cầu xóa':
+    1.b.1. Hệ thống vô hiệu hóa (disabled) nút Xóa của đề tài đó.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.31. Đặc tả chức năng Xem danh sách thùng rác cá nhân (Giảng viên)
