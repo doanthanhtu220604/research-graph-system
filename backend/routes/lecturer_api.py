@@ -247,7 +247,7 @@ def add_my_publication():
         
         FOREACH (m IN members |
             FOREACH (_ IN CASE WHEN m.id <> creator.id THEN [1] ELSE [] END |
-                CREATE (m)-[:TAC_GIA_CHINH]->(ct)
+                CREATE (m)-[:CONG_SU]->(ct)
             )
         )
         RETURN ct {.*} as new_ct
@@ -513,7 +513,7 @@ def get_lecturer_timeline():
                 'link': ct.get('link') or '',
                 'trang_thai': ct.get('trang_thai') or 'Đang thực hiện',
                 'dong_tac_gia': dong_ta,
-                'vai_tro': 'Tác giả chính' if ct.get('vai_tro') == 'TAC_GIA_CHINH' else ('Cộng sự' if ct.get('vai_tro') in ['CONG_SU', 'LA_TAC_GIA_CUA'] else 'Tác giả'),
+                'vai_tro': 'Tác giả chính' if ct.get('vai_tro') == 'TAC_GIA_CHINH' else ('Đồng tác giả' if ct.get('vai_tro') in ['CONG_SU', 'LA_TAC_GIA_CUA'] else 'Tác giả'),
             })
 
         for dt in dt_res:

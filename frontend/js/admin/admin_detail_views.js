@@ -119,7 +119,8 @@ async function viewPublicationStats(ctId) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.8;">';
             tgnList.forEach(tgn => {
                 const role = tgn.vai_tro === 'TAC_GIA_CHINH' ? ' <span style="color:#e67e22;font-size:11px;">(Tác giả chính)</span>' : (tgn.vai_tro === 'CONG_SU' || tgn.vai_tro === 'DONG_TAC_GIA') ? ' <span style="color:#8b5cf6;font-size:11px;">(Đồng tác giả)</span>' : '';
-                html += `<li><b>${tgn.ten}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : ''}</li>`;
+                const statusLabel = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#fd7e14;font-size:11px;font-weight:600;">(Chờ duyệt)</span>' : '';
+                html += `<li><b>${tgn.ten}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : ''}${statusLabel}</li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;">Không có tác giả ngoài.</p>'; }
@@ -161,7 +162,8 @@ async function viewProjectStats(dtId) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.8;">';
             tgnList.forEach(tgn => {
                 const role = tgn.vai_tro === 'CHU_NHIEM' ? ' <span style="color:#e67e22;font-size:11px;">(Chủ nhiệm)</span>' : tgn.vai_tro === 'THAM_GIA' ? ' <span style="color:#8b5cf6;font-size:11px;">(Thành viên)</span>' : '';
-                html += `<li><b>${tgn.ten}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : ''}</li>`;
+                const statusLabel = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#fd7e14;font-size:11px;font-weight:600;">(Chờ duyệt)</span>' : '';
+                html += `<li><b>${tgn.ten}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : ''}${statusLabel}</li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;">Không có tác giả ngoài.</p>'; }

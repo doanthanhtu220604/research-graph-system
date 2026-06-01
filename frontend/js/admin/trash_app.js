@@ -253,6 +253,7 @@ async function restoreItem(type, id) {
             allTrashItems = allTrashItems.filter(i => i.id !== id);
             updateCounts();
             renderTrash();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
             // Update empty button
             const emptyBtn = document.getElementById('btnEmptyTrash');
             if (emptyBtn) emptyBtn.disabled = allTrashItems.length === 0;
@@ -278,6 +279,7 @@ async function approveRestoreItem(type, id) {
             allTrashItems = allTrashItems.filter(i => i.id !== id);
             updateCounts();
             renderTrash();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
         } else {
             showToast('Lỗi: ' + data.message, 'error');
         }
@@ -319,6 +321,9 @@ function confirmEmptyTrash() {
     document.getElementById('confirmOverlay').classList.add('active');
 }
 
+// ─────────────────────────────────────────────────────────────
+// HELPERS (moved/maintained functions)
+// ─────────────────────────────────────────────────────────────
 function closeConfirm() {
     document.getElementById('confirmOverlay').classList.remove('active');
     pendingAction = null;
@@ -327,7 +332,6 @@ function closeConfirm() {
 async function executeConfirm() {
     if (!pendingAction) return;
     
-    // Phải lưu lại thông tin trước khi gọi closeConfirm vì closeConfirm sẽ xóa sạch pendingAction
     const actionData = { ...pendingAction };
     closeConfirm();
 
@@ -348,6 +352,7 @@ async function doPermanentDelete(type, id) {
             allTrashItems = allTrashItems.filter(i => i.id !== id);
             updateCounts();
             renderTrash();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
             const emptyBtn = document.getElementById('btnEmptyTrash');
             if (emptyBtn) emptyBtn.disabled = allTrashItems.length === 0;
         } else {
@@ -371,6 +376,7 @@ async function doEmptyTrash() {
             allTrashItems = [];
             updateCounts();
             renderTrash();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
         } else {
             showToast('Lỗi: ' + data.message, 'error');
         }

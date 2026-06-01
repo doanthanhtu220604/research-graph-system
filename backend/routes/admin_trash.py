@@ -324,3 +324,52 @@ def trash_count():
         return jsonify({"status": "ok", "count": total})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_trash_bp.route("/pending/counts", methods=["GET"])
+def pending_counts():
+    conn = get_neo4j_connection()
+    try:
+        query = """
+        OPTIONAL MATCH (gv:GiangVien) 
+        WHERE gv.profile_edit_status = 'Chờ duyệt' AND coalesce(gv.is_deleted, false) = false
+        WITH count(gv) AS l_cnt
+        
+        OPTIONAL MATCH (ct:CongTrinhNghienCuu) 
+        WHERE ct.trang_thai IN ['Chờ duyệt', 'Yêu cầu xóa', 'Yêu cầu đổi trạng thái'] AND coalesce(ct.is_deleted, false) = false
+        WITH l_cnt, count(ct) AS ct_cnt
+        
+        OPTIONAL MATCH (dt:DeTaiNghienCuu) 
+        WHERE dt.trang_thai IN ['Chờ duyệt', 'Yêu cầu xóa', 'Yêu cầu đổi trạng thái'] AND coalesce(dt.is_deleted, false) = false
+        WITH l_cnt, ct_cnt, count(dt) AS dt_cnt
+        
+        OPTIONAL MATCH (tgn:TacGiaNgoai) 
+        WHERE tgn.trang_thai = 'Chờ duyệt' AND coalesce(tgn.is_deleted, false) = false
+        WITH l_cnt, ct_cnt, dt_cnt, count(tgn) AS tgn_cnt
+        
+        OPTIONAL MATCH (trash) 
+        WHERE trash.is_deleted = true AND trash.trang_thai = 'Yêu cầu khôi phục'
+        RETURN l_cnt, ct_cnt, dt_cnt, tgn_cnt, count(trash) AS trash_cnt
+        """
+        result = conn.query(query)
+        if result:
+            row = result[0]
+            return jsonify({
+                "status": "ok",
+                "lecturers": row.get("l_cnt", 0) or 0,
+                "publications": row.get("ct_cnt", 0) or 0,
+                "projects": row.get("dt_cnt", 0) or 0,
+                "external_authors": row.get("tgn_cnt", 0) or 0,
+                "trash": row.get("trash_cnt", 0) or 0
+            })
+        return jsonify({
+            "status": "ok",
+            "lecturers": 0,
+            "publications": 0,
+            "projects": 0,
+            "external_authors": 0,
+            "trash": 0
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+

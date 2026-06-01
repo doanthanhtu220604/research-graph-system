@@ -355,6 +355,18 @@ def update_profile():
                 })
             
         elif role == 'lecturer':
+            # Check if there is already a pending edit request
+            pending_check = conn.query_single("""
+                MATCH (g:GiangVien) WHERE g.id = $id
+                RETURN g.profile_edit_status AS profile_edit_status
+            """, {'id': user_id})
+            
+            if pending_check and pending_check.get('profile_edit_status') == 'Chờ duyệt':
+                return jsonify({
+                    'status': 'error', 
+                    'message': 'Hồ sơ của bạn đang có yêu cầu thay đổi thông tin chờ duyệt. Vui lòng đợi quản trị viên phê duyệt trước khi tiếp tục chỉnh sửa.'
+                }), 400
+
             dien_thoai = data.get('dien_thoai', '').strip()
             hoc_vi = data.get('hoc_vi', '').strip()
             chuc_danh = data.get('chuc_danh', '').strip()

@@ -174,8 +174,8 @@ def get_cong_trinh_detail(ct_id):
 
     tac_gia_ngoai_res = conn.query("""
         MATCH (tgn:TacGiaNgoai)-[r:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
-        WHERE ct.id = $id AND coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
-        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro
+        WHERE ct.id = $id
+        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro, coalesce(tgn.trang_thai, 'Đã duyệt') AS trang_thai
     """, {"id": ct_id})
     
     if not result or not result.get("ct"):
@@ -184,7 +184,7 @@ def get_cong_trinh_detail(ct_id):
     data = dict(result["ct"])
     data["tac_gia"] = result["tac_gia"]
     data["tac_gia_ngoai"] = [
-        {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"]} for r in tac_gia_ngoai_res
+        {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"], "trang_thai": r["trang_thai"]} for r in tac_gia_ngoai_res
     ]
     return jsonify({"status": "ok", "data": data})
 
@@ -234,8 +234,8 @@ def get_de_tai_detail(dt_id):
 
     tac_gia_ngoai_res = conn.query("""
         MATCH (tgn:TacGiaNgoai)-[r:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
-        WHERE dt.id = $id AND coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
-        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro
+        WHERE dt.id = $id
+        RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro, coalesce(tgn.trang_thai, 'Đã duyệt') AS trang_thai
     """, {"id": dt_id})
 
     if not result or not result.get("dt"):
@@ -244,7 +244,7 @@ def get_de_tai_detail(dt_id):
     data = dict(result["dt"])
     data["thanh_vien"] = result["thanh_vien"]
     data["tac_gia_ngoai"] = [
-        {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"]} for r in tac_gia_ngoai_res
+        {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"], "trang_thai": r["trang_thai"]} for r in tac_gia_ngoai_res
     ]
     return jsonify({"status": "ok", "data": data})
 

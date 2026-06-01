@@ -105,7 +105,8 @@ async function approveExternalAuthor(tgnId) {
         const data = await res.json();
         if (data.status === 'ok') {
             showToast('Duyệt tác giả ngoài thành công');
-            loadExternalAuthors();
+            await loadExternalAuthors();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
         } else {
             showToast('Lỗi: ' + data.message, 'error');
         }

@@ -113,7 +113,8 @@ async function approveLecturerProfile(id) {
         const data = await res.json();
         if (data.status === 'ok') {
             alert('Phê duyệt thành công.');
-            loadLecturers();
+            await loadLecturers();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
         } else {
             alert('Lỗi: ' + data.message);
         }
@@ -130,7 +131,8 @@ async function rejectLecturerProfile(id) {
         const data = await res.json();
         if (data.status === 'ok') {
             alert('Đã từ chối các thay đổi.');
-            loadLecturers();
+            await loadLecturers();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
         } else {
             alert('Lỗi: ' + data.message);
         }

@@ -105,6 +105,7 @@ async function approvePublication(id) {
             const mainContent = document.getElementById('mainContent');
             const scrollPos   = mainContent ? mainContent.scrollTop : 0;
             await loadPublications();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
             if (mainContent) setTimeout(() => { mainContent.scrollTop = scrollPos; }, 10);
         } else {
             alert('Lỗi: ' + data.message);
@@ -126,6 +127,7 @@ async function approveDeleteEntity(type, id) {
             const scrollPos   = mainContent ? mainContent.scrollTop : 0;
             if (type === 'cong-trinh') await loadPublications();
             else if (type === 'de-tai') await loadProjects();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
             if (mainContent) setTimeout(() => { mainContent.scrollTop = scrollPos; }, 10);
         } else {
             alert('Lỗi: ' + data.message);

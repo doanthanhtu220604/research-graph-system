@@ -1764,7 +1764,9 @@ async function viewProjectDetail(dtId) {
 
                 const dv = tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : '';
 
-                return `<li><i class="fas fa-user-friends" style="color:#e67e22;font-size:11px;margin-right:4px;"></i><b>${tgn.ten}</b>${dv}</li>`;
+                const statusLabel = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#fd7e14;font-size:11px;font-weight:600;">(Chờ duyệt)</span>' : '';
+
+                return `<li><i class="fas fa-user-friends" style="color:#e67e22;font-size:11px;margin-right:4px;"></i><b>${tgn.ten}</b>${dv}${statusLabel}</li>`;
 
               }).join('')}</ul>`
 
@@ -1904,7 +1906,7 @@ async function viewPublicationDetail(ctId) {
 
                 if (tg.vai_tro === 'TAC_GIA_CHINH') roleLabel = ' <span style="color:#4F8EF7; font-size:11px;">(Tác giả chính)</span>';
 
-                else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px;">(Cộng sự)</span>';
+                else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px;">(Đồng tác giả)</span>';
 
                 
 
@@ -1924,7 +1926,9 @@ async function viewPublicationDetail(ctId) {
 
                 const dv = tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : '';
 
-                return `<li><i class="fas fa-user-friends" style="color:#e67e22;font-size:11px;margin-right:4px;"></i><b>${tgn.ten}</b>${dv}</li>`;
+                const statusLabel = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#fd7e14;font-size:11px;font-weight:600;">(Chờ duyệt)</span>' : '';
+
+                return `<li><i class="fas fa-user-friends" style="color:#e67e22;font-size:11px;margin-right:4px;"></i><b>${tgn.ten}</b>${dv}${statusLabel}</li>`;
 
               }).join('')}</ul>`
 
@@ -2565,15 +2569,39 @@ window.openProfileModal = function(e) {
                     document.getElementById('profileFields').value = fields.join(', ');
                 }
 
+                // Reset states of inputs and buttons
+                const formInputs = document.querySelectorAll('#profileForm input');
+                const submitBtn = document.querySelector('#profileForm button[type="submit"]');
+                const avatarLabel = document.querySelector('label[for="profileAvatarInput"]');
+                
+                formInputs.forEach(input => {
+                    input.disabled = false;
+                });
+                if (submitBtn) submitBtn.style.display = 'inline-block';
+                if (avatarLabel) {
+                    avatarLabel.style.pointerEvents = 'auto';
+                    avatarLabel.style.opacity = '1';
+                }
+
                 // Show status banner if pending approval
                 const msg = document.getElementById('profileMsg');
                 if (msg) {
                     if (data.data.profile_edit_status === 'Chờ duyệt') {
-                        msg.style.background = '#fef3c7';
-                        msg.style.color = '#d97706';
-                        msg.style.border = '1px solid #fcd34d';
-                        msg.textContent = 'Thông tin chỉnh sửa đang chờ phê duyệt. Bạn có thể gửi yêu cầu chỉnh sửa mới đè lên yêu cầu cũ.';
+                        msg.style.background = '#fee2e2';
+                        msg.style.color = '#dc2626';
+                        msg.style.border = '1px solid #fca5a5';
+                        msg.textContent = 'Hồ sơ của bạn đang có yêu cầu thay đổi thông tin chờ duyệt. Vui lòng đợi quản trị viên phê duyệt trước khi tiếp tục chỉnh sửa.';
                         msg.style.display = 'block';
+
+                        // Disable inputs & submit button to prevent editing
+                        formInputs.forEach(input => {
+                            input.disabled = true;
+                        });
+                        if (submitBtn) submitBtn.style.display = 'none';
+                        if (avatarLabel) {
+                            avatarLabel.style.pointerEvents = 'none';
+                            avatarLabel.style.opacity = '0.5';
+                        }
                     } else if (data.data.profile_edit_status === 'Từ chối') {
                         msg.style.background = '#fee2e2';
                         msg.style.color = '#dc2626';
@@ -2882,13 +2910,14 @@ async function handleAddExternalAuthorSubmit(e) {
             // Tải lại danh sách tác giả ngoài
             await loadAllExternalAuthors();
             
-            // Vẽ lại danh sách checkbox và tự động check tác giả mới
+            // Vẽ lại danh sách checkbox và tự động check tác giả mới cùng các tác giả đã chọn trước đó
             const container = document.getElementById(`field_${fieldName}`);
             if (container) {
+                const checkedIds = Array.from(container.querySelectorAll('input.tgn-checkbox:checked')).map(cb => cb.value);
                 const optionsHtml = allExternalAuthors
                     .map(tgn => {
                         const statusTag = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#f39c12;font-size:10px;font-weight:600;">(Chờ duyệt)</span>' : '';
-                        const isChecked = tgn.id === data.id ? 'checked' : '';
+                        const isChecked = (checkedIds.includes(tgn.id.toString()) || tgn.id == data.id) ? 'checked' : '';
                         return `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="tgn-checkbox" name="${fieldName}" value="${tgn.id}" ${isChecked}> ${tgn.ho_va_ten} ${tgn.don_vi_cong_tac ? '('+tgn.don_vi_cong_tac+')' : ''}${statusTag}</label></div>`;
                     })
                     .join('');

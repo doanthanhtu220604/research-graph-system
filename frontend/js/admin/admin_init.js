@@ -88,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Tải badge số lượng thùng rác trên sidebar (áp dụng toàn bộ trang admin)
     updateTrashBadge();
+    updateAdminPendingBadges();
+    setInterval(updateAdminPendingBadges, 15000);
 
     // Thêm nút Back to Top
     const bttBtn = document.createElement('button');
@@ -191,3 +193,73 @@ function updateClock() {
     const dateStr = now.toLocaleDateString('vi-VN');
     clockEl.innerHTML = `<i class="far fa-clock"></i> ${timeStr} — ${dateStr}`;
 }
+
+
+// Cập nhật các badge thông báo yêu cầu cần duyệt từ giảng viên trên sidebar
+async function updateAdminPendingBadges() {
+    try {
+        const res = await fetch('/api/admin/pending/counts');
+        const data = await res.json();
+        if (data.status !== 'ok') return;
+
+        const pendingConfig = {
+            'lecturers.html': data.lecturers,
+            'external_authors.html': data.external_authors,
+            'publications.html': data.publications,
+            'projects.html': data.projects,
+            'trash.html': data.trash
+        };
+
+        Object.entries(pendingConfig).forEach(([href, count]) => {
+            const link = document.querySelector(`.sidebar .nav-menu a[href="${href}"]`);
+            if (!link) return;
+
+            let badge = link.querySelector('.pending-nav-badge');
+            
+            // Đổi màu badge số lượng tổng của Thùng rác sang màu xám để nhường màu đỏ nổi bật cho badge cần duyệt
+            if (href === 'trash.html') {
+                const existingTrashBadge = document.getElementById('trashNavBadge');
+                if (existingTrashBadge) {
+                    existingTrashBadge.style.background = '#94a3b8';
+                }
+            }
+
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'pending-nav-badge';
+                badge.style.background = '#ef4444';
+                badge.style.color = 'white';
+                badge.style.borderRadius = '10px';
+                badge.style.padding = '2px 6px';
+                badge.style.fontSize = '10px';
+                badge.style.fontWeight = '700';
+                badge.style.marginLeft = '6px';
+                badge.style.display = 'none';
+                badge.style.alignItems = 'center';
+                badge.style.gap = '3px';
+                badge.style.verticalAlign = 'middle';
+                badge.title = 'Yêu cầu cần duyệt';
+                
+                const textSpan = link.querySelector('span');
+                if (textSpan) {
+                    textSpan.appendChild(badge);
+                } else {
+                    link.appendChild(badge);
+                }
+            }
+
+            if (count > 0) {
+                badge.innerHTML = `<i class="fas fa-exclamation-circle" style="font-size: 9px;"></i>${count}`;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+    } catch (e) {
+        console.error("Error updating pending badges:", e);
+    }
+}
+
+// Expose ra toàn cục để các file JS khác có thể gọi làm mới ngay lập tức khi duyệt/xóa
+window.updateAdminPendingBadges = updateAdminPendingBadges;
+

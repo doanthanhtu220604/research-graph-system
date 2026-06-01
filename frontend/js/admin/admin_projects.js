@@ -143,6 +143,7 @@ async function approveProject(id) {
             const mainContent = document.getElementById('mainContent');
             const scrollPos   = mainContent ? mainContent.scrollTop : 0;
             await loadProjects();
+            if (window.updateAdminPendingBadges) window.updateAdminPendingBadges();
             if (mainContent) setTimeout(() => { mainContent.scrollTop = scrollPos; }, 10);
         } else {
             alert('Lỗi: ' + data.message);

@@ -15,7 +15,9 @@ def get_all_tac_gia_ngoai():
             MATCH (tgn:TacGiaNgoai)
             WHERE coalesce(tgn.is_deleted, false) = false
             RETURN tgn
-            ORDER BY tgn.ho_va_ten
+            ORDER BY CASE WHEN coalesce(tgn.trang_thai, 'Đã duyệt') = 'Chờ duyệt' THEN 0 ELSE 1 END,
+                     coalesce(tgn.created_at, 0) DESC,
+                     tgn.ho_va_ten
         """)
         data = [dict(r["tgn"]) for r in results]
         return jsonify({"status": "ok", "data": data})
