@@ -26,11 +26,15 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
     5.a.2. Người dùng nhấn vào nút "Quên mật khẩu".
     Use case chuyển đến Use case của chức năng “Quên mật khẩu”.
 * **Chuỗi sự kiện ngoại lệ:**
-  5.b. Hệ thống kiểm tra thông tin và thông tin đăng nhập không hợp lệ:
+  5.b. Hệ thống kiểm tra thông tin và thông tin đăng nhập không hợp lệ.
     5.b.1. Hệ thống yêu cầu người dùng nhập lại thông tin đăng nhập.
-    5.b.2. Tài khoản đăng nhập đã bị khóa bởi quản trị viên.
-    5.b.3. Hệ thống hiển thị thông báo lỗi 'Tài khoản của bạn đã bị khóa bởi quản trị viên'.
-    Use case quay lại bước 2.
+    5.b.2. Người dùng nhập lại thông tin đăng nhập.
+    5.b.3. Hệ thống kiểm tra thông tin và thông tin đăng nhập hợp lệ.
+    Use case tiếp tục ở bước 6.
+  5.c. Hệ thống kiểm tra thông tin và thông tin đăng nhập không hợp lệ.
+    5.c.1. Hệ thống yêu cầu người dùng nhập lại thông tin đăng nhập.
+    5.c.2. Người dùng thoát khỏi trang "Đăng nhập".
+    Use case chức năng “Đăng nhập” dừng lại.
 
 ---
 ### Bảng 3.8. Đặc tả chức năng Quên mật khẩu
@@ -82,7 +86,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.10. Đặc tả chức năng Tra cứu giảng viên
 * **Mô tả:** Cho phép người dùng phổ thông tìm kiếm thông tin của các giảng viên trong khoa theo tên, bộ môn hoặc hướng nghiên cứu.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Thiết bị kết nối Internet, truy cập vào trang chủ hoặc mục Tra cứu.
 * **Hậu điều kiện:** Hệ thống hiển thị danh sách giảng viên khớp với từ khóa tìm kiếm.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -93,18 +97,18 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   2. Hệ thống hiển thị ô tìm kiếm và danh mục bộ lọc giảng viên.
   3. Người dùng nhập từ khóa tìm kiếm (Ví dụ: tên giảng viên hoặc hướng nghiên cứu).
   4. Người dùng nhấn nút 'Tìm kiếm' hoặc phím Enter.
-  5. Hệ thống gửi yêu cầu tìm kiếm đến API backend.
-  6. Backend thực hiện truy vấn Neo4j tìm các nút GiangVien khớp từ khóa và hệ thống hiển thị danh sách kết quả.
+  5. Backend thực hiện truy vấn Neo4j tìm các nút GiangVien khớp từ khóa.
+  6. Hệ thống hiển thị danh sách kết quả giảng viên.
   *Use case chức năng “Tra cứu giảng viên” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  6.a. Hệ thống kiểm tra và không tìm thấy giảng viên nào phù hợp:
-    6.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy giảng viên nào phù hợp' và gợi ý người dùng đổi từ khóa.
+  5.a. Hệ thống kiểm tra và không tìm thấy giảng viên nào phù hợp:
+    5.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy giảng viên nào phù hợp' và gợi ý người dùng đổi từ khóa.
     Use case quay lại bước 3.
 
 ---
 ### Bảng 3.11. Đặc tả chức năng Xem chi tiết giảng viên
 * **Mô tả:** Cho phép người dùng xem hồ sơ học thuật chi tiết của một giảng viên bao gồm thông tin liên hệ, hướng nghiên cứu, công trình khoa học, đề tài và đồ thị liên kết cá nhân.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Hệ thống đã hiển thị danh sách giảng viên hoặc kết quả tìm kiếm.
 * **Hậu điều kiện:** Hồ sơ lý lịch khoa học đầy đủ của giảng viên được hiển thị.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -124,7 +128,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.12. Đặc tả chức năng Tra cứu công trình khoa học
 * **Mô tả:** Cho phép người dùng tra cứu các bài báo, bài viết khoa học trong cơ sở dữ liệu theo tên, năm công bố hoặc tác giả.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Truy cập mục Tra cứu công trình khoa học.
 * **Hậu điều kiện:** Hiển thị danh sách bài báo khoa học phù hợp.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -139,14 +143,14 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   6. Hệ thống hiển thị danh sách bài báo khớp tiêu chí tìm kiếm.
   *Use case chức năng “Tra cứu công trình khoa học” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  6.a. Hệ thống kiểm tra và không tìm thấy công trình khoa học nào phù hợp:
-    6.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy công trình khoa học nào phù hợp'.
+  5.a. Hệ thống kiểm tra và không tìm thấy công trình khoa học nào phù hợp:
+    5.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy công trình khoa học nào phù hợp'.
     Use case quay lại bước 3.
 
 ---
 ### Bảng 3.13. Đặc tả chức năng Xem chi tiết công trình
 * **Mô tả:** Hiển thị chi tiết một công trình khoa học, bao gồm tiêu đề, tóm tắt, nơi công bố, danh sách đồng tác giả và link bài gốc.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Đang ở danh sách công trình hoặc trang liên quan.
 * **Hậu điều kiện:** Thông tin chi tiết công trình được hiển thị trực quan.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -165,30 +169,30 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 
 ---
 ### Bảng 3.14. Đặc tả chức năng Tra cứu đề tài nghiên cứu
-* **Mô tả:** Cho phép người dùng tra cứu các đề tài khoa học theo tên, cấp quản lý hoặc năm thực hiện.
-* **Actor:** Người dùng phổ thông
+* **Mô tả:** Cho phép người dùng tra cứu các đề tài khoa học theo tên, cấp đề tài hoặc năm thực hiện.
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Truy cập mục Đề tài nghiên cứu.
 * **Hậu điều kiện:** Danh sách đề tài nghiên cứu khớp với từ khóa được hiển thị.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
-* **Đảm bảo thành công:** Hiển thị chính xác tên đề tài, cấp quản lý, chủ nhiệm và năm thực hiện.
+* **Đảm bảo thành công:** Hiển thị chính xác tên đề tài, cấp đề tài, chủ nhiệm và năm thực hiện.
 * **Kích hoạt:** Người dùng nhập từ khóa và nhấn nút Tìm kiếm ở mục Đề tài.
 * **Chuỗi sự kiện chính:**
   1. Người dùng chọn mục tra cứu Đề tài.
-  2. Hệ thống hiển thị ô nhập từ khóa và bộ lọc cấp quản lý.
+  2. Hệ thống hiển thị ô nhập từ khóa và bộ lọc cấp đề tài.
   3. Người dùng nhập từ khóa (Ví dụ: 'cấp cơ sở', 'cấp tỉnh').
   4. Người dùng nhấn nút 'Tìm kiếm'.
   5. Backend truy vấn CSDL Neo4j tìm kiếm nút DeTaiNghienCuu phù hợp.
   6. Hệ thống hiển thị danh sách các đề tài khoa học tìm được.
   *Use case chức năng “Tra cứu đề tài nghiên cứu” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  6.a. Hệ thống kiểm tra và không tìm thấy đề tài nào phù hợp:
-    6.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy đề tài phù hợp' và gợi ý từ khóa khác.
+  5.a. Hệ thống kiểm tra và không tìm thấy đề tài nào phù hợp:
+    5.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy đề tài phù hợp' và gợi ý từ khóa khác.
     Use case quay lại bước 3.
 
 ---
 ### Bảng 3.15. Đặc tả chức năng Xem chi tiết đề tài
-* **Mô tả:** Cho phép xem thông tin chi tiết đề tài nghiên cứu gồm tên, kinh phí, thời gian thực hiện, cấp quản lý, chủ nhiệm đề tài và các thành viên.
-* **Actor:** Người dùng phổ thông
+* **Mô tả:** Cho phép xem thông tin chi tiết đề tài nghiên cứu gồm tên đề tài, thời gian thực hiện, cấp đề tài, tóm tắt, chủ nhiệm đề tài và các thành viên tham gia.
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Đang xem danh sách đề tài.
 * **Hậu điều kiện:** Hiển thị đầy đủ thông tin chi tiết của đề tài được chọn.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -208,7 +212,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.16. Đặc tả chức năng Hỏi đáp qua Chatbot GraphRAG
 * **Mô tả:** Cho phép người dùng gửi câu hỏi tự nhiên bằng tiếng Việt và nhận câu trả lời chính xác trích xuất từ đồ thị tri thức thông qua LLM Gemini.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Khung chat GraphRAG Chatbot được mở.
 * **Hậu điều kiện:** Nhận được phản hồi ngôn ngữ tự nhiên chính xác kèm trích dẫn dữ liệu.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -236,14 +240,14 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.17. Đặc tả chức năng Xem bản đồ tri thức tương tác
 * **Mô tả:** Cho phép người dùng tương tác trực tiếp với giao diện mạng lưới đồ thị tri thức khoa học gồm các nút và các mối quan hệ liên kết.
-* **Actor:** Người dùng phổ thông
-* **Tiền điều kiện:** Người dùng chọn menu 'Bản đồ tri thức'.
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
+* **Tiền điều kiện:** Thiết bị kết nối Internet, người dùng chọn mục 'Khám phá'.
 * **Hậu điều kiện:** Render đồ thị tương tác Vis.js trên màn hình.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
 * **Đảm bảo thành công:** Đồ thị mạng lưới hiển thị đầy đủ các nút thực thể và cho phép người dùng kéo thả, phóng to, thu nhỏ và chọn nút xem thông tin.
-* **Kích hoạt:** Người dùng nhấn chọn 'Bản đồ tri thức' trên thanh menu chính.
+* **Kích hoạt:** Người dùng nhấn chọn 'Khám phá' trên thanh menu chính.
 * **Chuỗi sự kiện chính:**
-  1. Người dùng nhấn chọn mục 'Bản đồ tri thức'.
+  1. Người dùng nhấn chọn mục 'Khám phá'.
   2. Hệ thống gọi API lấy cấu trúc đồ thị hiện tại (nút và quan hệ).
   3. Backend truy vấn Neo4j lấy danh sách nút/cạnh giới hạn để tối ưu hiệu năng.
   4. Hệ thống render đồ thị dạng mạng lưới lên màn hình bằng thư viện Vis.js.
@@ -257,7 +261,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.18. Đặc tả chức năng Dịch thuật nội dung
 * **Mô tả:** Cho phép người dùng dịch nhanh phần tóm tắt công trình nghiên cứu hoặc đề tài từ tiếng Việt sang tiếng Anh và ngược lại.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Đang xem trang chi tiết công trình khoa học hoặc đề tài nghiên cứu.
 * **Hậu điều kiện:** Nội dung tóm tắt được dịch sang ngôn ngữ lựa chọn và hiển thị ngay trên giao diện.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -276,7 +280,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.19. Đặc tả chức năng Xem thống kê hệ thống
 * **Mô tả:** Cho phép người dùng xem các biểu đồ phân tích thống kê dữ liệu khoa học của khoa dưới dạng trực quan.
-* **Actor:** Người dùng phổ thông
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
 * **Tiền điều kiện:** Người dùng truy cập trang 'Thống kê'.
 * **Hậu điều kiện:** Các biểu đồ thống kê Chart.js hiển thị đầy đủ.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
@@ -295,14 +299,14 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 ### Bảng 3.20. Đặc tả chức năng Xem mạng lưới hợp tác
 * **Mô tả:** Cho phép người dùng xem biểu đồ mạng lưới đồng tác giả giữa các giảng viên trong khoa Công nghệ thông tin.
-* **Actor:** Người dùng phổ thông
-* **Tiền điều kiện:** Thiết bị kết nối Internet, người dùng chọn mục 'Mạng lưới hợp tác'.
+* **Actor:** Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)
+* **Tiền điều kiện:** Thiết bị kết nối Internet, người dùng chọn mục 'Hợp tác'.
 * **Hậu điều kiện:** Render đồ thị Vis.js biểu diễn các giảng viên kết nối với nhau qua các công trình chung.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
 * **Đảm bảo thành công:** Render chính xác mạng lưới hợp tác, các cạnh thể hiện số lượng công trình chung, hiển thị bảng xếp hạng Degree Centrality.
-* **Kích hoạt:** Người dùng nhấn mục 'Mạng lưới hợp tác'.
+* **Kích hoạt:** Người dùng nhấn mục 'Hợp tác'.
 * **Chuỗi sự kiện chính:**
-  1. Người dùng chọn menu 'Mạng lưới hợp tác'.
+  1. Người dùng chọn menu 'Hợp tác'.
   2. Hệ thống gọi API lấy dữ liệu liên kết đồng tác giả.
   3. Backend truy vấn Neo4j lấy danh sách giảng viên có quan hệ đồng tác giả thông qua các nút CongTrinhNghienCuu.
   4. Backend tính toán các chỉ số Centrality (Độ trung tâm kết nối) của từng giảng viên.
@@ -365,13 +369,13 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ### Bảng 3.23. Đặc tả chức năng Xem danh sách công trình cá nhân (Giảng viên)
 * **Mô tả:** Cho phép giảng viên xem toàn bộ danh sách các bài báo khoa học cá nhân kèm theo trạng thái phê duyệt (Đã duyệt, Chờ duyệt, Từ chối).
 * **Actor:** Giảng viên
-* **Tiền điều kiện:** Giảng viên đã đăng nhập và chọn mục Công trình cá nhân.
+* **Tiền điều kiện:** Giảng viên đã đăng nhập và chọn mục 'Công trình của tôi'.
 * **Hậu điều kiện:** Danh sách công trình của giảng viên được liệt kê đầy đủ.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
 * **Đảm bảo thành công:** Hiển thị đúng danh sách các bài báo liên kết với giảng viên kèm theo cờ trạng thái phê duyệt thực tế.
-* **Kích hoạt:** Giảng viên nhấn vào mục 'Công trình khoa học cá nhân' trên thanh menu quản trị lý lịch.
+* **Kích hoạt:** Giảng viên nhấn chọn mục 'Công trình của tôi' trên menu quản trị lý lịch.
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên truy cập mục quản lý công trình cá nhân.
+  1. Giảng viên truy cập mục 'Công trình của tôi'.
   2. Hệ thống gửi yêu cầu lấy danh sách công trình cá nhân kèm token xác thực.
   3. Backend thực hiện truy vấn các nút CongTrinhNghienCuu liên kết với nút GiangVien hiện tại.
   4. Hệ thống hiển thị danh sách các công trình kèm bộ lọc trạng thái lên màn hình.
@@ -445,13 +449,13 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ### Bảng 3.27. Đặc tả chức năng Xem danh sách đề tài cá nhân (Giảng viên)
 * **Mô tả:** Cho phép giảng viên xem danh mục các đề tài nghiên cứu khoa học mình làm chủ nhiệm hoặc thành viên tham gia kèm theo trạng thái phê duyệt.
 * **Actor:** Giảng viên
-* **Tiền điều kiện:** Giảng viên đăng nhập và truy cập mục Đề tài cá nhân.
+* **Tiền điều kiện:** Giảng viên đã đăng nhập và truy cập mục 'Đề tài của tôi'.
 * **Hậu điều kiện:** Hiển thị danh sách đề tài nghiên cứu cá nhân.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
-* **Đảm bảo thành công:** Thông tin đề tài hiển thị chính xác gồm tên đề tài, vai trò, cấp quản lý, kinh phí và trạng thái duyệt.
-* **Kích hoạt:** Giảng viên chọn mục 'Đề tài cá nhân' trên menu điều hướng.
+* **Đảm bảo thành công:** Thông tin đề tài hiển thị chính xác gồm tên đề tài, vai trò, cấp đề tài, thời gian thực hiện và trạng thái duyệt.
+* **Kích hoạt:** Giảng viên chọn mục 'Đề tài của tôi' trên menu điều hướng.
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên chọn mục quản lý đề tài cá nhân.
+  1. Giảng viên chọn mục 'Đề tài của tôi'.
   2. Hệ thống gửi yêu cầu lấy danh sách đề tài của giảng viên kèm token.
   3. Backend thực hiện truy vấn các nút DeTaiNghienCuu liên kết với nút GiangVien hiện tại.
   4. Hệ thống hiển thị danh sách đề tài kèm vai trò (Chủ nhiệm/Thành viên) lên màn hình.
@@ -468,7 +472,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Kích hoạt:** Giảng viên điền thông tin đề tài mới và nhấn nút Gửi phê duyệt.
 * **Chuỗi sự kiện chính:**
   1. Giảng viên chọn 'Thêm đề tài mới'.
-  2. Hệ thống hiển thị form nhập liệu đề tài (Tên đề tài, cấp quản lý, thời gian thực hiện, vai trò, kinh phí, tóm tắt).
+  2. Hệ thống hiển thị form nhập liệu đề tài (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, vai trò, tóm tắt).
   3. Giảng viên điền thông tin và nhấn 'Gửi yêu cầu'.
   4. Hệ thống kiểm tra dữ liệu đầu vào hợp lệ.
   5. Backend tạo nút DeTaiNghienCuu mới trạng thái 'Chờ duyệt', thiết lập mối quan hệ tương ứng và tạo MutationRequest phê duyệt.
@@ -522,13 +526,13 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ### Bảng 3.31. Đặc tả chức năng Xem danh sách thùng rác cá nhân (Giảng viên)
 * **Mô tả:** Cho phép giảng viên xem lại danh sách các bài báo, công trình khoa học hoặc đề tài cá nhân đã bị xóa mềm (is_deleted = true).
 * **Actor:** Giảng viên
-* **Tiền điều kiện:** Giảng viên đăng nhập thành công và click chọn mục Thùng rác cá nhân.
+* **Tiền điều kiện:** Giảng viên đã đăng nhập và click chọn mục 'Thùng rác'.
 * **Hậu điều kiện:** Danh sách các thực thể cá nhân đã bị xóa mềm được hiển thị.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
 * **Đảm bảo thành công:** Hiển thị đúng các thực thể bị xóa kèm thông tin thời gian xóa và lý do.
-* **Kích hoạt:** Giảng viên chọn mục 'Thùng rác cá nhân' trên menu.
+* **Kích hoạt:** Giảng viên chọn mục 'Thùng rác' trên menu.
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên truy cập mục Thùng rác cá nhân.
+  1. Giảng viên truy cập mục 'Thùng rác'.
   2. Hệ thống gửi yêu cầu lấy danh sách các thực thể bị xóa của giảng viên hiện tại.
   3. Backend truy vấn Neo4j tìm các nút CongTrinhNghienCuu hoặc DeTaiNghienCuu liên kết với GiangVien có thuộc tính is_deleted = true.
   4. Hệ thống hiển thị danh sách các thực thể đã xóa mềm lên giao diện.
@@ -579,9 +583,9 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Hậu điều kiện:** Hiển thị dòng thời gian (Timeline) các năm xuất bản bài báo và thực hiện đề tài.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
 * **Đảm bảo thành công:** Dòng thời gian hiển thị chính xác các sự kiện khoa học sắp xếp theo thứ tự thời gian năm giảm dần.
-* **Kích hoạt:** Giảng viên nhấn chọn mục 'Dòng thời gian khoa học'.
+* **Kích hoạt:** Giảng viên nhấn chọn mục 'Dòng thời gian' trên menu.
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên chọn mục 'Dòng thời gian khoa học'.
+  1. Giảng viên chọn mục 'Dòng thời gian'.
   2. Hệ thống gọi API lấy danh sách hoạt động khoa học theo năm của giảng viên.
   3. Backend truy vấn các nút CongTrinhNghienCuu (năm xuất bản) và DeTaiNghienCuu (năm thực hiện) liên kết với giảng viên.
   4. Backend sắp xếp và nhóm dữ liệu theo từng năm.
@@ -801,11 +805,11 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Tiền điều kiện:** Admin ở giao diện Thêm bộ môn mới.
 * **Hậu điều kiện:** Nút BoMon mới được tạo thành công trong cơ sở dữ liệu.
 * **Đảm bảo tối thiểu:** Thực thể bộ môn mới không được tạo; cơ sở dữ liệu Neo4j giữ nguyên.
-* **Đảm bảo thành công:** Nút bộ môn mới được khởi tạo và ghi nhận đầy đủ thuộc tính tên, mô tả.
+* **Đảm bảo thành công:** Nút bộ môn mới được khởi tạo và ghi nhận đầy đủ thuộc tính tên bộ môn.
 * **Kích hoạt:** Admin nhập tên bộ môn mới và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin nhấn nút 'Thêm bộ môn'.
-  2. Hệ thống hiển thị form nhập thông tin (Tên bộ môn, mô tả).
+  2. Hệ thống hiển thị form nhập thông tin (Tên bộ môn).
   3. Admin điền thông tin và nhấn nút 'Lưu bộ môn'.
   4. Backend kiểm tra tính duy nhất của tên bộ môn trên Neo4j.
   5. Backend thực hiện tạo nút BoMon mới trên Neo4j.
@@ -818,18 +822,18 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 
 ---
 ### Bảng 3.47. Đặc tả chức năng Sửa thông tin bộ môn (Quản trị viên)
-* **Mô tả:** Cho phép Admin cập nhật tên, mô tả hoặc thay đổi giảng viên làm trưởng bộ môn.
+* **Mô tả:** Cho phép Admin cập nhật lại tên của một bộ môn trong khoa.
 * **Actor:** Quản trị viên
 * **Tiền điều kiện:** Admin chọn bộ môn cần chỉnh sửa trong danh sách bộ môn.
 * **Hậu điều kiện:** Thông tin bộ môn được cập nhật mới trên Neo4j.
 * **Đảm bảo tối thiểu:** Thông tin bộ môn được giữ nguyên trạng thái cũ; thay đổi chưa được cập nhật.
-* **Đảm bảo thành công:** Cập nhật thành công thông tin bộ môn và thiết lập lại mối quan hệ TRUONG_BO_MON với giảng viên mới.
+* **Đảm bảo thành công:** Cập nhật thành công tên bộ môn trên Neo4j.
 * **Kích hoạt:** Admin thay đổi thông tin bộ môn và nhấn nút Cập nhật bộ môn.
 * **Chuỗi sự kiện chính:**
   1. Admin nhấn nút 'Sửa' tại bộ môn cần cập nhật.
-  2. Hệ thống hiển thị form thông tin bộ môn và danh sách giảng viên để chọn làm Trưởng bộ môn.
-  3. Admin cập nhật tên, mô tả hoặc chọn Trưởng bộ môn mới và nhấn 'Lưu thay đổi'.
-  4. Backend cập nhật thuộc tính nút BoMon và thay đổi mối quan hệ TRUONG_BO_MON trên Neo4j.
+  2. Hệ thống hiển thị form thông tin bộ môn chứa dữ liệu hiện có.
+  3. Admin cập nhật tên bộ môn và nhấn 'Lưu thay đổi'.
+  4. Backend cập nhật thuộc tính ten_bo_mon của nút BoMon trên Neo4j.
   5. Hệ thống báo cập nhật thành công.
   *Use case chức năng “Sửa thông tin bộ môn (Quản trị viên)” dừng lại.*
 
@@ -843,16 +847,11 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Đảm bảo thành công:** Bộ môn được xóa mềm thành công và chuyển vào thùng rác.
 * **Kích hoạt:** Admin nhấn nút Xóa bộ môn và xác nhận.
 * **Chuỗi sự kiện chính:**
-  1. Admin nhấn 'Xóa' bộ môn.
-  2. Backend kiểm tra xem có giảng viên nào đang liên kết qua mối quan hệ THUOC_BO_MON với bộ môn này hay không.
-  3. Hệ thống hiển thị popup xác nhận xóa bộ môn.
-  4. Admin nhấn nút 'Xác nhận', backend gán thuộc tính is_deleted = true trên nút BoMon.
-  5. Hệ thống thông báo xóa bộ môn thành công.
+  1. Admin click chọn biểu tượng 'Xóa' bộ môn.
+  2. Hệ thống hiển thị popup xác nhận xóa bộ môn.
+  3. Admin nhấn nút 'Xác nhận', backend gán thuộc tính is_deleted = true trên nút BoMon.
+  4. Hệ thống thông báo xóa bộ môn thành công và cập nhật lại danh sách hiển thị.
   *Use case chức năng “Xóa bộ môn (Quản trị viên)” dừng lại.*
-* **Chuỗi sự kiện ngoại lệ:**
-  2.a. Vẫn còn giảng viên trực thuộc bộ môn này:
-    2.a.1. Hệ thống hiển thị thông báo lỗi 'Không thể xóa bộ môn do còn giảng viên trực thuộc. Vui lòng chuyển bộ môn cho các giảng viên trước'.
-    Use case dừng lại.
 
 ---
 ### Bảng 3.49. Đặc tả chức năng Xem danh sách tác giả ngoài (Quản trị viên)
@@ -1026,7 +1025,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Tiền điều kiện:** Admin đăng nhập thành công, chọn mục Quản lý đề tài khoa học.
 * **Hậu điều kiện:** Bảng danh sách đề tài nghiên cứu khoa học hiển thị đầy đủ.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
-* **Đảm bảo thành công:** Hiển thị chính xác tên đề tài, cấp quản lý, chủ nhiệm đề tài và thời gian thực hiện.
+* **Đảm bảo thành công:** Hiển thị chính xác tên đề tài, cấp đề tài, chủ nhiệm đề tài và thời gian thực hiện.
 * **Kích hoạt:** Admin chọn mục 'Quản lý đề tài nghiên cứu' trên Dashboard.
 * **Chuỗi sự kiện chính:**
   1. Admin chọn mục 'Quản lý đề tài nghiên cứu'.
@@ -1046,7 +1045,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Kích hoạt:** Admin điền thông tin đề tài và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin chọn 'Thêm đề tài'.
-  2. Hệ thống hiển thị form nhập thông tin (Tên đề tài, cấp quản lý, thời gian thực hiện, kinh phí, chủ nhiệm đề tài, thành viên tham gia, tóm tắt).
+  2. Hệ thống hiển thị form nhập thông tin (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, chủ nhiệm đề tài, thành viên tham gia, tóm tắt).
   3. Admin điền thông tin và nhấn 'Lưu đề tài'.
   4. Hệ thống kiểm tra tính hợp lệ của thông tin nhập vào.
   5. Backend tạo nút DeTaiNghienCuu (trang_thai = 'Đã duyệt') và thiết lập mối quan hệ chủ nhiệm/thành viên.
@@ -1124,7 +1123,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Chuỗi sự kiện chính:**
   1. Admin click chọn mục 'Quản lý lĩnh vực nghiên cứu'.
   2. Hệ thống gửi yêu cầu lấy danh sách lĩnh vực.
-  3. Backend truy vấn Neo4j lấy danh sách tất cả các nút HuongNghienCuu.
+  3. Backend truy vấn Neo4j lấy danh sách tất cả các nút LinhVucNghienCuu.
   4. Hệ thống hiển thị danh sách lĩnh vực lên màn hình quản trị.
   *Use case chức năng “Xem danh sách lĩnh vực nghiên cứu (Quản trị viên)” dừng lại.*
 
@@ -1133,7 +1132,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Mô tả:** Cho phép Admin tạo mới một nút thực thể lĩnh vực nghiên cứu khoa học.
 * **Actor:** Quản trị viên
 * **Tiền điều kiện:** Admin ở giao diện Thêm lĩnh vực nghiên cứu mới.
-* **Hậu điều kiện:** Nút HuongNghienCuu mới được tạo thành công trong cơ sở dữ liệu.
+* **Hậu điều kiện:** Nút LinhVucNghienCuu mới được tạo thành công trong cơ sở dữ liệu.
 * **Đảm bảo tối thiểu:** Lĩnh vực mới không được tạo; cơ sở dữ liệu Neo4j giữ nguyên.
 * **Đảm bảo thành công:** Nút lĩnh vực mới được khởi tạo và ghi nhận đầy đủ thuộc tính tên.
 * **Kích hoạt:** Admin nhập tên lĩnh vực mới và nhấn nút Lưu.
@@ -1142,7 +1141,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   2. Hệ thống hiển thị form nhập thông tin (Tên lĩnh vực nghiên cứu).
   3. Admin điền thông tin và nhấn nút 'Lưu lĩnh vực'.
   4. Backend kiểm tra tính duy nhất của tên lĩnh vực.
-  5. Backend thực hiện tạo nút HuongNghienCuu mới trên Neo4j.
+  5. Backend thực hiện tạo nút LinhVucNghienCuu mới trên Neo4j.
   6. Hệ thống thông báo thêm lĩnh vực thành công.
   *Use case chức năng “Thêm mới lĩnh vực nghiên cứu (Quản trị viên)” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
@@ -1152,7 +1151,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 
 ---
 ### Bảng 3.65. Đặc tả chức năng Sửa lĩnh vực nghiên cứu (Quản trị viên)
-* **Mô tả:** Cho phép Admin chỉnh sửa tên hoặc cập nhật mô tả của một lĩnh vực nghiên cứu.
+* **Mô tả:** Cho phép Admin chỉnh sửa tên của một lĩnh vực nghiên cứu.
 * **Actor:** Quản trị viên
 * **Tiền điều kiện:** Admin chọn lĩnh vực nghiên cứu cần chỉnh sửa trong danh sách.
 * **Hậu điều kiện:** Thông tin lĩnh vực nghiên cứu được cập nhật mới trên Neo4j.
@@ -1163,7 +1162,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   1. Admin nhấn nút 'Sửa' tại lĩnh vực nghiên cứu tương ứng.
   2. Hệ thống hiển thị form chứa tên hiện tại của lĩnh vực.
   3. Admin cập nhật tên và nhấn 'Lưu thay đổi'.
-  4. Backend cập nhật thuộc tính tên của nút HuongNghienCuu tương ứng trên Neo4j.
+  4. Backend cập nhật thuộc tính tên của nút LinhVucNghienCuu tương ứng trên Neo4j.
   5. Hệ thống báo cập nhật thành công.
   *Use case chức năng “Sửa lĩnh vực nghiên cứu (Quản trị viên)” dừng lại.*
 
@@ -1179,7 +1178,7 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Chuỗi sự kiện chính:**
   1. Admin nhấn 'Xóa' lĩnh vực.
   2. Hệ thống hiển thị popup xác nhận xóa lĩnh vực nghiên cứu.
-  3. Admin xác nhận, backend gán thuộc tính is_deleted = true trên nút HuongNghienCuu.
+  3. Admin xác nhận, backend gán thuộc tính is_deleted = true trên nút LinhVucNghienCuu.
   4. Hệ thống thông báo xóa lĩnh vực thành công.
   *Use case chức năng “Xóa lĩnh vực nghiên cứu (Quản trị viên)” dừng lại.*
 

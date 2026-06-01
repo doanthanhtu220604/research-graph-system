@@ -27,11 +27,15 @@ use_cases = [
             "  Use case chuyển đến Use case của chức năng “Quên mật khẩu”."
         ],
         "exc_flow": [
-            "5.b. Hệ thống kiểm tra thông tin và thông tin đăng nhập không hợp lệ:",
+            "5.b. Hệ thống kiểm tra thông tin và thông tin đăng nhập không hợp lệ.",
             "  5.b.1. Hệ thống yêu cầu người dùng nhập lại thông tin đăng nhập.",
-            "  5.b.2. Tài khoản đăng nhập đã bị khóa bởi quản trị viên.",
-            "  5.b.3. Hệ thống hiển thị thông báo lỗi 'Tài khoản của bạn đã bị khóa bởi quản trị viên'.",
-            "  Use case quay lại bước 2."
+            "  5.b.2. Người dùng nhập lại thông tin đăng nhập.",
+            "  5.b.3. Hệ thống kiểm tra thông tin và thông tin đăng nhập hợp lệ.",
+            "  Use case tiếp tục ở bước 6.",
+            "5.c. Hệ thống kiểm tra thông tin và thông tin đăng nhập không hợp lệ.",
+            "  5.c.1. Hệ thống yêu cầu người dùng nhập lại thông tin đăng nhập.",
+            "  5.c.2. Người dùng thoát khỏi trang \"Đăng nhập\".",
+            "  Use case chức năng “Đăng nhập” dừng lại."
         ]
     },
     {
@@ -90,7 +94,7 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Tra cứu giảng viên",
         "desc": "Cho phép người dùng phổ thông tìm kiếm thông tin của các giảng viên trong khoa theo tên, bộ môn hoặc hướng nghiên cứu.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Thiết bị kết nối Internet, truy cập vào trang chủ hoặc mục Tra cứu.",
         "post": "Hệ thống hiển thị danh sách giảng viên khớp với từ khóa tìm kiếm.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -101,20 +105,20 @@ use_cases = [
             "Hệ thống hiển thị ô tìm kiếm và danh mục bộ lọc giảng viên.",
             "Người dùng nhập từ khóa tìm kiếm (Ví dụ: tên giảng viên hoặc hướng nghiên cứu).",
             "Người dùng nhấn nút 'Tìm kiếm' hoặc phím Enter.",
-            "Hệ thống gửi yêu cầu tìm kiếm đến API backend.",
-            "Backend thực hiện truy vấn Neo4j tìm các nút GiangVien khớp từ khóa và hệ thống hiển thị danh sách kết quả."
+            "Backend thực hiện truy vấn Neo4j tìm các nút GiangVien khớp từ khóa.",
+            "Hệ thống hiển thị danh sách kết quả giảng viên."
         ],
         "alt_flow": [],
         "exc_flow": [
-            "6.a. Hệ thống kiểm tra và không tìm thấy giảng viên nào phù hợp:",
-            "  6.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy giảng viên nào phù hợp' và gợi ý người dùng đổi từ khóa.",
+            "5.a. Hệ thống kiểm tra và không tìm thấy giảng viên nào phù hợp:",
+            "  5.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy giảng viên nào phù hợp' và gợi ý người dùng đổi từ khóa.",
             "  Use case quay lại bước 3."
         ]
     },
     {
         "title": "Đặc tả chức năng Xem chi tiết giảng viên",
         "desc": "Cho phép người dùng xem hồ sơ học thuật chi tiết của một giảng viên bao gồm thông tin liên hệ, hướng nghiên cứu, công trình khoa học, đề tài và đồ thị liên kết cá nhân.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Hệ thống đã hiển thị danh sách giảng viên hoặc kết quả tìm kiếm.",
         "post": "Hồ sơ lý lịch khoa học đầy đủ của giảng viên được hiển thị.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -136,7 +140,7 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Tra cứu công trình khoa học",
         "desc": "Cho phép người dùng tra cứu các bài báo, bài viết khoa học trong cơ sở dữ liệu theo tên, năm công bố hoặc tác giả.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Truy cập mục Tra cứu công trình khoa học.",
         "post": "Hiển thị danh sách bài báo khoa học phù hợp.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -152,15 +156,15 @@ use_cases = [
         ],
         "alt_flow": [],
         "exc_flow": [
-            "6.a. Hệ thống kiểm tra và không tìm thấy công trình khoa học nào phù hợp:",
-            "  6.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy công trình khoa học nào phù hợp'.",
+            "5.a. Hệ thống kiểm tra và không tìm thấy công trình khoa học nào phù hợp:",
+            "  5.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy công trình khoa học nào phù hợp'.",
             "  Use case quay lại bước 3."
         ]
     },
     {
         "title": "Đặc tả chức năng Xem chi tiết công trình",
         "desc": "Hiển thị chi tiết một công trình khoa học, bao gồm tiêu đề, tóm tắt, nơi công bố, danh sách đồng tác giả và link bài gốc.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Đang ở danh sách công trình hoặc trang liên quan.",
         "post": "Thông tin chi tiết công trình được hiển thị trực quan.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -181,16 +185,16 @@ use_cases = [
     },
     {
         "title": "Đặc tả chức năng Tra cứu đề tài nghiên cứu",
-        "desc": "Cho phép người dùng tra cứu các đề tài khoa học theo tên, cấp quản lý hoặc năm thực hiện.",
-        "actor": "Người dùng phổ thông",
+        "desc": "Cho phép người dùng tra cứu các đề tài khoa học theo tên, cấp đề tài hoặc năm thực hiện.",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Truy cập mục Đề tài nghiên cứu.",
         "post": "Danh sách đề tài nghiên cứu khớp với từ khóa được hiển thị.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
-        "success_guar": "Hiển thị chính xác tên đề tài, cấp quản lý, chủ nhiệm và năm thực hiện.",
+        "success_guar": "Hiển thị chính xác tên đề tài, cấp đề tài, chủ nhiệm và năm thực hiện.",
         "trigger": "Người dùng nhập từ khóa và nhấn nút Tìm kiếm ở mục Đề tài.",
         "main_flow": [
             "Người dùng chọn mục tra cứu Đề tài.",
-            "Hệ thống hiển thị ô nhập từ khóa và bộ lọc cấp quản lý.",
+            "Hệ thống hiển thị ô nhập từ khóa và bộ lọc cấp đề tài.",
             "Người dùng nhập từ khóa (Ví dụ: 'cấp cơ sở', 'cấp tỉnh').",
             "Người dùng nhấn nút 'Tìm kiếm'.",
             "Backend truy vấn CSDL Neo4j tìm kiếm nút DeTaiNghienCuu phù hợp.",
@@ -198,15 +202,15 @@ use_cases = [
         ],
         "alt_flow": [],
         "exc_flow": [
-            "6.a. Hệ thống kiểm tra và không tìm thấy đề tài nào phù hợp:",
-            "  6.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy đề tài phù hợp' và gợi ý từ khóa khác.",
+            "5.a. Hệ thống kiểm tra và không tìm thấy đề tài nào phù hợp:",
+            "  5.a.1. Hệ thống hiển thị thông báo 'Không tìm thấy đề tài phù hợp' và gợi ý từ khóa khác.",
             "  Use case quay lại bước 3."
         ]
     },
     {
         "title": "Đặc tả chức năng Xem chi tiết đề tài",
-        "desc": "Cho phép xem thông tin chi tiết đề tài nghiên cứu gồm tên, kinh phí, thời gian thực hiện, cấp quản lý, chủ nhiệm đề tài và các thành viên.",
-        "actor": "Người dùng phổ thông",
+        "desc": "Cho phép xem thông tin chi tiết đề tài nghiên cứu gồm tên đề tài, thời gian thực hiện, cấp đề tài, tóm tắt, chủ nhiệm đề tài và các thành viên tham gia.",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Đang xem danh sách đề tài.",
         "post": "Hiển thị đầy đủ thông tin chi tiết của đề tài được chọn.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -228,7 +232,7 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Hỏi đáp qua Chatbot GraphRAG",
         "desc": "Cho phép người dùng gửi câu hỏi tự nhiên bằng tiếng Việt và nhận câu trả lời chính xác trích xuất từ đồ thị tri thức thông qua LLM Gemini.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Khung chat GraphRAG Chatbot được mở.",
         "post": "Nhận được phản hồi ngôn ngữ tự nhiên chính xác kèm trích dẫn dữ liệu.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -258,14 +262,14 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Xem bản đồ tri thức tương tác",
         "desc": "Cho phép người dùng tương tác trực tiếp với giao diện mạng lưới đồ thị tri thức khoa học gồm các nút và các mối quan hệ liên kết.",
-        "actor": "Người dùng phổ thông",
-        "pre": "Người dùng chọn menu 'Bản đồ tri thức'.",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
+        "pre": "Thiết bị kết nối Internet, người dùng chọn mục 'Khám phá'.",
         "post": "Render đồ thị tương tác Vis.js trên màn hình.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
         "success_guar": "Đồ thị mạng lưới hiển thị đầy đủ các nút thực thể và cho phép người dùng kéo thả, phóng to, thu nhỏ và chọn nút xem thông tin.",
-        "trigger": "Người dùng nhấn chọn 'Bản đồ tri thức' trên thanh menu chính.",
+        "trigger": "Người dùng nhấn chọn 'Khám phá' trên thanh menu chính.",
         "main_flow": [
-            "Người dùng nhấn chọn mục 'Bản đồ tri thức'.",
+            "Người dùng nhấn chọn mục 'Khám phá'.",
             "Hệ thống gọi API lấy cấu trúc đồ thị hiện tại (nút và quan hệ).",
             "Backend truy vấn Neo4j lấy danh sách nút/cạnh giới hạn để tối ưu hiệu năng.",
             "Hệ thống render đồ thị dạng mạng lưới lên màn hình bằng thư viện Vis.js.",
@@ -281,7 +285,7 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Dịch thuật nội dung",
         "desc": "Cho phép người dùng dịch nhanh phần tóm tắt công trình nghiên cứu hoặc đề tài từ tiếng Việt sang tiếng Anh và ngược lại.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Đang xem trang chi tiết công trình khoa học hoặc đề tài nghiên cứu.",
         "post": "Nội dung tóm tắt được dịch sang ngôn ngữ lựa chọn và hiển thị ngay trên giao diện.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -302,7 +306,7 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Xem thống kê hệ thống",
         "desc": "Cho phép người dùng xem các biểu đồ phân tích thống kê dữ liệu khoa học của khoa dưới dạng trực quan.",
-        "actor": "Người dùng phổ thông",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
         "pre": "Người dùng truy cập trang 'Thống kê'.",
         "post": "Các biểu đồ thống kê Chart.js hiển thị đầy đủ.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
@@ -323,14 +327,14 @@ use_cases = [
     {
         "title": "Đặc tả chức năng Xem mạng lưới hợp tác",
         "desc": "Cho phép người dùng xem biểu đồ mạng lưới đồng tác giả giữa các giảng viên trong khoa Công nghệ thông tin.",
-        "actor": "Người dùng phổ thông",
-        "pre": "Thiết bị kết nối Internet, người dùng chọn mục 'Mạng lưới hợp tác'.",
+        "actor": "Người dùng phổ thông (bao gồm: sinh viên, học viên, khách vãng lai)",
+        "pre": "Thiết bị kết nối Internet, người dùng chọn mục 'Hợp tác'.",
         "post": "Render đồ thị Vis.js biểu diễn các giảng viên kết nối với nhau qua các công trình chung.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
         "success_guar": "Render chính xác mạng lưới hợp tác, các cạnh thể hiện số lượng công trình chung, hiển thị bảng xếp hạng Degree Centrality.",
-        "trigger": "Người dùng nhấn mục 'Mạng lưới hợp tác'.",
+        "trigger": "Người dùng nhấn mục 'Hợp tác'.",
         "main_flow": [
-            "Người dùng chọn menu 'Mạng lưới hợp tác'.",
+            "Người dùng chọn menu 'Hợp tác'.",
             "Hệ thống gọi API lấy dữ liệu liên kết đồng tác giả.",
             "Backend truy vấn Neo4j lấy danh sách giảng viên có quan hệ đồng tác giả thông qua các nút CongTrinhNghienCuu.",
             "Backend tính toán các chỉ số Centrality (Độ trung tâm kết nối) của từng giảng viên.",
@@ -401,13 +405,13 @@ use_cases = [
         "title": "Đặc tả chức năng Xem danh sách công trình cá nhân (Giảng viên)",
         "desc": "Cho phép giảng viên xem toàn bộ danh sách các bài báo khoa học cá nhân kèm theo trạng thái phê duyệt (Đã duyệt, Chờ duyệt, Từ chối).",
         "actor": "Giảng viên",
-        "pre": "Giảng viên đã đăng nhập và chọn mục Công trình cá nhân.",
+        "pre": "Giảng viên đã đăng nhập và chọn mục 'Công trình của tôi'.",
         "post": "Danh sách công trình của giảng viên được liệt kê đầy đủ.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
         "success_guar": "Hiển thị đúng danh sách các bài báo liên kết với giảng viên kèm theo cờ trạng thái phê duyệt thực tế.",
-        "trigger": "Giảng viên nhấn vào mục 'Công trình khoa học cá nhân' trên thanh menu quản trị lý lịch.",
+        "trigger": "Giảng viên nhấn chọn mục 'Công trình của tôi' trên menu quản trị lý lịch.",
         "main_flow": [
-            "Giảng viên truy cập mục quản lý công trình cá nhân.",
+            "Giảng viên truy cập mục 'Công trình của tôi'.",
             "Hệ thống gửi yêu cầu lấy danh sách công trình cá nhân kèm token xác thực.",
             "Backend thực hiện truy vấn các nút CongTrinhNghienCuu liên kết với nút GiangVien hiện tại.",
             "Hệ thống hiển thị danh sách các công trình kèm bộ lọc trạng thái lên màn hình."
@@ -489,13 +493,13 @@ use_cases = [
         "title": "Đặc tả chức năng Xem danh sách đề tài cá nhân (Giảng viên)",
         "desc": "Cho phép giảng viên xem danh mục các đề tài nghiên cứu khoa học mình làm chủ nhiệm hoặc thành viên tham gia kèm theo trạng thái phê duyệt.",
         "actor": "Giảng viên",
-        "pre": "Giảng viên đăng nhập và truy cập mục Đề tài cá nhân.",
+        "pre": "Giảng viên đã đăng nhập và truy cập mục 'Đề tài của tôi'.",
         "post": "Hiển thị danh sách đề tài nghiên cứu cá nhân.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
-        "success_guar": "Thông tin đề tài hiển thị chính xác gồm tên đề tài, vai trò, cấp quản lý, kinh phí và trạng thái duyệt.",
-        "trigger": "Giảng viên chọn mục 'Đề tài cá nhân' trên menu điều hướng.",
+        "success_guar": "Thông tin đề tài hiển thị chính xác gồm tên đề tài, vai trò, cấp đề tài, thời gian thực hiện và trạng thái duyệt.",
+        "trigger": "Giảng viên chọn mục 'Đề tài của tôi' trên menu điều hướng.",
         "main_flow": [
-            "Giảng viên chọn mục quản lý đề tài cá nhân.",
+            "Giảng viên chọn mục 'Đề tài của tôi'.",
             "Hệ thống gửi yêu cầu lấy danh sách đề tài của giảng viên kèm token.",
             "Backend thực hiện truy vấn các nút DeTaiNghienCuu liên kết với nút GiangVien hiện tại.",
             "Hệ thống hiển thị danh sách đề tài kèm vai trò (Chủ nhiệm/Thành viên) lên màn hình."
@@ -514,7 +518,7 @@ use_cases = [
         "trigger": "Giảng viên điền thông tin đề tài mới và nhấn nút Gửi phê duyệt.",
         "main_flow": [
             "Giảng viên chọn 'Thêm đề tài mới'.",
-            "Hệ thống hiển thị form nhập liệu đề tài (Tên đề tài, cấp quản lý, thời gian thực hiện, vai trò, kinh phí, tóm tắt).",
+            "Hệ thống hiển thị form nhập liệu đề tài (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, vai trò, tóm tắt).",
             "Giảng viên điền thông tin và nhấn 'Gửi yêu cầu'.",
             "Hệ thống kiểm tra dữ liệu đầu vào hợp lệ.",
             "Backend tạo nút DeTaiNghienCuu mới trạng thái 'Chờ duyệt', thiết lập mối quan hệ tương ứng và tạo MutationRequest phê duyệt.",
@@ -574,13 +578,13 @@ use_cases = [
         "title": "Đặc tả chức năng Xem danh sách thùng rác cá nhân (Giảng viên)",
         "desc": "Cho phép giảng viên xem lại danh sách các bài báo, công trình khoa học hoặc đề tài cá nhân đã bị xóa mềm (is_deleted = true).",
         "actor": "Giảng viên",
-        "pre": "Giảng viên đăng nhập thành công và click chọn mục Thùng rác cá nhân.",
+        "pre": "Giảng viên đã đăng nhập và click chọn mục 'Thùng rác'.",
         "post": "Danh sách các thực thể cá nhân đã bị xóa mềm được hiển thị.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
         "success_guar": "Hiển thị đúng các thực thể bị xóa kèm thông tin thời gian xóa và lý do.",
-        "trigger": "Giảng viên chọn mục 'Thùng rác cá nhân' trên menu.",
+        "trigger": "Giảng viên chọn mục 'Thùng rác' trên menu.",
         "main_flow": [
-            "Giảng viên truy cập mục Thùng rác cá nhân.",
+            "Giảng viên truy cập mục 'Thùng rác'.",
             "Hệ thống gửi yêu cầu lấy danh sách các thực thể bị xóa của giảng viên hiện tại.",
             "Backend truy vấn Neo4j tìm các nút CongTrinhNghienCuu hoặc DeTaiNghienCuu liên kết với GiangVien có thuộc tính is_deleted = true.",
             "Hệ thống hiển thị danh sách các thực thể đã xóa mềm lên giao diện."
@@ -637,9 +641,9 @@ use_cases = [
         "post": "Hiển thị dòng thời gian (Timeline) các năm xuất bản bài báo và thực hiện đề tài.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
         "success_guar": "Dòng thời gian hiển thị chính xác các sự kiện khoa học sắp xếp theo thứ tự thời gian năm giảm dần.",
-        "trigger": "Giảng viên nhấn chọn mục 'Dòng thời gian khoa học'.",
+        "trigger": "Giảng viên nhấn chọn mục 'Dòng thời gian' trên menu.",
         "main_flow": [
-            "Giảng viên chọn mục 'Dòng thời gian khoa học'.",
+            "Giảng viên chọn mục 'Dòng thời gian'.",
             "Hệ thống gọi API lấy danh sách hoạt động khoa học theo năm của giảng viên.",
             "Backend truy vấn các nút CongTrinhNghienCuu (năm xuất bản) và DeTaiNghienCuu (năm thực hiện) liên kết với giảng viên.",
             "Backend sắp xếp và nhóm dữ liệu theo từng năm.",
@@ -885,11 +889,11 @@ use_cases = [
         "pre": "Admin ở giao diện Thêm bộ môn mới.",
         "post": "Nút BoMon mới được tạo thành công trong cơ sở dữ liệu.",
         "min_guar": "Thực thể bộ môn mới không được tạo; cơ sở dữ liệu Neo4j giữ nguyên.",
-        "success_guar": "Nút bộ môn mới được khởi tạo và ghi nhận đầy đủ thuộc tính tên, mô tả.",
+        "success_guar": "Nút bộ môn mới được khởi tạo và ghi nhận đầy đủ thuộc tính tên bộ môn.",
         "trigger": "Admin nhập tên bộ môn mới và nhấn nút Lưu.",
         "main_flow": [
             "Admin nhấn nút 'Thêm bộ môn'.",
-            "Hệ thống hiển thị form nhập thông tin (Tên bộ môn, mô tả).",
+            "Hệ thống hiển thị form nhập thông tin (Tên bộ môn).",
             "Admin điền thông tin và nhấn nút 'Lưu bộ môn'.",
             "Backend kiểm tra tính duy nhất của tên bộ môn trên Neo4j.",
             "Backend thực hiện tạo nút BoMon mới trên Neo4j.",
@@ -904,18 +908,18 @@ use_cases = [
     },
     {
         "title": "Đặc tả chức năng Sửa thông tin bộ môn (Quản trị viên)",
-        "desc": "Cho phép Admin cập nhật tên, mô tả hoặc thay đổi giảng viên làm trưởng bộ môn.",
+        "desc": "Cho phép Admin cập nhật lại tên của một bộ môn trong khoa.",
         "actor": "Quản trị viên",
         "pre": "Admin chọn bộ môn cần chỉnh sửa trong danh sách bộ môn.",
         "post": "Thông tin bộ môn được cập nhật mới trên Neo4j.",
         "min_guar": "Thông tin bộ môn được giữ nguyên trạng thái cũ; thay đổi chưa được cập nhật.",
-        "success_guar": "Cập nhật thành công thông tin bộ môn và thiết lập lại mối quan hệ TRUONG_BO_MON với giảng viên mới.",
+        "success_guar": "Cập nhật thành công tên bộ môn trên Neo4j.",
         "trigger": "Admin thay đổi thông tin bộ môn và nhấn nút Cập nhật bộ môn.",
         "main_flow": [
             "Admin nhấn nút 'Sửa' tại bộ môn cần cập nhật.",
-            "Hệ thống hiển thị form thông tin bộ môn và danh sách giảng viên để chọn làm Trưởng bộ môn.",
-            "Admin cập nhật tên, mô tả hoặc chọn Trưởng bộ môn mới và nhấn 'Lưu thay đổi'.",
-            "Backend cập nhật thuộc tính nút BoMon và thay đổi mối quan hệ TRUONG_BO_MON trên Neo4j.",
+            "Hệ thống hiển thị form thông tin bộ môn chứa dữ liệu hiện có.",
+            "Admin cập nhật tên bộ môn và nhấn 'Lưu thay đổi'.",
+            "Backend cập nhật thuộc tính ten_bo_mon của nút BoMon trên Neo4j.",
             "Hệ thống báo cập nhật thành công."
         ],
         "alt_flow": [],
@@ -931,18 +935,13 @@ use_cases = [
         "success_guar": "Bộ môn được xóa mềm thành công và chuyển vào thùng rác.",
         "trigger": "Admin nhấn nút Xóa bộ môn và xác nhận.",
         "main_flow": [
-            "Admin nhấn 'Xóa' bộ môn.",
-            "Backend kiểm tra xem có giảng viên nào đang liên kết qua mối quan hệ THUOC_BO_MON với bộ môn này hay không.",
+            "Admin click chọn biểu tượng 'Xóa' bộ môn.",
             "Hệ thống hiển thị popup xác nhận xóa bộ môn.",
             "Admin nhấn nút 'Xác nhận', backend gán thuộc tính is_deleted = true trên nút BoMon.",
-            "Hệ thống thông báo xóa bộ môn thành công."
+            "Hệ thống thông báo xóa bộ môn thành công và cập nhật lại danh sách hiển thị."
         ],
         "alt_flow": [],
-        "exc_flow": [
-            "2.a. Vẫn còn giảng viên trực thuộc bộ môn này:",
-            "  2.a.1. Hệ thống hiển thị thông báo lỗi 'Không thể xóa bộ môn do còn giảng viên trực thuộc. Vui lòng chuyển bộ môn cho các giảng viên trước'.",
-            "  Use case dừng lại."
-        ]
+        "exc_flow": []
     },
     {
         "title": "Đặc tả chức năng Xem danh sách tác giả ngoài (Quản trị viên)",
@@ -1134,7 +1133,7 @@ use_cases = [
         "pre": "Admin đăng nhập thành công, chọn mục Quản lý đề tài khoa học.",
         "post": "Bảng danh sách đề tài nghiên cứu khoa học hiển thị đầy đủ.",
         "min_guar": "Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.",
-        "success_guar": "Hiển thị chính xác tên đề tài, cấp quản lý, chủ nhiệm đề tài và thời gian thực hiện.",
+        "success_guar": "Hiển thị chính xác tên đề tài, cấp đề tài, chủ nhiệm đề tài và thời gian thực hiện.",
         "trigger": "Admin chọn mục 'Quản lý đề tài nghiên cứu' trên Dashboard.",
         "main_flow": [
             "Admin chọn mục 'Quản lý đề tài nghiên cứu'.",
@@ -1156,7 +1155,7 @@ use_cases = [
         "trigger": "Admin điền thông tin đề tài và nhấn nút Lưu.",
         "main_flow": [
             "Admin chọn 'Thêm đề tài'.",
-            "Hệ thống hiển thị form nhập thông tin (Tên đề tài, cấp quản lý, thời gian thực hiện, kinh phí, chủ nhiệm đề tài, thành viên tham gia, tóm tắt).",
+            "Hệ thống hiển thị form nhập thông tin (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, chủ nhiệm đề tài, thành viên tham gia, tóm tắt).",
             "Admin điền thông tin và nhấn 'Lưu đề tài'.",
             "Hệ thống kiểm tra tính hợp lệ của thông tin nhập vào.",
             "Backend tạo nút DeTaiNghienCuu (trang_thai = 'Đã duyệt') và thiết lập mối quan hệ chủ nhiệm/thành viên.",
@@ -1242,7 +1241,7 @@ use_cases = [
         "main_flow": [
             "Admin click chọn mục 'Quản lý lĩnh vực nghiên cứu'.",
             "Hệ thống gửi yêu cầu lấy danh sách lĩnh vực.",
-            "Backend truy vấn Neo4j lấy danh sách tất cả các nút HuongNghienCuu.",
+            "Backend truy vấn Neo4j lấy danh sách tất cả các nút LinhVucNghienCuu.",
             "Hệ thống hiển thị danh sách lĩnh vực lên màn hình quản trị."
         ],
         "alt_flow": [],
@@ -1253,7 +1252,7 @@ use_cases = [
         "desc": "Cho phép Admin tạo mới một nút thực thể lĩnh vực nghiên cứu khoa học.",
         "actor": "Quản trị viên",
         "pre": "Admin ở giao diện Thêm lĩnh vực nghiên cứu mới.",
-        "post": "Nút HuongNghienCuu mới được tạo thành công trong cơ sở dữ liệu.",
+        "post": "Nút LinhVucNghienCuu mới được tạo thành công trong cơ sở dữ liệu.",
         "min_guar": "Lĩnh vực mới không được tạo; cơ sở dữ liệu Neo4j giữ nguyên.",
         "success_guar": "Nút lĩnh vực mới được khởi tạo và ghi nhận đầy đủ thuộc tính tên.",
         "trigger": "Admin nhập tên lĩnh vực mới và nhấn nút Lưu.",
@@ -1262,7 +1261,7 @@ use_cases = [
             "Hệ thống hiển thị form nhập thông tin (Tên lĩnh vực nghiên cứu).",
             "Admin điền thông tin và nhấn nút 'Lưu lĩnh vực'.",
             "Backend kiểm tra tính duy nhất của tên lĩnh vực.",
-            "Backend thực hiện tạo nút HuongNghienCuu mới trên Neo4j.",
+            "Backend thực hiện tạo nút LinhVucNghienCuu mới trên Neo4j.",
             "Hệ thống thông báo thêm lĩnh vực thành công."
         ],
         "alt_flow": [],
@@ -1274,7 +1273,7 @@ use_cases = [
     },
     {
         "title": "Đặc tả chức năng Sửa lĩnh vực nghiên cứu (Quản trị viên)",
-        "desc": "Cho phép Admin chỉnh sửa tên hoặc cập nhật mô tả của một lĩnh vực nghiên cứu.",
+        "desc": "Cho phép Admin chỉnh sửa tên của một lĩnh vực nghiên cứu.",
         "actor": "Quản trị viên",
         "pre": "Admin chọn lĩnh vực nghiên cứu cần chỉnh sửa trong danh sách.",
         "post": "Thông tin lĩnh vực nghiên cứu được cập nhật mới trên Neo4j.",
@@ -1285,7 +1284,7 @@ use_cases = [
             "Admin nhấn nút 'Sửa' tại lĩnh vực nghiên cứu tương ứng.",
             "Hệ thống hiển thị form chứa tên hiện tại của lĩnh vực.",
             "Admin cập nhật tên và nhấn 'Lưu thay đổi'.",
-            "Backend cập nhật thuộc tính tên của nút HuongNghienCuu tương ứng trên Neo4j.",
+            "Backend cập nhật thuộc tính tên của nút LinhVucNghienCuu tương ứng trên Neo4j.",
             "Hệ thống báo cập nhật thành công."
         ],
         "alt_flow": [],
@@ -1303,7 +1302,7 @@ use_cases = [
         "main_flow": [
             "Admin nhấn 'Xóa' lĩnh vực.",
             "Hệ thống hiển thị popup xác nhận xóa lĩnh vực nghiên cứu.",
-            "Admin xác nhận, backend gán thuộc tính is_deleted = true trên nút HuongNghienCuu.",
+            "Admin xác nhận, backend gán thuộc tính is_deleted = true trên nút LinhVucNghienCuu.",
             "Hệ thống thông báo xóa lĩnh vực thành công."
         ],
         "alt_flow": [],
@@ -1476,13 +1475,31 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 ---
 """
     
+    use_case_text = header + "\n"
+    for idx, uc in enumerate(use_cases, 7):
+        use_case_text += format_use_case(uc, idx)
+        
     with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(header + "\n")
-        # Start table numbering from 3.7
-        for idx, uc in enumerate(use_cases, 7):
-            f.write(format_use_case(uc, idx))
-            
+        f.write(use_case_text)
     print(f"Generated {len(use_cases)} use case specifications at {output_path}")
+    
+    # Also update docs/thesis_chapter_3.md
+    thesis_path = r"d:\research-graph-system\docs\thesis_chapter_3.md"
+    if os.path.exists(thesis_path):
+        with open(thesis_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        marker = "# 3.6. ĐẶC TẢ CHI TIẾT CÁC USE CASE HỆ THỐNG"
+        if marker in content:
+            parts = content.split(marker)
+            new_content = parts[0] + use_case_text
+            with open(thesis_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            print(f"Updated {thesis_path} successfully.")
+        else:
+            print(f"Error: Marker '{marker}' not found in {thesis_path}")
+    else:
+        print(f"Warning: {thesis_path} does not exist.")
 
 if __name__ == '__main__':
     main()

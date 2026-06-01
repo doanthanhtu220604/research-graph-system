@@ -2412,6 +2412,17 @@ window.initLecturerProfile = function() {
         `;
         document.body.appendChild(modalContainer);
     }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('editProfile') === 'true') {
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+        setTimeout(() => {
+            if (typeof window.openProfileModal === 'function') {
+                window.openProfileModal();
+            }
+        }, 100);
+    }
 };
 
 let uploadedAvatarUrl = '';
