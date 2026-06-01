@@ -13,6 +13,7 @@ let userInfo = null;
 let currentEntitiesData = {};
 
 let allLecturers = [];
+let allExternalAuthors = [];
 
 
 
@@ -367,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load all lecturers for select fields
 
     loadAllLecturers();
+    loadAllExternalAuthors();
 
 
 
@@ -411,6 +413,30 @@ async function loadAllLecturers() {
         if (data.status === 'ok') {
 
             allLecturers = data.data;
+
+        }
+
+    } catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
+
+
+async function loadAllExternalAuthors() {
+
+    try {
+
+        const res = await fetch(`/api/lecturer/tac-gia-ngoai?gv_id=${userInfo ? userInfo.id : ''}`);
+
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+
+            allExternalAuthors = data.data;
 
         }
 
@@ -535,7 +561,9 @@ const ENTITY_CONFIG = {
 
             { name: 'link', label: 'Link bài viết', type: 'url' },
 
-            { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' }
+            { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' },
+
+            { name: 'tac_gia_ngoai_ids', label: 'Tác giả ngoài (Tùy chọn)', type: 'external-authors-select' }
 
         ]
 
@@ -579,7 +607,9 @@ const ENTITY_CONFIG = {
 
             { name: 'link', label: 'Link đề tài', type: 'url' },
 
-            { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' }
+            { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' },
+
+            { name: 'tac_gia_ngoai_ids', label: 'Tác giả ngoài (Tùy chọn)', type: 'external-authors-select' }
 
         ]
 
@@ -801,6 +831,38 @@ function openLecturerModal(type, id = null) {
 
             }
 
+        } else if (f.type === 'external-authors-select') {
+
+            if (id) {
+
+                inputHtml = `<div style="color:var(--text-muted); font-size: 13px; font-style: italic;">Tính năng sửa tác giả ngoài hiện chưa hỗ trợ. Vui lòng liên hệ Admin.</div>`;
+
+            } else {
+
+                const optionsHtml = allExternalAuthors
+
+                    .map(tgn => {
+
+                        const statusTag = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#f39c12;font-size:10px;font-weight:600;">(Chờ duyệt)</span>' : '';
+
+                        return `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="tgn-checkbox" name="${f.name}" value="${tgn.id}"> ${tgn.ho_va_ten} ${tgn.don_vi_cong_tac ? '('+tgn.don_vi_cong_tac+')' : ''}${statusTag}</label></div>`;
+
+                    })
+
+                    .join('');
+
+                inputHtml = `
+                    <div style="display:flex; flex-direction:column; gap:5px; width: 100%;">
+                        <div id="field_${f.name}" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px; background: white; width: 100%;">
+                            ${optionsHtml || '<div style="color:var(--text-muted);font-size:12px;padding:5px;">Chưa có tác giả ngoài nào.</div>'}
+                        </div>
+                        <button type="button" class="btn btn-sm" style="align-self: flex-start; background: var(--bg-hover); color: var(--accent-blue); border: 1px solid var(--border-color); font-size: 12px; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="openAddExternalAuthorModal('${f.name}')">
+                            <i class="fas fa-plus-circle"></i> Thêm tác giả ngoài mới
+                        </button>
+                    </div>`;
+
+            }
+
         } else if (f.type === 'url' && f.name === 'link') {
 
             inputHtml = `
@@ -1019,7 +1081,7 @@ async function fetchSuggestions(keywords) {
 
         if (data.status === 'ok') {
 
-            renderSuggestions(data.data, data.my_linh_vuc || []);
+            renderSuggestions(data.data, data.my_linh_vuc || [], data.my_bo_mon);
 
         } else {
 
@@ -1039,7 +1101,7 @@ async function fetchSuggestions(keywords) {
 
 
 
-function renderSuggestions(suggestions, myLinhVuc) {
+function renderSuggestions(suggestions, myLinhVuc, myBoMon) {
 
     const panel = document.getElementById('collab-suggest-panel');
 
@@ -1079,9 +1141,15 @@ function renderSuggestions(suggestions, myLinhVuc) {
 
         // Tags: lĩnh vực chung
 
-        const tags = (s.ly_do.linh_vuc_chung || []).slice(0, 2)
+        let tags = (s.ly_do.linh_vuc_chung || []).slice(0, 2)
 
             .map(lv => `<span class="collab-tag">${lv}</span>`).join('');
+
+        if (s.ly_do.cung_bo_mon) {
+
+            tags += `<span class="collab-tag" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-users" style="margin-right:2px;"></i> Cùng bộ môn</span>`;
+
+        }
 
 
 
@@ -1133,6 +1201,19 @@ function renderSuggestions(suggestions, myLinhVuc) {
 
 
 
+        const criteria = [];
+        if (myLinhVuc && myLinhVuc.length > 0) {
+            criteria.push('Lĩnh vực');
+        }
+        if (myBoMon) {
+            criteria.push('Bộ môn');
+        }
+        const titleInput = document.getElementById('publicationTitle') || document.getElementById('projectTitle');
+        if (titleInput && titleInput.value.trim().length >= 3) {
+            criteria.push('Từ khóa');
+        }
+        const criteriaText = criteria.length > 0 ? 'Dựa trên ' + criteria.join(' & ') : 'Dựa trên từ khóa đề tài';
+
     panel.innerHTML = `
 
         <div class="collab-suggest-panel">
@@ -1145,7 +1226,7 @@ function renderSuggestions(suggestions, myLinhVuc) {
 
                 <span style="margin-left: auto; font-size: 10px; font-weight: 400; color: var(--text-muted); text-transform: none; letter-spacing: 0;">
 
-                    ${myLinhVuc.length > 0 ? 'Dựa trên lĩnh vực: ' + myLinhVuc.slice(0,2).join(', ') : 'Dựa trên từ khóa đề tài'}
+                    ${criteriaText}
 
                 </span>
 
@@ -1271,7 +1352,7 @@ async function handleFormSubmit(e) {
 
     config.fields.forEach(f => {
 
-        if (f.type === 'lecturers-select') {
+        if (f.type === 'lecturers-select' || f.type === 'external-authors-select') {
 
             if (!id) {
 
@@ -2716,5 +2797,110 @@ window.handleChangePassword = function(e) {
         msg.style.display = 'block';
     });
 };
+
+
+
+window.openAddExternalAuthorModal = function(fieldName) {
+    let modal = document.getElementById('addExternalAuthorModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'addExternalAuthorModal';
+        modal.className = 'modal-overlay';
+        modal.style.zIndex = '1000';
+        modal.innerHTML = `
+            <div class="modal" style="max-width: 450px; margin-top: 10%;">
+                <div class="modal-header">
+                    <h2><i class="fas fa-user-plus"></i> Thêm tác giả ngoài mới</h2>
+                    <button type="button" class="btn btn-sm" style="background:none;border:none;font-size:20px;" onclick="closeAddExternalAuthorModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="addExternalAuthorForm" style="display:flex; flex-direction:column; gap: 12px;">
+                        <input type="hidden" id="tgnFieldName" value="${fieldName}">
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:4px;">
+                            <label for="tgnName" style="font-weight:600; font-size:13px;">Họ và tên <span style="color:red;">*</span></label>
+                            <input type="text" id="tgnName" required style="width:100%; padding:8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:4px;">
+                            <label for="tgnOrg" style="font-weight:600; font-size:13px;">Đơn vị công tác</label>
+                            <input type="text" id="tgnOrg" style="width:100%; padding:8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:4px;">
+                            <label for="tgnDegree" style="font-weight:600; font-size:13px;">Học vị / Chức danh</label>
+                            <input type="text" id="tgnDegree" style="width:100%; padding:8px; border: 1px solid var(--border-color); border-radius: 4px;" placeholder="Ví dụ: Thạc sĩ, Tiến sĩ...">
+                        </div>
+                        <div class="form-group" style="display:flex; flex-direction:column; gap:4px;">
+                            <label for="tgnEmail" style="font-weight:600; font-size:13px;">Email</label>
+                            <input type="email" id="tgnEmail" style="width:100%; padding:8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                            <button type="button" class="btn" style="background:var(--bg-hover); border:1px solid var(--border-color);" onclick="closeAddExternalAuthorModal()">Hủy</button>
+                            <button type="submit" class="btn btn-primary">Lưu (Chờ duyệt)</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('addExternalAuthorForm').addEventListener('submit', handleAddExternalAuthorSubmit);
+    } else {
+        document.getElementById('tgnFieldName').value = fieldName;
+        document.getElementById('addExternalAuthorForm').reset();
+    }
+    modal.classList.add('active');
+};
+
+window.closeAddExternalAuthorModal = function() {
+    const modal = document.getElementById('addExternalAuthorModal');
+    if (modal) modal.classList.remove('active');
+};
+
+async function handleAddExternalAuthorSubmit(e) {
+    e.preventDefault();
+    const fieldName = document.getElementById('tgnFieldName').value;
+    const name = document.getElementById('tgnName').value.trim();
+    const org = document.getElementById('tgnOrg').value.trim();
+    const degree = document.getElementById('tgnDegree').value.trim();
+    const email = document.getElementById('tgnEmail').value.trim();
+    
+    try {
+        const res = await fetch('/api/lecturer/tac-gia-ngoai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ho_va_ten: name,
+                don_vi_cong_tac: org,
+                hoc_vi: degree,
+                email: email,
+                gv_id: userInfo.id
+            })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            closeAddExternalAuthorModal();
+            
+            // Tải lại danh sách tác giả ngoài
+            await loadAllExternalAuthors();
+            
+            // Vẽ lại danh sách checkbox và tự động check tác giả mới
+            const container = document.getElementById(`field_${fieldName}`);
+            if (container) {
+                const optionsHtml = allExternalAuthors
+                    .map(tgn => {
+                        const statusTag = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#f39c12;font-size:10px;font-weight:600;">(Chờ duyệt)</span>' : '';
+                        const isChecked = tgn.id === data.id ? 'checked' : '';
+                        return `<div style="padding: 5px; border-bottom: 1px solid var(--border-color);"><label style="display:flex; align-items:center; gap: 8px; cursor: pointer; font-weight: normal; margin: 0;"><input type="checkbox" class="tgn-checkbox" name="${fieldName}" value="${tgn.id}" ${isChecked}> ${tgn.ho_va_ten} ${tgn.don_vi_cong_tac ? '('+tgn.don_vi_cong_tac+')' : ''}${statusTag}</label></div>`;
+                    })
+                    .join('');
+                container.innerHTML = optionsHtml;
+            }
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi kết nối');
+    }
+}
 
 

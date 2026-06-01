@@ -132,3 +132,15 @@ def get_tac_gia_ngoai_detail(id):
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@admin_external_authors_bp.route("/tac-gia-ngoai/<id>/approve", methods=["PUT"])
+def approve_tac_gia_ngoai(id):
+    conn = get_neo4j_connection()
+    try:
+        conn.write("""
+            MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id
+            SET tgn.trang_thai = 'Đã duyệt'
+        """, {"id": id})
+        return jsonify({"status": "ok", "message": "Đã duyệt tác giả ngoài thành công"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500

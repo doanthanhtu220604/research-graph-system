@@ -145,6 +145,7 @@ def get_all_cong_trinh():
         WHERE coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
         OPTIONAL MATCH (tgn:TacGiaNgoai)-[:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct)
+        WHERE coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
         RETURN ct,
                collect(DISTINCT gv.ho_va_ten) AS tac_gia,
                collect(DISTINCT tgn.ho_va_ten) AS tac_gia_ngoai
@@ -173,7 +174,7 @@ def get_cong_trinh_detail(ct_id):
 
     tac_gia_ngoai_res = conn.query("""
         MATCH (tgn:TacGiaNgoai)-[r:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
-        WHERE ct.id = $id
+        WHERE ct.id = $id AND coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
         RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro
     """, {"id": ct_id})
     
@@ -202,6 +203,7 @@ def get_all_de_tai():
         OPTIONAL MATCH (gv_cn:GiangVien)-[:CHU_NHIEM]->(dt)
         OPTIONAL MATCH (gv_tv:GiangVien)-[:THAM_GIA]->(dt)
         OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt)
+        WHERE coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
         RETURN dt,
                collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
                collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
@@ -232,7 +234,7 @@ def get_de_tai_detail(dt_id):
 
     tac_gia_ngoai_res = conn.query("""
         MATCH (tgn:TacGiaNgoai)-[r:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
-        WHERE dt.id = $id
+        WHERE dt.id = $id AND coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
         RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro
     """, {"id": dt_id})
 
@@ -308,10 +310,12 @@ def search():
         query = f"""
             MATCH (n{label_filter})
             WHERE coalesce(n.is_deleted, false) = false
+              AND NOT (n:TacGiaNgoai AND coalesce(n.trang_thai, 'Đã duyệt') <> 'Đã duyệt')
               AND NOT (n:TacGiaNgoai AND EXISTS {{
                 MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
             }})
             OPTIONAL MATCH (tg)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(n)
+            WHERE NOT (tg:TacGiaNgoai) OR coalesce(tg.trang_thai, 'Đã duyệt') = 'Đã duyệt'
             OPTIONAL MATCH (tv)-[:CHU_NHIEM|THAM_GIA]->(n)
             RETURN n, labels(n) AS labels,
                    collect(DISTINCT tg.ho_va_ten) AS related_authors,

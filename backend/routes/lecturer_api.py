@@ -29,6 +29,14 @@ def suggest_collaborators():
     try:
         conn = get_neo4j_connection()
 
+        # ── Lấy bộ môn của GV hiện tại ────────────────────────────────────
+        bo_mon_res = conn.query_single("""
+            MATCH (me:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
+            WHERE me.id = $gv_id
+            RETURN bm.ten_bo_mon AS bo_mon
+        """, {'gv_id': gv_id})
+        my_bo_mon = bo_mon_res.get('bo_mon') if bo_mon_res else None
+
         # ── Bước 1: Lấy lĩnh vực nghiên cứu của GV hiện tại ──────────────────
         linh_vuc_res = conn.query("""
             MATCH (me:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
@@ -74,9 +82,7 @@ def suggest_collaborators():
             other_id = r.get('id')
             if not other_id:
                 continue
-            # Bỏ qua người đã hợp tác
-            if other_id in da_hop_tac_ids:
-                continue
+            # Cho phép gợi ý cả người đã hợp tác hay chưa hợp tác
 
             other_linh_vuc = [lv for lv in (r.get('linh_vuc') or []) if lv]
             other_ten_ct = ' '.join(r.get('ten_ct_list') or []).lower()
@@ -86,12 +92,18 @@ def suggest_collaborators():
             score = 0
             matched_linh_vuc = []
             matched_keywords = []
+            cung_bo_mon = False
 
             # Điểm theo lĩnh vực chung
             for lv in my_linh_vuc:
                 if lv in other_linh_vuc:
                     score += 3
                     matched_linh_vuc.append(lv)
+
+            # Điểm theo bộ môn chung
+            if my_bo_mon and r.get('bo_mon') == my_bo_mon:
+                score += 1.5
+                cung_bo_mon = True
 
             # Điểm theo từ khóa trong tên công trình/đề tài
             for kw in keywords:
@@ -113,7 +125,8 @@ def suggest_collaborators():
                     'score': score,
                     'ly_do': {
                         'linh_vuc_chung': matched_linh_vuc,
-                        'tu_khoa_khop': list(set(matched_keywords))
+                        'tu_khoa_khop': list(set(matched_keywords)),
+                        'cung_bo_mon': cung_bo_mon
                     }
                 })
 
@@ -125,6 +138,7 @@ def suggest_collaborators():
             'status': 'ok',
             'data': top_suggestions,
             'my_linh_vuc': my_linh_vuc,
+            'my_bo_mon': my_bo_mon,
             'da_hop_tac': len(da_hop_tac_ids)
         })
 
@@ -198,6 +212,10 @@ def add_my_publication():
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
         thanh_vien_ids = []
+
+    tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids', [])
+    if not isinstance(tac_gia_ngoai_ids, list):
+        tac_gia_ngoai_ids = []
         
     try:
         conn = get_neo4j_connection()
@@ -243,7 +261,16 @@ def add_my_publication():
             'tom_tat': data.get('tom_tat', ''),
             'link': data.get('link', '')
         })
-        return jsonify({'status': 'ok', 'data': result[0]['new_ct'] if result else None})
+        new_ct = result[0]['new_ct'] if result else None
+        if new_ct and tac_gia_ngoai_ids:
+            conn.query("""
+                UNWIND $ids AS tgn_id
+                MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
+                WHERE tgn.id = tgn_id AND ct.id = $ct_id
+                MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
+            """, {"ct_id": new_ct['id'], "ids": tac_gia_ngoai_ids})
+            
+        return jsonify({'status': 'ok', 'data': new_ct})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -333,6 +360,10 @@ def add_my_project():
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
         thanh_vien_ids = []
+
+    tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids', [])
+    if not isinstance(tac_gia_ngoai_ids, list):
+        tac_gia_ngoai_ids = []
         
     vai_tro = data.get('vai_tro', 'THAM_GIA')
     rel_type = "CHU_NHIEM" if vai_tro == "CHU_NHIEM" else "THAM_GIA"
@@ -381,7 +412,16 @@ def add_my_project():
             'tom_tat': data.get('tom_tat', ''),
             'link': data.get('link', '')
         })
-        return jsonify({'status': 'ok', 'data': result[0]['new_dt'] if result else None})
+        new_dt = result[0]['new_dt'] if result else None
+        if new_dt and tac_gia_ngoai_ids:
+            conn.query("""
+                UNWIND $ids AS tgn_id
+                MATCH (tgn:TacGiaNgoai), (dt:DeTaiNghienCuu)
+                WHERE tgn.id = tgn_id AND dt.id = $dt_id
+                MERGE (tgn)-[:DONG_TAC_GIA]->(dt)
+            """, {"dt_id": new_dt['id'], "ids": tac_gia_ngoai_ids})
+            
+        return jsonify({'status': 'ok', 'data': new_dt})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -763,3 +803,80 @@ def request_status_change(type, id):
         return jsonify({'status': 'ok', 'message': f'Đã gửi yêu cầu chuyển sang trạng thái "{new_status}" tới Admin'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# ============================================================
+# QUẢN LÝ TÁC GIẢ NGOÀI (GIẢNG VIÊN THÊM/ĐỌC)
+# ============================================================
+
+@lecturer_api_bp.route('/tac-gia-ngoai', methods=['GET'])
+def get_approved_tac_gia_ngoai():
+    gv_id = request.args.get('gv_id', '').strip()
+    conn = get_neo4j_connection()
+    try:
+        results = conn.query("""
+            MATCH (tgn:TacGiaNgoai)
+            WHERE coalesce(tgn.is_deleted, false) = false
+              AND (coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt' OR tgn.created_by = $gv_id)
+            RETURN tgn
+            ORDER BY tgn.ho_va_ten
+        """, {"gv_id": gv_id})
+        data = [dict(r["tgn"]) for r in results]
+        return jsonify({"status": "ok", "data": data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@lecturer_api_bp.route('/tac-gia-ngoai', methods=['POST'])
+def lecturer_create_tac_gia_ngoai():
+    data = request.json
+    conn = get_neo4j_connection()
+    try:
+        ho_va_ten = data.get("ho_va_ten", "").strip()
+        if not ho_va_ten:
+            return jsonify({"status": "error", "message": "Thiếu họ và tên tác giả"}), 400
+
+        # Check if already exists (approved or pending)
+        existing = conn.query_single("""
+            MATCH (tgn:TacGiaNgoai)
+            WHERE toLower(tgn.ho_va_ten) = toLower($ho_va_ten)
+              AND coalesce(tgn.is_deleted, false) = false
+            RETURN tgn.id AS id, tgn.trang_thai AS trang_thai
+        """, {"ho_va_ten": ho_va_ten})
+        
+        if existing:
+            return jsonify({
+                "status": "ok", 
+                "message": "Tác giả ngoài đã tồn tại", 
+                "id": existing["id"], 
+                "trang_thai": existing.get("trang_thai", "Đã duyệt")
+            })
+            
+        result = conn.write("""
+            CREATE (tgn:TacGiaNgoai {
+                ho_va_ten: $ho_va_ten,
+                don_vi_cong_tac: $don_vi_cong_tac,
+                hoc_vi: $hoc_vi,
+                chuc_danh: $chuc_danh,
+                email: $email,
+                trang_thai: 'Chờ duyệt',
+                created_by: $gv_id,
+                created_at: timestamp()
+            })
+            SET tgn.id = 'tgn_' + toString(id(tgn))
+            RETURN tgn.id AS id
+        """, {
+            "ho_va_ten": ho_va_ten,
+            "don_vi_cong_tac": data.get("don_vi_cong_tac", "").strip(),
+            "hoc_vi": data.get("hoc_vi", "").strip(),
+            "chuc_danh": data.get("chuc_danh", "").strip(),
+            "email": data.get("email", "").strip(),
+            "gv_id": data.get("gv_id", "")
+        })
+        new_id = result[0]["id"]
+        return jsonify({
+            "status": "ok", 
+            "message": "Thêm tác giả ngoài thành công (đang chờ duyệt)", 
+            "id": new_id,
+            "trang_thai": "Chờ duyệt"
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
