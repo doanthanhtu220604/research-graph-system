@@ -537,6 +537,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   6. Backend lưu các thông tin chỉnh sửa vào các thuộc tính tạm thời (pending_ho_va_ten...) trên nút GiangVien của Neo4j và tạo một nút MutationRequest liên kết.
   7. Hệ thống thông báo 'Yêu cầu thay đổi thông tin đã được gửi và đang chờ Admin duyệt'.
   *Use case chức năng “Cập nhật tài khoản lý lịch cá nhân (Giảng viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   5.a. Giảng viên nhập dữ liệu không hợp lệ (Ví dụ: để trống họ tên bắt buộc):
     5.a.1. Hệ thống báo lỗi đỏ tại trường thông tin tương ứng và chặn gửi yêu cầu.
@@ -560,6 +566,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   6. Backend thực hiện băm mật khẩu mới và cập nhật thuộc tính password của nút GiangVien.
   7. Hệ thống thông báo đổi mật khẩu thành công.
   *Use case chức năng “Đổi mật khẩu (Giảng viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   5.a. Backend kiểm tra và phát hiện mật khẩu hiện tại không khớp:
     5.a.1. Hệ thống báo lỗi mật khẩu cũ không đúng.
@@ -601,6 +613,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   5. Backend tạo nút CongTrinhNghienCuu mới trên Neo4j, gán thuộc tính trang_thai = 'Chờ duyệt', thiết lập mối quan hệ tác giả chính (TAC_GIA_CHINH) với giảng viên hiện tại, tạo các quan hệ đồng tác giả trong khoa (CONG_SU) và tác giả ngoài (DONG_TAC_GIA).
   6. Hệ thống hiển thị thông báo thành công và đóng form.
      *Use case chức năng “Yêu cầu thêm công trình cá nhân (Giảng viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tên công trình):
     4.a.1. Hệ thống hiển thị cảnh báo yêu cầu hoàn tất thông tin Tên công trình.
@@ -624,6 +642,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   6. Hệ thống hiển thị thông báo đã gửi yêu cầu chỉnh sửa và đang chờ Admin phê duyệt, sau đó đóng form.
      *(Thông tin mới sẽ chính thức có hiệu lực và công trình trở lại trạng thái cũ sau khi Admin phê duyệt).*
      *Use case chức năng “Yêu cầu sửa công trình cá nhân (Giảng viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   1.a. Công trình đang trong trạng thái 'Chờ duyệt' hoặc 'Yêu cầu xóa':
     1.a.1. Hệ thống vô hiệu hóa (disabled) nút Chỉnh sửa của công trình đó để ngăn chặn chỉnh sửa.
@@ -691,6 +715,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   5. Backend tạo nút DeTaiNghienCuu mới trạng thái 'Chờ duyệt', và thiết lập mối quan hệ chủ nhiệm (CHU_NHIEM) hoặc thành viên (THAM_GIA) tương ứng dựa trên vai trò được chọn.
   6. Hệ thống thông báo gửi yêu cầu thành công và đóng form.
      *Use case chức năng “Yêu cầu thêm đề tài cá nhân (Giảng viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Giảng viên nhập thiếu thông tin bắt buộc (Tên đề tài hoặc vai trò):
     4.a.1. Hệ thống hiển thị cảnh báo yêu cầu hoàn tất thông tin.
@@ -714,6 +744,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   6. Hệ thống hiển thị thông báo đã gửi yêu cầu chỉnh sửa và đang chờ Admin phê duyệt, sau đó đóng form.
      *(Thông tin mới sẽ chính thức có hiệu lực và đề tài trở lại trạng thái cũ sau khi Admin phê duyệt).*
      *Use case chức năng “Yêu cầu sửa đề tài cá nhân (Giảng viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   1.a. Đề tài đang ở trạng thái Chờ duyệt hoặc Yêu cầu xóa:
     1.a.1. Hệ thống vô hiệu hóa (disabled) nút Chỉnh sửa của đề tài đó.
@@ -783,23 +819,26 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 
 ---
 ### Bảng 3.33. Đặc tả chức năng Gợi ý cộng sự tiềm năng (Giảng viên)
-* **Mô tả:** Hệ thống tự động phân tích và đưa ra danh sách các giảng viên đồng nghiệp trong khoa có hướng nghiên cứu tương đồng để đề xuất hợp tác nghiên cứu khoa học.
+* **Mô tả:** Hệ dung tự động phân tích và đưa ra danh sách đề xuất các giảng viên đồng nghiệp trong khoa có hướng nghiên cứu tương đồng hoặc từ khóa liên quan để đề xuất hợp tác trực tiếp ngay trong giao diện thêm mới công trình/đề tài.
 * **Actor:** Giảng viên
-* **Tiền điều kiện:** Giảng viên đã đăng nhập và truy cập trang Gợi ý cộng sự.
-* **Hậu điều kiện:** Danh sách giảng viên gợi ý kèm lý do tương đồng được hiển thị.
+* **Tiền điều kiện:** Giảng viên đã đăng nhập, đang ở giao diện thêm mới công trình khoa học hoặc đề tài nghiên cứu.
+* **Hậu điều kiện:** Danh sách giảng viên gợi ý kèm lý do tương đồng được hiển thị trong form thêm mới.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
-* **Đảm bảo thành công:** Gợi ý chính xác danh sách các giảng viên có điểm tương đồng hướng nghiên cứu cao nhất nhưng chưa từng hợp tác đồng tác giả.
-* **Kích hoạt:** Giảng viên nhấn chọn chức năng 'Gợi ý cộng sự tiềm năng'.
+* **Đảm bảo thành công:** Đưa ra danh sách gợi ý các giảng viên có điểm tương đồng cao nhất dựa trên từ khóa tiêu đề hoặc lĩnh vực nghiên cứu, cho phép click chọn để thêm nhanh vào danh sách thành viên tham gia.
+* **Kích hoạt:** Giảng viên mở form thêm mới công trình/đề tài, hoặc nhập/thay đổi tiêu đề công trình/đề tài (từ 3 ký tự trở lên).
 * **Chuỗi sự kiện chính:**
-  1. Giảng viên truy cập mục Gợi ý cộng sự.
-  2. Hệ thống gửi yêu cầu lấy gợi ý kèm token của giảng viên.
-  3. Backend chạy câu lệnh Cypher Neo4j so khớp hướng nghiên cứu: Cộng 3 điểm cho mỗi lĩnh vực nghiên cứu chung, cộng 1 điểm cho mỗi từ khóa trùng khớp trong tiêu đề bài báo/đề tài. Loại trừ những giảng viên đã từng hợp tác đồng tác giả.
-  4. Backend sắp xếp danh sách theo điểm số từ cao xuống thấp và lấy tối đa 6 giảng viên.
-  5. Hệ thống hiển thị danh sách giảng viên gợi ý kèm thông tin về các lĩnh vực/từ khóa chung giúp giảng viên dễ dàng tiếp cận.
+  1. Giảng viên nhập nội dung tiêu đề công trình hoặc đề tài vào ô tương ứng trong form thêm mới.
+  2. Khi độ dài văn bản đạt từ 3 ký tự trở lên (hoặc mặc định khi vừa mở form), hệ thống tự động gửi yêu cầu lấy danh sách gợi ý cộng sự tới backend.
+  3. Backend thực thi truy vấn Cypher Neo4j so khớp: Cộng 3 điểm cho mỗi lĩnh vực nghiên cứu chung, cộng 1 điểm cho mỗi từ khóa trùng khớp giữa từ khóa nhập vào và tiêu đề các công trình/đề tài đã có của đồng nghiệp. Hệ thống loại trừ các giảng viên đã từng hợp tác đồng tác giả.
+  4. Backend sắp xếp danh sách theo điểm số từ cao xuống thấp và trả về tối đa 6 giảng viên phù hợp nhất.
+  5. Hệ thống hiển thị danh sách giảng viên gợi ý kèm theo thông tin chi tiết về các điểm chung ngay bên cạnh phần chọn thành viên/cộng sự.
+  6. Giảng viên có thể nhấp vào nút "+" trên thẻ gợi ý để nhanh chóng thêm giảng viên đó làm thành viên tham gia (hệ thống sẽ tự động tick chọn vào checkbox tương ứng trong danh sách thành viên).
   *Use case chức năng “Gợi ý cộng sự tiềm năng (Giảng viên)” dừng lại.*
 * **Chuỗi sự kiện ngoại lệ:**
-  3.a. Giảng viên hiện tại chưa cập nhật hướng nghiên cứu hoặc bài báo trong hồ sơ:
-    3.a.1. Hệ thống hiển thị thông báo hướng dẫn giảng viên cập nhật hồ sơ cá nhân để thuật toán có thể chấm điểm chính xác.
+  3.a. Không có từ khóa tiêu đề hoặc tiêu đề dưới 3 ký tự:
+    3.a.1. Hệ thống thực hiện gợi ý dựa trên bộ môn và hướng nghiên cứu chung (nếu có).
+  3.b. Hệ thống không tìm thấy bất kỳ cộng sự phù hợp nào:
+    3.b.1. Hệ thống hiển thị thông báo "Không tìm thấy cộng sự phù hợp. Thêm thủ công bên trên."
 
 ---
 ### Bảng 3.34. Đặc tả chức năng Xem dòng thời gian khoa học (Giảng viên)
@@ -858,62 +897,74 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   *Use case chức năng “Xem danh sách tài khoản người dùng (Quản trị viên)” dừng lại.*
 
 ---
-### Bảng 3.37. Đặc tả chức năng Thêm mới tài khoản người dùng (Quản trị viên)
-* **Mô tả:** Cho phép Admin tạo mới một tài khoản đăng nhập cho giảng viên.
+### Bảng 3.37. Đặc tả chức năng Khởi tạo tài khoản đăng nhập cho giảng viên (Quản trị viên)
+* **Mô tả:** Cho phép Admin khởi tạo tài khoản đăng nhập cho giảng viên đã có hồ sơ lý lịch trên hệ thống nhưng chưa có tài khoản.
 * **Actor:** Quản trị viên
-* **Tiền điều kiện:** Admin đang ở màn hình Thêm tài khoản người dùng.
-* **Hậu điều kiện:** Tài khoản người dùng mới được tạo thành công trong cơ sở dữ liệu.
-* **Đảm bảo tối thiểu:** Tài khoản mới không được khởi tạo; danh sách tài khoản hiện có giữ nguyên.
-* **Đảm bảo thành công:** Tài khoản mới được tạo kèm mật khẩu khởi tạo mã hóa và trạng thái kích hoạt.
-* **Kích hoạt:** Admin nhập thông tin tài khoản mới và nhấn nút Lưu.
+* **Tiền điều kiện:** Admin đang ở trang Quản lý Tài khoản; giảng viên đã có hồ sơ lý lịch nhưng chưa có tài khoản (trạng thái hiển thị là "Chưa tạo").
+* **Hậu điều kiện:** Tạo tài khoản đăng nhập thành công cho giảng viên, liên kết với nút hồ sơ lý lịch của họ trên Neo4j.
+* **Đảm bảo tối thiểu:** Tài khoản đăng nhập không được khởi tạo; hồ sơ lý lịch của giảng viên giữ nguyên.
+* **Đảm bảo thành công:** Khởi tạo tài khoản đăng nhập kèm theo email/tên đăng nhập và mật khẩu được băm bảo mật thành công trên Neo4j, cập nhật trạng thái tài khoản thành 'Hoạt động'.
+* **Kích hoạt:** Admin nhấn nút 'Tạo TK' tại giảng viên tương ứng trên bảng danh sách tài khoản.
 * **Chuỗi sự kiện chính:**
-  1. Admin nhấn nút 'Thêm tài khoản mới'.
-  2. Hệ thống hiển thị form nhập thông tin (Email/Tên đăng nhập, mật khẩu khởi tạo, vai trò).
-  3. Admin điền thông tin và nhấn nút 'Lưu tài khoản'.
-  4. Backend kiểm tra tính duy nhất của email trên Neo4j.
-  5. Backend thực hiện băm mật khẩu và tạo nút tài khoản đăng nhập.
-  6. Hệ thống thông báo tạo tài khoản thành công.
-  *Use case chức năng “Thêm mới tài khoản người dùng (Quản trị viên)” dừng lại.*
+  1. Admin nhấn nút 'Tạo TK' (biểu tượng chiếc chìa khóa) tại dòng giảng viên có trạng thái "Chưa tạo" cần cấp tài khoản.
+  2. Hệ thống hiển thị popup đặt mật khẩu và tự động điền email của giảng viên làm tên đăng nhập.
+  3. Admin kiểm tra/nhập địa chỉ email đăng nhập, nhập mật khẩu và nhập lại mật khẩu xác nhận, sau đó nhấn nút 'Lưu'.
+  4. Backend kiểm tra tính duy nhất của email đăng nhập trên cơ sở dữ liệu Neo4j.
+  5. Backend thực hiện băm mật khẩu, tạo tài khoản đăng nhập cho giảng viên và liên kết trực tiếp với hồ sơ lý lịch tương ứng, đồng thời đặt trạng thái tài khoản thành 'Hoạt động'.
+  6. Hệ thống đóng popup, cập nhật lại trạng thái tài khoản hiển thị trên bảng và thông báo khởi tạo thành công.
+  *Use case chức năng “Khởi tạo tài khoản đăng nhập cho giảng viên (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
-  4.a. Email nhập vào đã tồn tại trên hệ thống:
-    4.a.1. Hệ thống báo lỗi 'Địa chỉ email này đã được sử dụng'.
+  4.a. Email đăng nhập đã tồn tại hoặc đã được sử dụng bởi tài khoản khác:
+    4.a.1. Hệ thống hiển thị thông báo lỗi 'Địa chỉ email này đã được sử dụng' và yêu cầu kiểm tra lại.
+    Use case quay lại bước 3.
+  4.b. Mật khẩu và xác nhận mật khẩu không khớp hoặc độ dài nhỏ hơn 4 ký tự:
+    4.b.1. Hệ thống báo lỗi tương ứng và yêu cầu nhập lại mật khẩu hợp lệ.
     Use case quay lại bước 3.
 
 ---
-### Bảng 3.38. Đặc tả chức năng Sửa thông tin/Khóa tài khoản người dùng (Quản trị viên)
-* **Mô tả:** Cho phép Admin cập nhật thông tin tài khoản hoặc thay đổi trạng thái hoạt động (kích hoạt/khóa tài khoản) của giảng viên.
+### Bảng 3.38. Đặc tả chức năng Đặt lại mật khẩu và Khóa/Mở khóa tài khoản giảng viên (Quản trị viên)
+* **Mô tả:** Cho phép Admin thay đổi mật khẩu đăng nhập hoặc thay đổi trạng thái hoạt động (kích hoạt/khóa tài khoản) của giảng viên.
 * **Actor:** Quản trị viên
-* **Tiền điều kiện:** Admin ở danh sách tài khoản người dùng, chọn tài khoản cần chỉnh sửa.
-* **Hậu điều kiện:** Thông tin tài khoản được cập nhật hoặc trạng thái tài khoản bị khóa/mở khóa.
-* **Đảm bảo tối thiểu:** Thông tin và trạng thái hoạt động của tài khoản người dùng được giữ nguyên trạng.
-* **Đảm bảo thành công:** Trạng thái hoạt động của tài khoản được cập nhật chính xác trên Neo4j và có hiệu lực ngay lập tức.
-* **Kích hoạt:** Admin nhấn nút Sửa hoặc Khóa tài khoản tương ứng.
+* **Tiền điều kiện:** Admin đang ở trang Quản lý Tài khoản, chọn giảng viên đã có tài khoản (trạng thái "Hoạt động" hoặc "Bị khoá").
+* **Hậu điều kiện:** Mật khẩu tài khoản được đặt lại mới hoặc trạng thái tài khoản chuyển sang bị khóa/mở khóa.
+* **Đảm bảo tối thiểu:** Mật khẩu và trạng thái hoạt động của tài khoản giảng viên được giữ nguyên nếu quá trình thực hiện thất bại.
+* **Đảm bảo thành công:** Mật khẩu mới được băm bảo mật thành công hoặc trạng thái tài khoản được đảo ngược chính xác trên Neo4j.
+* **Kích hoạt:** Admin nhấn nút 'Đặt lại mật khẩu' hoặc nút 'Khóa/Mở khóa' tương ứng trên dòng tài khoản.
 * **Chuỗi sự kiện chính:**
-  1. Admin click chọn nút 'Chỉnh sửa' hoặc 'Khóa' trên dòng tài khoản.
-  2. Hệ thống hiển thị popup chỉnh sửa hoặc popup xác nhận khóa tài khoản.
-  3. Admin chỉnh sửa thông tin hoặc chọn trạng thái 'Khóa tài khoản' và nhấn 'Xác nhận'.
-  4. Backend thực hiện cập nhật thuộc tính trang_thai (hoặc is_active = false) trên nút tài khoản trong Neo4j.
-  5. Hệ thống cập nhật lại danh sách tài khoản hiển thị và thông báo thành công.
-  *Use case chức năng “Sửa thông tin/Khóa tài khoản người dùng (Quản trị viên)” dừng lại.*
+  - **Trường hợp Đặt lại mật khẩu:**
+    1. Admin click chọn nút 'Đặt lại mật khẩu' (biểu tượng mũi tên xoay chiều) tại tài khoản cần đổi mật khẩu.
+    2. Hệ thống hiển thị popup đặt lại mật khẩu mới cho giảng viên.
+    3. Admin nhập mật khẩu mới và nhập lại mật khẩu xác nhận, sau đó nhấn nút 'Lưu'.
+    4. Backend thực hiện băm mật khẩu mới và cập nhật thuộc tính password của tài khoản tương ứng trên Neo4j.
+    5. Hệ thống đóng popup và hiển thị thông báo đặt lại mật khẩu thành công.
+  - **Trường hợp Khóa/Mở khóa tài khoản:**
+    1. Admin click chọn nút 'Khóa' (biểu tượng ổ khóa đóng) hoặc 'Mở khóa' (biểu tượng ổ khóa mở) trên dòng tài khoản của giảng viên.
+    2. Hệ thống hiển thị popup xác nhận thay đổi trạng thái hoạt động của tài khoản.
+    3. Admin nhấn chọn 'Xác nhận'.
+    4. Backend thực hiện thay đổi trạng thái tài khoản (từ "Hoạt động" thành "Bị khoá" hoặc ngược lại) trên nút tài khoản trong Neo4j.
+    5. Hệ thống cập nhật lại trạng thái hiển thị trên bảng, cập nhật lại biểu tượng nút hành động tương ứng và thông báo thành công.
+  *Use case chức năng “Đặt lại mật khẩu và Khóa/Mở khóa tài khoản giảng viên (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
+* **Chuỗi sự kiện ngoại lệ:**
+  - **Khi đặt lại mật khẩu:**
+    3.a. Mật khẩu mới và mật khẩu xác nhận không khớp hoặc độ dài nhỏ hơn 4 ký tự:
+      3.a.1. Hệ thống báo lỗi tương ứng và yêu cầu nhập lại mật khẩu hợp lệ.
+      Use case quay lại bước 2 của trường hợp Đặt lại mật khẩu.
+
 
 ---
-### Bảng 3.39. Đặc tả chức năng Xóa tài khoản người dùng (Quản trị viên)
-* **Mô tả:** Cho phép Admin xóa một tài khoản đăng nhập ra khỏi hệ thống.
-* **Actor:** Quản trị viên
-* **Tiền điều kiện:** Admin chọn tài khoản cần xóa trong danh sách.
-* **Hậu điều kiện:** Tài khoản bị xóa hoàn toàn (hoặc chuyển trạng thái xóa mềm) trong CSDL.
-* **Đảm bảo tối thiểu:** Tài khoản không bị xóa; danh sách tài khoản người dùng được bảo toàn.
-* **Đảm bảo thành công:** Tài khoản đăng nhập bị xóa thành công khỏi CSDL.
-* **Kích hoạt:** Admin nhấn nút Xóa tài khoản và xác nhận.
-* **Chuỗi sự kiện chính:**
-  1. Admin nhấn nút 'Xóa' tại tài khoản tương ứng.
-  2. Hệ thống hiển thị popup cảnh báo xác nhận xóa tài khoản.
-  3. Admin nhấn nút 'Xác nhận xóa'.
-  4. Backend thực hiện xóa nút tài khoản đăng nhập khỏi Neo4j.
-  5. Hệ thống thông báo xóa tài khoản thành công và tải lại danh sách.
-  *Use case chức năng “Xóa tài khoản người dùng (Quản trị viên)” dừng lại.*
 
----
 ### Bảng 3.40. Đặc tả chức năng Xem danh sách giảng viên (Quản trị viên)
 * **Mô tả:** Cho phép Admin xem danh sách toàn bộ hồ sơ giảng viên trong khoa và trạng thái lý lịch khoa học của họ.
 * **Actor:** Quản trị viên
@@ -930,6 +981,24 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   *Use case chức năng “Xem danh sách giảng viên (Quản trị viên)” dừng lại.*
 
 ---
+### Bảng 3.40a. Đặc tả chức năng Xem chi tiết giảng viên (Quản trị viên)
+* **Mô tả:** Cho phép Admin xem thông tin chi tiết, lịch sử công trình khoa học và đề tài nghiên cứu của một giảng viên cụ thể trong khoa.
+* **Actor:** Quản trị viên
+* **Tiền điều kiện:** Admin đang ở danh sách giảng viên hoặc các màn hình quản trị liên quan có thông tin giảng viên.
+* **Hậu điều kiện:** Popup thông tin chi tiết giảng viên hiển thị đầy đủ thông tin.
+* **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
+* **Đảm bảo thành công:** Hiển thị chính xác các thông tin lý lịch cá nhân (học vị, chức danh, chức vụ, email, bộ môn, chuyên ngành, các lĩnh vực nghiên cứu) cùng danh sách công trình, đề tài khoa học giảng viên đã tham gia.
+* **Kích hoạt:** Admin nhấn nút 'Xem chi tiết' (biểu tượng con mắt) tại giảng viên tương ứng trên dòng danh sách.
+* **Chuỗi sự kiện chính:**
+  1. Admin click nút 'Xem chi tiết' tại dòng giảng viên cần xem.
+  2. Hệ thống hiển thị popup/modal chi tiết với thông báo đang tải dữ liệu.
+  3. Backend truy vấn cơ sở dữ liệu Neo4j để lấy toàn bộ thông tin chi tiết của giảng viên (thông tin lý lịch, mối quan hệ tác giả trong các công trình, mối quan hệ thành viên trong các đề tài).
+  4. Backend trả về dữ liệu chi tiết của giảng viên.
+  5. Hệ thống hiển thị đầy đủ thông tin lý lịch cá nhân, danh sách các công trình khoa học (kèm vai trò tác giả), danh sách các đề tài (kèm vai trò thành viên) của giảng viên lên popup/modal.
+  6. Admin nhấn nút 'Đóng' hoặc nút thoát (&times;) để tắt popup chi tiết.
+  *Use case chức năng “Xem chi tiết giảng viên (Quản trị viên)” dừng lại.*
+
+---
 ### Bảng 3.41. Đặc tả chức năng Thêm mới giảng viên (Quản trị viên)
 * **Mô tả:** Cho phép Admin tạo mới một hồ sơ lý lịch khoa học cho giảng viên trực tiếp trên cơ sở dữ liệu đồ thị Neo4j.
 * **Actor:** Quản trị viên
@@ -940,16 +1009,22 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Kích hoạt:** Admin điền thông tin giảng viên và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin nhấn nút 'Thêm giảng viên'.
-  2. Hệ thống hiển thị form điền thông tin lý lịch (Họ tên, email công tác, bộ môn, học vị, chức danh, hướng nghiên cứu).
+  2. Hệ thống hiển thị form điền thông tin lý lịch (Mã giảng viên, Họ và tên, email, bộ môn, học vị, chức danh, chức vụ, điện thoại, chuyên ngành, trạng thái công tác, ảnh đại diện, lĩnh vực nghiên cứu).
   3. Admin điền thông tin và lựa chọn bộ môn trực thuộc.
   4. Admin nhấn nút 'Lưu hồ sơ'.
-  5. Backend kiểm tra email giảng viên chưa tồn tại trên Neo4j.
+  5. Backend kiểm tra Mã giảng viên và Email giảng viên chưa tồn tại trên Neo4j.
   6. Backend thực hiện tạo nút GiangVien mới và tạo mối quan hệ THUOC_BO_MON.
   7. Hệ thống thông báo tạo hồ sơ giảng viên thành công.
   *Use case chức năng “Thêm mới giảng viên (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
-  5.a. Trùng lặp email giảng viên với hồ sơ đã tồn tại trên Neo4j:
-    5.a.1. Hệ thống báo lỗi 'Giảng viên đã có hồ sơ trên hệ thống'.
+  5.a. Trùng lặp Mã giảng viên hoặc Email giảng viên với hồ sơ đã tồn tại trên Neo4j:
+    5.a.1. Hệ thống báo lỗi tương ứng ('Mã giảng viên [mã] đã tồn tại trong hệ thống' hoặc 'Email [email] đã tồn tại trong hệ thống').
     Use case quay lại bước 3.
 
 ---
@@ -968,6 +1043,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   4. Backend thực thi truy vấn Cypher cập nhật trực tiếp các thuộc tính của nút GiangVien tương ứng trên Neo4j.
   5. Hệ thống thông báo cập nhật hồ sơ thành công và tải lại bảng dữ liệu.
   *Use case chức năng “Sửa thông tin giảng viên (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.43. Đặc tả chức năng Xóa giảng viên (Quản trị viên)
@@ -988,39 +1069,41 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 
 ---
 ### Bảng 3.44. Đặc tả chức năng Phê duyệt yêu cầu thay đổi lý lịch (Quản trị viên)
-* **Mô tả:** Cho phép Admin phê duyệt hoặc từ chối các yêu cầu cập nhật thông tin cá nhân do giảng viên gửi lên.
+* **Mô tả:** Cho phép Admin phê duyệt hoặc từ chối các yêu cầu cập nhật thông tin lý lịch cá nhân do giảng viên gửi lên.
 * **Actor:** Quản trị viên
-* **Tiền điều kiện:** Admin truy cập mục Phê duyệt yêu cầu thay đổi lý lịch trên Dashboard.
-* **Hậu điều kiện:** Thông tin lý lịch được cập nhật chính thức vào đồ thị (nếu duyệt) hoặc xóa các thông tin tạm thời (nếu từ chối).
+* **Tiền điều kiện:** Admin truy cập mục Quản lý Giảng viên.
+* **Hậu điều kiện:** Thông tin lý lịch được cập nhật chính thức vào đồ thị Neo4j (nếu duyệt) hoặc xóa các thông tin tạm thời (nếu từ chối).
 * **Đảm bảo tối thiểu:** Yêu cầu phê duyệt được giữ nguyên ở trạng thái chờ; thông tin lý lịch chính thức của giảng viên chưa bị thay đổi.
-* **Đảm bảo thành công:** Đồng bộ thông tin từ các thuộc tính pending_ sang thuộc tính chính thức của nút GiangVien và xóa nút MutationRequest tương ứng.
-* **Kích hoạt:** Admin nhấn nút Phê duyệt hoặc Từ chối yêu cầu thay đổi.
+* **Đảm bảo thành công:** Đồng bộ thông tin từ các thuộc tính pending_* sang thuộc tính chính thức của nút GiangVien, cập nhật profile_edit_status thành 'Phê duyệt' hoặc 'Từ chối' và xóa bỏ các thuộc tính pending_*.
+* **Kích hoạt:** Admin nhấn nút 'Phê duyệt' hoặc 'Từ chối' hồ sơ mới trên bảng danh sách giảng viên.
 * **Chuỗi sự kiện chính:**
-  1. Admin vào mục Phê duyệt lý lịch.
-  2. Hệ thống hiển thị danh sách các yêu cầu đang chờ phê duyệt.
-  3. Admin nhấn nút 'Phê duyệt' (Approve) tại yêu cầu tương ứng.
-  4. Backend cập nhật các thuộc tính chính thức bằng giá trị của thuộc tính tạm thời (Ví dụ: ho_va_ten = pending_ho_va_ten) trên Neo4j và xóa thuộc tính tạm thời.
-  5. Backend chuyển trạng thái của nút MutationRequest tương ứng thành 'Approved'.
-  6. Hệ thống thông báo duyệt thành công và cập nhật lại danh sách.
+  1. Admin truy cập trang Quản lý Giảng viên.
+  2. Hệ thống hiển thị bảng danh sách giảng viên, các giảng viên có yêu cầu thay đổi lý lịch sẽ có nhãn "Chờ duyệt hồ sơ".
+  3. Admin nhấn nút 'Duyệt hồ sơ mới' (Approve) tại giảng viên tương ứng.
+  4. Backend cập nhật các thuộc tính lý lịch chính thức bằng giá trị của thuộc tính tạm thời tương ứng (ví dụ: ho_va_ten = pending_ho_va_ten, email = pending_email...), đặt profile_edit_status = 'Phê duyệt' trên Neo4j, và đặt giá trị null cho tất cả các thuộc tính tạm thời pending_*.
+  5. Hệ thống thông báo duyệt hồ sơ thành công và tải lại danh sách giảng viên.
   *Use case chức năng “Phê duyệt yêu cầu thay đổi lý lịch (Quản trị viên)” dừng lại.*
 * **Chuỗi sự kiện thay thế:**
   3.a. Từ chối yêu cầu thay đổi thông tin:
-    3.a.1. Admin nhấn nút 'Từ chối' (Reject) và nhập lý do.
-    3.a.2. Backend thực hiện xóa bỏ các thuộc tính tạm thời trên nút GiangVien, cập nhật trạng thái MutationRequest thành 'Rejected' kèm lý do.
+    3.a.1. Admin nhấn nút 'Từ chối hồ sơ mới' (Reject) tại giảng viên tương ứng.
+    3.a.2. Hệ thống hiển thị hộp thoại xác nhận từ chối thay đổi thông tin.
+    3.a.3. Admin nhấn chọn xác nhận từ chối.
+    3.a.4. Backend thực hiện đặt giá trị null cho tất cả các thuộc tính tạm thời pending_* trên nút GiangVien và cập nhật profile_edit_status = 'Từ chối' trên Neo4j.
+    3.a.5. Hệ thống thông báo từ chối thành công và tải lại danh sách giảng viên.
 
 ---
 ### Bảng 3.45. Đặc tả chức năng Xem danh sách bộ môn (Quản trị viên)
-* **Mô tả:** Cho phép Admin xem danh sách các bộ môn trong khoa và trưởng bộ môn hiện tại.
+* **Mô tả:** Cho phép Admin xem danh sách các bộ môn trong khoa.
 * **Actor:** Quản trị viên
 * **Tiền điều kiện:** Admin đăng nhập thành công, chọn mục Quản lý bộ môn.
 * **Hậu điều kiện:** Bảng danh sách các bộ môn được hiển thị đầy đủ.
 * **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
-* **Đảm bảo thành công:** Hiển thị đúng tên bộ môn, mô tả và họ tên giảng viên trưởng bộ môn.
+* **Đảm bảo thành công:** Hiển thị đúng tên bộ môn đã được lưu trên Neo4j.
 * **Kích hoạt:** Admin chọn mục 'Quản lý bộ môn' trên Dashboard.
 * **Chuỗi sự kiện chính:**
   1. Admin click chọn mục 'Quản lý bộ môn'.
   2. Hệ thống gửi yêu cầu lấy danh sách bộ môn.
-  3. Backend truy vấn Neo4j lấy danh sách các nút BoMon và giảng viên liên kết qua mối quan hệ TRUONG_BO_MON.
+  3. Backend truy vấn Neo4j lấy danh sách các nút BoMon hoạt động (chưa bị xóa mềm).
   4. Hệ thống hiển thị danh sách bộ môn lên màn hình quản trị.
   *Use case chức năng “Xem danh sách bộ môn (Quản trị viên)” dừng lại.*
 
@@ -1041,6 +1124,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   5. Backend thực hiện tạo nút BoMon mới trên Neo4j.
   6. Hệ thống thông báo thêm bộ môn thành công.
   *Use case chức năng “Thêm mới bộ môn (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Trùng tên bộ môn đã có sẵn trên hệ thống:
     4.a.1. Hệ thống hiển thị thông báo lỗi 'Tên bộ môn đã tồn tại'.
@@ -1062,6 +1151,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   4. Backend cập nhật thuộc tính ten_bo_mon của nút BoMon trên Neo4j.
   5. Hệ thống báo cập nhật thành công.
   *Use case chức năng “Sửa thông tin bộ môn (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.48. Đặc tả chức năng Xóa bộ môn (Quản trị viên)
@@ -1096,6 +1191,24 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   *Use case chức năng “Xem danh sách tác giả ngoài (Quản trị viên)” dừng lại.*
 
 ---
+### Bảng 3.49a. Đặc tả chức năng Xem chi tiết tác giả ngoài (Quản trị viên)
+* **Mô tả:** Cho phép Admin xem thông tin lý lịch chi tiết của tác giả ngoài cùng danh sách các công trình, đề tài nghiên cứu đã tham gia và danh sách các giảng viên trong khoa đã hợp tác nghiên cứu.
+* **Actor:** Quản trị viên
+* **Tiền điều kiện:** Admin đang ở trang danh sách quản lý tác giả ngoài hoặc trang quản lý liên quan.
+* **Hậu điều kiện:** Popup thông tin chi tiết tác giả ngoài hiển thị đầy đủ thông tin.
+* **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
+* **Đảm bảo thành công:** Hiển thị chính xác các thông tin lý lịch (họ tên, đơn vị công tác, học vị, email), danh sách công trình, đề tài khoa học đã hợp tác, và danh sách giảng viên trong khoa đã cộng tác.
+* **Kích hoạt:** Admin nhấn nút 'Xem chi tiết' (biểu tượng con mắt) tại dòng tác giả ngoài tương ứng.
+* **Chuỗi sự kiện chính:**
+  1. Admin nhấn nút 'Xem chi tiết' tại dòng tác giả ngoài cần xem.
+  2. Hệ thống hiển thị popup/modal chi tiết với thông báo đang tải dữ liệu.
+  3. Backend truy vấn Neo4j lấy thông tin lý lịch cá nhân của tác giả ngoài (nút TacGiaNgoai), các công trình nghiên cứu (CongTrinhNghienCuu), đề tài nghiên cứu (DeTaiNghienCuu) liên kết với tác giả ngoài và danh sách các giảng viên (GiangVien) trong khoa có chung liên kết công trình hoặc đề tài.
+  4. Backend trả về dữ liệu tổng hợp chi tiết của tác giả ngoài.
+  5. Hệ thống hiển thị đầy đủ thông tin lý lịch, danh sách công trình, đề tài khoa học đã hợp tác, và danh sách giảng viên trong khoa đã cộng tác lên popup/modal.
+  6. Admin nhấn nút 'Đóng' hoặc nút thoát để đóng popup chi tiết.
+  *Use case chức năng “Xem chi tiết tác giả ngoài (Quản trị viên)” dừng lại.*
+
+---
 ### Bảng 3.50. Đặc tả chức năng Thêm mới tác giả ngoài (Quản trị viên)
 * **Mô tả:** Cho phép Admin tạo hồ sơ mới cho tác giả bên ngoài đơn vị.
 * **Actor:** Quản trị viên
@@ -1112,6 +1225,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   5. Backend thực hiện tạo nút TacGiaNgoai trên Neo4j.
   6. Hệ thống thông báo thêm tác giả ngoài thành công.
   *Use case chức năng “Thêm mới tác giả ngoài (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Nhập thiếu thông tin bắt buộc (Họ tên):
     4.a.1. Hệ thống báo lỗi và yêu cầu nhập đầy đủ họ tên.
@@ -1133,6 +1252,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   4. Backend cập nhật thuộc tính nút TacGiaNgoai tương ứng trên Neo4j.
   5. Hệ thống báo cập nhật thành công.
   *Use case chức năng “Sửa thông tin tác giả ngoài (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.52. Đặc tả chức năng Xóa tác giả ngoài (Quản trị viên)
@@ -1167,22 +1292,46 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   *Use case chức năng “Xem danh sách công trình khoa học (Quản trị viên)” dừng lại.*
 
 ---
+### Bảng 3.53a. Đặc tả chức năng Xem chi tiết công trình khoa học (Quản trị viên)
+* **Mô tả:** Cho phép Admin xem chi tiết thông tin, tóm tắt của công trình khoa học cùng danh sách toàn bộ các tác giả trong khoa và tác giả ngoài cùng tham gia.
+* **Actor:** Quản trị viên
+* **Tiền điều kiện:** Admin ở giao diện danh sách công trình khoa học hoặc các giao diện quản trị liên quan.
+* **Hậu điều kiện:** Popup thông tin chi tiết công trình khoa học hiển thị đầy đủ thông tin.
+* **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
+* **Đảm bảo thành công:** Hiển thị chính xác tên công trình, năm xuất bản, nơi công bố, liên kết bài báo, tóm tắt, danh sách tác giả trong khoa (kèm vai trò) và danh sách tác giả ngoài (kèm vai trò và đơn vị).
+* **Kích hoạt:** Admin nhấn nút 'Xem chi tiết' (biểu tượng con mắt) tại công trình tương ứng.
+* **Chuỗi sự kiện chính:**
+  1. Admin click nút 'Xem chi tiết' tại dòng công trình cần xem.
+  2. Hệ thống hiển thị popup/modal chi tiết với thông báo đang tải dữ liệu.
+  3. Backend truy vấn Neo4j lấy thông tin chi tiết của công trình khoa học (nút CongTrinhNghienCuu) và các mối quan hệ tác giả liên kết (nút GiangVien và nút TacGiaNgoai).
+  4. Backend trả về dữ liệu tổng hợp chi tiết của công trình khoa học.
+  5. Hệ thống hiển thị đầy đủ thông tin chi tiết lên popup/modal.
+  6. Admin nhấn nút 'Đóng' hoặc nút thoát để đóng popup chi tiết.
+  *Use case chức năng “Xem chi tiết công trình khoa học (Quản trị viên)” dừng lại.*
+
+---
 ### Bảng 3.54. Đặc tả chức năng Thêm mới công trình khoa học (Quản trị viên)
 * **Mô tả:** Cho phép Admin thêm trực tiếp một công trình khoa học mới vào cơ sở dữ liệu đồ thị.
 * **Actor:** Quản trị viên
 * **Tiền điều kiện:** Admin ở giao diện Thêm công trình mới.
 * **Hậu điều kiện:** Nút công trình mới được tạo thành công và liên kết trực tiếp đến các giảng viên/tác giả tham gia.
 * **Đảm bảo tối thiểu:** Công trình mới không được tạo; cơ sở dữ liệu Neo4j giữ nguyên.
-* **Đảm bảo thành công:** Tạo nút CongTrinhNghienCuu trạng thái 'Đã duyệt' và thiết lập quan hệ TAC_GIA với các giảng viên liên quan.
+* **Đảm bảo thành công:** Tạo nút CongTrinhNghienCuu với trạng thái 'Đang thực hiện' hoặc 'Hoàn thành' và thiết lập các mối quan hệ tác giả tương ứng (TAC_GIA_CHINH, CONG_SU với giảng viên trong khoa, và DONG_TAC_GIA với tác giả ngoài).
 * **Kích hoạt:** Admin điền thông tin công trình và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin chọn 'Thêm công trình'.
-  2. Hệ thống hiển thị form nhập thông tin (Tiêu đề, năm xuất bản, nơi công bố, danh sách tác giả trong khoa, danh sách tác giả ngoài, tóm tắt).
+  2. Hệ thống hiển thị form nhập thông tin (Tiêu đề, năm xuất bản, nơi công bố, tác giả chính trong khoa, cộng sự/đồng tác giả trong khoa, tác giả ngoài khoa, trạng thái: Đang thực hiện / Hoàn thành, tóm tắt, link).
   3. Admin điền thông tin và nhấn 'Lưu công trình'.
   4. Hệ thống kiểm tra tính hợp lệ của thông tin nhập vào.
-  5. Backend tạo nút CongTrinhNghienCuu (trang_thai = 'Đã duyệt') và thiết lập mối quan hệ tác giả.
+  5. Backend tạo nút CongTrinhNghienCuu (trang_thai = 'Đang thực hiện' hoặc 'Hoàn thành') và thiết lập mối quan hệ tác giả chính (TAC_GIA_CHINH), cộng sự (CONG_SU) với giảng viên trong khoa, và đồng tác giả (DONG_TAC_GIA) với tác giả ngoài trên Neo4j.
   6. Hệ thống thông báo thêm công trình thành công.
   *Use case chức năng “Thêm mới công trình khoa học (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Thiếu tiêu đề công trình hoặc năm xuất bản:
     4.a.1. Hệ thống báo lỗi đỏ tại các trường bắt buộc.
@@ -1195,15 +1344,46 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Tiền điều kiện:** Admin chọn công trình cần sửa trong danh sách.
 * **Hậu điều kiện:** Thông tin công trình khoa học được cập nhật trực tiếp trên Neo4j.
 * **Đảm bảo tối thiểu:** Thông tin công trình được giữ nguyên trạng thái cũ; thay đổi chưa được cập nhật.
-* **Đảm bảo thành công:** Cập nhật thành công thông tin công trình khoa học và sắp xếp lại các mối quan hệ tác giả.
+* **Đảm bảo thành công:** Cập nhật thành công thông tin công trình khoa học (bao gồm trạng thái: Đang thực hiện / Hoàn thành) và sắp xếp lại các mối quan hệ tác giả (tác giả chính, cộng sự, đồng tác giả).
 * **Kích hoạt:** Admin chỉnh sửa thông tin công trình và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin nhấn nút 'Sửa' tại công trình khoa học tương ứng.
-  2. Hệ thống hiển thị form chỉnh sửa công trình chứa dữ liệu hiện có.
-  3. Admin cập nhật các trường thông tin hoặc sửa danh sách tác giả và nhấn 'Lưu thay đổi'.
-  4. Backend cập nhật thuộc tính nút CongTrinhNghienCuu và thiết lập lại các mối quan hệ đồng tác giả tương ứng trên Neo4j.
+  2. Hệ thống hiển thị form chỉnh sửa công trình chứa dữ liệu hiện có (bao gồm trạng thái).
+  3. Admin cập nhật các trường thông tin, thay đổi trạng thái hoặc sửa danh sách tác giả và nhấn 'Lưu thay đổi'.
+  4. Backend cập nhật thuộc tính nút CongTrinhNghienCuu trên Neo4j.
   5. Hệ thống thông báo cập nhật công trình thành công.
   *Use case chức năng “Sửa thông tin công trình khoa học (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
+
+---
+### Bảng 3.55a. Đặc tả chức năng Biên tập liên kết công trình khoa học (Quản trị viên)
+* **Mô tả:** Cho phép Admin thay đổi, gán, hoặc hủy gán mối quan hệ vai trò tác giả (Tác giả chính / Đồng tác giả) giữa công trình khoa học với giảng viên trong khoa hoặc tác giả bên ngoài đơn vị.
+* **Actor:** Quản trị viên
+* **Tiền điều kiện:** Admin đang ở trang Quản lý công trình khoa học, chọn công trình cần biên tập liên kết.
+* **Hậu điều kiện:** Các mối quan hệ tác giả (TAC_GIA_CHINH, CONG_SU, DONG_TAC_GIA) được cập nhật chính xác trên Neo4j.
+* **Đảm bảo tối thiểu:** Các liên kết tác giả cũ của công trình được giữ nguyên trạng thái; cơ sở dữ liệu Neo4j không thay đổi nếu thao tác thất bại hoặc bị hủy bỏ.
+* **Đảm bảo thành công:** Cập nhật thành công danh sách tác giả chính và đồng tác giả (trong và ngoài khoa) tham gia công trình đúng theo các lựa chọn đã tích chọn.
+* **Kích hoạt:** Admin nhấn nút 'Gán Tác giả' (biểu tượng liên kết) tại dòng công trình tương ứng.
+* **Chuỗi sự kiện chính:**
+  1. Admin nhấn nút 'Gán Tác giả' tại dòng công trình cần thiết lập.
+  2. Hệ thống hiển thị popup/modal "Biên tập Liên kết" chứa danh sách toàn bộ giảng viên trong khoa và tác giả ngoài khoa, chia thành hai khu vực vai trò: "Tác giả chính" và "Đồng tác giả".
+  3. Hệ thống tự động tích chọn các giảng viên hoặc tác giả ngoài đang có liên kết với công trình này.
+  4. Admin thực hiện tích chọn thêm hoặc bỏ tích chọn các cá nhân tham gia.
+  5. Admin nhấn nút 'Cập nhật Liên kết' để lưu thay đổi.
+  6. Backend nhận danh sách ID, thực hiện xóa các quan hệ tác giả cũ của công trình này và tạo các quan hệ mới (TAC_GIA_CHINH, CONG_SU cho giảng viên trong khoa, và DONG_TAC_GIA cho tác giả ngoài) trên Neo4j.
+  7. Hệ thống đóng popup, thông báo cập nhật liên kết thành công và tải lại bảng danh sách công trình.
+  *Use case chức năng “Biên tập liên kết công trình khoa học (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.56. Đặc tả chức năng Xóa công trình khoa học (Quản trị viên)
@@ -1212,37 +1392,48 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Tiền điều kiện:** Admin chọn công trình cần xóa trong danh sách công trình.
 * **Hậu điều kiện:** Công trình khoa học bị gán cờ is_deleted = true và chuyển vào thùng rác hệ thống.
 * **Đảm bảo tối thiểu:** Công trình không bị thay đổi trạng thái xóa mềm; dữ liệu Neo4j giữ nguyên.
-* **Đảm bảo thành công:** Gán cờ is_deleted = true thành công trên nút CongTrinhNghienCuu.
+* **Đảm bảo thành công:** Gán cờ is_deleted = true thành công trên nút CongTrinhNghienCuu (chỉ áp dụng đối với công trình ở trạng thái khác "Đang thực hiện").
 * **Kích hoạt:** Admin nhấn nút Xóa công trình và xác nhận.
 * **Chuỗi sự kiện chính:**
   1. Admin click chọn nút 'Xóa' tại công trình tương ứng.
-  2. Hệ thống hiển thị popup xác nhận xóa công trình.
-  3. Admin nhấn 'Xác nhận xóa mềm'.
-  4. Backend cập nhật thuộc tính is_deleted = true và ngày xóa (deleted_at) trên nút CongTrinhNghienCuu.
-  5. Hệ thống thông báo xóa công trình thành công và ẩn khỏi giao diện.
+  2. Hệ thống kiểm tra trạng thái của công trình khoa học.
+  3. Hệ thống hiển thị popup xác nhận xóa công trình.
+  4. Admin nhấn 'Xác nhận xóa mềm'.
+  5. Backend cập nhật thuộc tính is_deleted = true và ngày xóa (deleted_at) trên nút CongTrinhNghienCuu.
+  6. Hệ thống thông báo xóa công trình thành công và ẩn khỏi giao diện.
   *Use case chức năng “Xóa công trình khoa học (Quản trị viên)” dừng lại.*
+* **Chuỗi sự kiện ngoại lệ:**
+  2.a. Công trình đang ở trạng thái 'Đang thực hiện':
+    2.a.1. Hệ thống báo lỗi và từ chối xóa công trình, yêu cầu Admin chuyển trạng thái công trình sang "Hoàn thành" trước khi thực hiện xóa.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.57. Đặc tả chức năng Phê duyệt yêu cầu công trình từ giảng viên (Quản trị viên)
-* **Mô tả:** Cho phép Admin phê duyệt hoặc từ chối yêu cầu thêm, sửa, xóa công trình khoa học do giảng viên gửi lên.
+* **Mô tả:** Cho phép Admin phê duyệt hoặc từ chối các yêu cầu thêm mới, đổi trạng thái hoặc xóa công trình khoa học do giảng viên gửi lên.
 * **Actor:** Quản trị viên
-* **Tiền điều kiện:** Admin truy cập mục Phê duyệt yêu cầu công trình.
-* **Hậu điều kiện:** Trạng thái công trình khoa học thay đổi theo quyết định của Admin.
+* **Tiền điều kiện:** Admin truy cập mục Quản lý công trình khoa học, chọn công trình có yêu cầu hành động.
+* **Hậu điều kiện:** Trạng thái của công trình khoa học và các thuộc tính liên quan được cập nhật trên Neo4j.
 * **Đảm bảo tối thiểu:** Yêu cầu được giữ nguyên ở trạng thái chờ; thông tin công trình chính thức chưa bị thay đổi.
-* **Đảm bảo thành công:** Cập nhật trạng thái công trình thành 'Đã duyệt' (nếu phê duyệt thêm mới/chỉnh sửa) hoặc gán cờ is_deleted = true (nếu phê duyệt yêu cầu xóa).
-* **Kích hoạt:** Admin nhấn nút Duyệt hoặc Từ chối yêu cầu công trình.
+* **Đảm bảo thành công:** Cập nhật trạng thái công trình tương ứng theo quyết định của Admin.
+* **Kích hoạt:** Admin nhấn nút Phê duyệt hoặc Từ chối yêu cầu hành động của công trình trên danh sách.
 * **Chuỗi sự kiện chính:**
-  1. Admin vào mục Phê duyệt yêu cầu công trình khoa học.
-  2. Hệ thống hiển thị danh sách các yêu cầu đang chờ phê duyệt.
-  3. Admin nhấn nút 'Phê duyệt' (Approve) tại yêu cầu tương ứng.
-  4. Backend đổi thuộc tính trang_thai thành 'Đã duyệt' (đối với yêu cầu thêm), thực hiện cập nhật chỉnh sửa (đối với yêu cầu sửa), hoặc gán is_deleted = true (đối với yêu cầu xóa).
-  5. Backend cập nhật trạng thái của MutationRequest liên quan thành 'Approved'.
-  6. Hệ thống báo duyệt thành công và cập nhật lại danh sách hiển thị.
+  1. Admin tìm kiếm công trình có nhãn trạng thái chờ duyệt (Chờ duyệt, Yêu cầu xóa, Yêu cầu đổi trạng thái).
+  2. Admin nhấn nút 'Phê duyệt' (Approve) tại công trình tương ứng.
+  3. Hệ thống gửi yêu cầu phê duyệt lên backend.
+  4. Backend cập nhật trạng thái trên nút CongTrinhNghienCuu:
+    - Nếu là yêu cầu thêm mới ("Chờ duyệt"): đặt trang_thai = 'Đang thực hiện' (hoặc khôi phục trạng thái cũ).
+    - Nếu là yêu cầu xóa ("Yêu cầu xóa"): đặt is_deleted = true, trang_thai = 'Đã vào thùng rác'.
+    - Nếu là yêu cầu đổi trạng thái: cập nhật trang_thai mới theo yêu cầu.
+  5. Hệ thống thông báo duyệt thành công và tải lại danh sách.
   *Use case chức năng “Phê duyệt yêu cầu công trình từ giảng viên (Quản trị viên)” dừng lại.*
 * **Chuỗi sự kiện thay thế:**
-  3.a. Từ chối yêu cầu phê duyệt công trình:
-    3.a.1. Admin nhấn nút 'Từ chối' (Reject) và nhập lý do.
-    3.a.2. Backend đổi trạng thái công trình thành 'Từ chối' (nếu là yêu cầu thêm), hoặc khôi phục dữ liệu cũ, cập nhật MutationRequest thành 'Rejected' kèm lý do.
+  2.a. Từ chối yêu cầu phê duyệt công trình:
+    2.a.1. Admin nhấn nút 'Từ chối' (Reject) tại công trình tương ứng.
+    2.a.2. Hệ thống gửi yêu cầu từ chối lên backend.
+    2.a.3. Backend xử lý:
+      - Nếu là yêu cầu thêm mới ("Chờ duyệt"): đặt trang_thai = 'Từ chối'.
+      - Nếu là yêu cầu xóa hoặc yêu cầu đổi trạng thái: khôi phục trạng thái cũ của công trình bằng thuộc tính old_status, đồng thời xóa bỏ trường old_status.
+    2.a.4. Hệ thống thông báo từ chối thành công và tải lại danh sách.
 
 ---
 ### Bảng 3.58. Đặc tả chức năng Xem danh sách đề tài nghiên cứu (Quản trị viên)
@@ -1261,22 +1452,46 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   *Use case chức năng “Xem danh sách đề tài nghiên cứu (Quản trị viên)” dừng lại.*
 
 ---
+### Bảng 3.58a. Đặc tả chức năng Xem chi tiết đề tài nghiên cứu (Quản trị viên)
+* **Mô tả:** Cho phép Admin xem chi tiết thông tin, tóm tắt của đề tài nghiên cứu cùng danh sách toàn bộ các thành viên tham gia (giảng viên trong khoa, tác giả ngoài).
+* **Actor:** Quản trị viên
+* **Tiền điều kiện:** Admin ở giao diện danh sách đề tài nghiên cứu hoặc các giao diện quản trị liên quan.
+* **Hậu điều kiện:** Popup thông tin chi tiết đề tài nghiên cứu hiển thị đầy đủ thông tin.
+* **Đảm bảo tối thiểu:** Hệ thống giữ nguyên trạng thái cũ, không làm thay đổi cơ sở dữ liệu.
+* **Đảm bảo thành công:** Hiển thị chính xác tên đề tài, cấp đề tài, thời gian thực hiện, liên kết đề tài, tóm tắt, danh sách thành viên trong khoa (kèm vai trò chủ nhiệm/thành viên) và danh sách tác giả ngoài tham gia.
+* **Kích hoạt:** Admin nhấn nút 'Xem chi tiết' (biểu tượng con mắt) tại đề tài tương ứng.
+* **Chuỗi sự kiện chính:**
+  1. Admin click nút 'Xem chi tiết' tại dòng đề tài cần xem.
+  2. Hệ thống hiển thị popup/modal chi tiết với thông báo đang tải dữ liệu.
+  3. Backend truy vấn Neo4j lấy thông tin chi tiết của đề tài nghiên cứu (nút DeTaiNghienCuu) và các mối quan hệ thành viên/chủ nhiệm liên kết (nút GiangVien và nút TacGiaNgoai).
+  4. Backend trả về dữ liệu tổng hợp chi tiết của đề tài nghiên cứu.
+  5. Hệ thống hiển thị đầy đủ thông tin chi tiết lên popup/modal.
+  6. Admin nhấn nút 'Đóng' hoặc nút thoát để đóng popup chi tiết.
+  *Use case chức năng “Xem chi tiết đề tài nghiên cứu (Quản trị viên)” dừng lại.*
+
+---
 ### Bảng 3.59. Đặc tả chức năng Thêm mới đề tài nghiên cứu (Quản trị viên)
 * **Mô tả:** Cho phép Admin thêm trực tiếp một đề tài nghiên cứu khoa học mới vào cơ sở dữ liệu đồ thị.
 * **Actor:** Quản trị viên
 * **Tiền điều kiện:** Admin ở giao diện Thêm đề tài mới.
 * **Hậu điều kiện:** Nút đề tài mới được tạo thành công và liên kết trực tiếp đến các thành viên tham gia.
 * **Đảm bảo tối thiểu:** Đề tài mới không được tạo; cơ sở dữ liệu Neo4j giữ nguyên.
-* **Đảm bảo thành công:** Tạo nút DeTaiNghienCuu trạng thái 'Đã duyệt' và thiết lập quan hệ CHU_NHIEM, THANH_VIEN với các giảng viên liên quan.
+* **Đảm bảo thành công:** Tạo nút DeTaiNghienCuu với trạng thái 'Đang thực hiện' hoặc 'Hoàn thành' và thiết lập các mối quan hệ thành viên tương ứng (CHU_NHIEM, THAM_GIA với giảng viên trong khoa, và DONG_TAC_GIA với tác giả ngoài).
 * **Kích hoạt:** Admin điền thông tin đề tài và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin chọn 'Thêm đề tài'.
-  2. Hệ thống hiển thị form nhập thông tin (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, chủ nhiệm đề tài, thành viên tham gia, tóm tắt).
+  2. Hệ thống hiển thị form nhập thông tin (Tên đề tài, cấp đề tài, năm bắt đầu, năm kết thúc, chủ nhiệm trong khoa, thành viên trong khoa, tác giả/thành viên ngoài khoa, trạng thái: Đang thực hiện / Hoàn thành, tóm tắt, link).
   3. Admin điền thông tin và nhấn 'Lưu đề tài'.
   4. Hệ thống kiểm tra tính hợp lệ của thông tin nhập vào.
-  5. Backend tạo nút DeTaiNghienCuu (trang_thai = 'Đã duyệt') và thiết lập mối quan hệ chủ nhiệm/thành viên.
+  5. Backend tạo nút DeTaiNghienCuu (trang_thai = 'Đang thực hiện' hoặc 'Hoàn thành') và thiết lập mối quan hệ chủ nhiệm (CHU_NHIEM), thành viên (THAM_GIA) với giảng viên trong khoa, và đồng tác giả (DONG_TAC_GIA) với tác giả ngoài trên Neo4j.
   6. Hệ thống thông báo thêm đề tài thành công.
   *Use case chức năng “Thêm mới đề tài nghiên cứu (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Thiếu thông tin bắt buộc (Tên đề tài):
     4.a.1. Hệ thống báo lỗi đỏ tại các trường tương ứng.
@@ -1289,14 +1504,46 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Tiền điều kiện:** Admin chọn đề tài cần sửa trong danh sách.
 * **Hậu điều kiện:** Thông tin đề tài nghiên cứu được cập nhật trực tiếp trên Neo4j.
 * **Đảm bảo tối thiểu:** Thông tin đề tài được giữ nguyên trạng thái cũ; thay đổi chưa được cập nhật.
-* **Đảm bảo thành công:** Cập nhật thành công thông tin đề tài nghiên cứu và sắp xếp lại các mối quan hệ thành viên.
+* **Đảm bảo thành công:** Cập nhật thành công thông tin đề tài nghiên cứu (bao gồm trạng thái: Đang thực hiện / Hoàn thành) và sắp xếp lại các mối quan hệ thành viên (chủ nhiệm, thành viên).
 * **Kích hoạt:** Admin chỉnh sửa thông tin đề tài và nhấn nút Lưu.
 * **Chuỗi sự kiện chính:**
   1. Admin nhấn nút 'Sửa' tại đề tài nghiên cứu tương ứng.
-  2. Hệ thống hiển thị form chỉnh sửa đề tài chứa dữ liệu hiện có.
-  3. Admin cập nhật các trường thông tin hoặc sửa danh sách thành viên và nhấn 'Lưu thay đổi'.
-  4. Backend cập nhật thuộc tính nút DeTaiNghienCuu và thiết lập lại các mối quan hệ chủ nhiệm/thành viên tương ứng.
+  2. Hệ thống hiển thị form chỉnh sửa đề tài chứa dữ liệu hiện có (bao gồm trạng thái).
+  3. Admin cập nhật các trường thông tin, thay đổi trạng thái hoặc sửa danh sách thành viên và nhấn 'Lưu thay đổi'.
+  4. Backend cập nhật thuộc tính nút DeTaiNghienCuu trên Neo4j.
+  5. Hệ thống thông báo cập nhật đề tài thành công.
   *Use case chức năng “Sửa thông tin đề tài nghiên cứu (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
+
+---
+### Bảng 3.60a. Đặc tả chức năng Biên tập liên kết đề tài nghiên cứu (Quản trị viên)
+* **Mô tả:** Cho phép Admin thay đổi, gán, hoặc hủy gán mối quan hệ vai trò tham gia (Chủ nhiệm / Thành viên) giữa đề tài nghiên cứu với giảng viên trong khoa hoặc tác giả bên ngoài đơn vị.
+* **Actor:** Quản trị viên
+* **Tiền điều kiện:** Admin đang ở trang Quản lý đề tài khoa học, chọn đề tài cần biên tập liên kết.
+* **Hậu điều kiện:** Các mối quan hệ thành viên (CHU_NHIEM, THAM_GIA, DONG_TAC_GIA) được cập nhật chính xác trên Neo4j.
+* **Đảm bảo tối thiểu:** Các liên kết thành viên cũ của đề tài được giữ nguyên trạng thái; cơ sở dữ liệu Neo4j không thay đổi nếu thao tác thất bại hoặc bị hủy bỏ.
+* **Đảm bảo thành công:** Cập nhật thành công danh sách chủ nhiệm và thành viên tham gia đề tài (trong và ngoài khoa) đúng theo các lựa chọn đã tích chọn.
+* **Kích hoạt:** Admin nhấn nút 'Gán Tác giả' (biểu tượng liên kết) tại dòng đề tài tương ứng.
+* **Chuỗi sự kiện chính:**
+  1. Admin nhấn nút 'Gán Tác giả' tại dòng đề tài cần thiết lập.
+  2. Hệ thống hiển thị popup/modal "Biên tập Liên kết" chứa danh sách toàn bộ giảng viên trong khoa và tác giả ngoài khoa, chia thành hai khu vực vai trò: "Chủ nhiệm" và "Thành viên".
+  3. Hệ thống tự động tích chọn các giảng viên hoặc tác giả ngoài đang có liên kết với đề tài này.
+  4. Admin thực hiện tích chọn thêm hoặc bỏ tích chọn các cá nhân tham gia.
+  5. Admin nhấn nút 'Cập nhật Liên kết' để lưu thay đổi.
+  6. Backend nhận danh sách ID, thực hiện xóa các quan hệ thành viên cũ của đề tài này và tạo các quan hệ mới (CHU_NHIEM, THAM_GIA cho giảng viên trong khoa, và DONG_TAC_GIA cho tác giả ngoài) trên Neo4j.
+  7. Hệ thống đóng popup, thông báo cập nhật liên kết thành công và tải lại bảng danh sách đề tài.
+  *Use case chức năng “Biên tập liên kết đề tài nghiên cứu (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.61. Đặc tả chức năng Xóa đề tài nghiên cứu (Quản trị viên)
@@ -1305,37 +1552,48 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
 * **Tiền điều kiện:** Admin chọn đề tài cần xóa trong danh sách đề tài.
 * **Hậu điều kiện:** Đề tài nghiên cứu khoa học bị gán cờ is_deleted = true và chuyển vào thùng rác hệ thống.
 * **Đảm bảo tối thiểu:** Đề tài không bị thay đổi trạng thái xóa mềm; dữ liệu Neo4j giữ nguyên.
-* **Đảm bảo thành công:** Gán cờ is_deleted = true thành công trên nút DeTaiNghienCuu.
+* **Đảm bảo thành công:** Gán cờ is_deleted = true thành công trên nút DeTaiNghienCuu (chỉ áp dụng đối với đề tài ở trạng thái khác "Đang thực hiện").
 * **Kích hoạt:** Admin nhấn nút Xóa đề tài và xác nhận.
 * **Chuỗi sự kiện chính:**
   1. Admin click chọn nút 'Xóa' tại đề tài tương ứng.
-  2. Hệ thống hiển thị popup xác nhận xóa đề tài.
-  3. Admin nhấn 'Xác nhận xóa mềm'.
-  4. Backend cập nhật thuộc tính is_deleted = true và ngày xóa (deleted_at) trên nút DeTaiNghienCuu.
-  5. Hệ thống thông báo xóa đề tài thành công và ẩn đề tài khỏi giao diện.
+  2. Hệ thống kiểm tra trạng thái của đề tài nghiên cứu.
+  3. Hệ thống hiển thị popup xác nhận xóa đề tài.
+  4. Admin nhấn 'Xác nhận xóa mềm'.
+  5. Backend cập nhật thuộc tính is_deleted = true và ngày xóa (deleted_at) trên nút DeTaiNghienCuu.
+  6. Hệ thống thông báo xóa đề tài thành công và ẩn đề tài khỏi giao diện.
   *Use case chức năng “Xóa đề tài nghiên cứu (Quản trị viên)” dừng lại.*
+* **Chuỗi sự kiện ngoại lệ:**
+  2.a. Đề tài đang ở trạng thái 'Đang thực hiện':
+    2.a.1. Hệ thống báo lỗi và từ chối xóa đề tài, yêu cầu Admin chuyển trạng thái đề tài sang "Hoàn thành" trước khi thực hiện xóa.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.62. Đặc tả chức năng Phê duyệt yêu cầu đề tài từ giảng viên (Quản trị viên)
-* **Mô tả:** Cho phép Admin phê duyệt hoặc từ chối yêu cầu thêm, sửa, xóa đề tài nghiên cứu do giảng viên gửi lên.
+* **Mô tả:** Cho phép Admin phê duyệt hoặc từ chối các yêu cầu thêm mới, đổi trạng thái hoặc xóa đề tài nghiên cứu do giảng viên gửi lên.
 * **Actor:** Quản trị viên
-* **Tiền điều kiện:** Admin truy cập mục Phê duyệt yêu cầu đề tài.
-* **Hậu điều kiện:** Trạng thái đề tài nghiên cứu khoa học thay đổi theo quyết định của Admin.
+* **Tiền điều kiện:** Admin truy cập mục Quản lý đề tài khoa học, chọn đề tài có yêu cầu hành động.
+* **Hậu điều kiện:** Trạng thái của đề tài nghiên cứu và các thuộc tính liên quan được cập nhật trên Neo4j.
 * **Đảm bảo tối thiểu:** Yêu cầu được giữ nguyên ở trạng thái chờ; thông tin đề tài chính thức chưa bị thay đổi.
-* **Đảm bảo thành công:** Cập nhật trạng thái đề tài thành 'Đã duyệt' (nếu phê duyệt thêm mới/chỉnh sửa) hoặc gán cờ is_deleted = true (nếu phê duyệt yêu cầu xóa).
-* **Kích hoạt:** Admin nhấn nút Duyệt hoặc Từ chối yêu cầu đề tài.
+* **Đảm bảo thành công:** Cập nhật trạng thái đề tài tương ứng theo quyết định của Admin.
+* **Kích hoạt:** Admin nhấn nút Phê duyệt hoặc Từ chối yêu cầu hành động của đề tài trên danh sách.
 * **Chuỗi sự kiện chính:**
-  1. Admin vào mục Phê duyệt yêu cầu đề tài.
-  2. Hệ thống hiển thị danh sách các yêu cầu đang chờ phê duyệt.
-  3. Admin nhấn nút 'Phê duyệt' (Approve) tại yêu cầu tương ứng.
-  4. Backend đổi thuộc tính trang_thai thành 'Đã duyệt' (đối với yêu cầu thêm), thực hiện cập nhật chỉnh sửa (đối với yêu cầu sửa), hoặc gán is_deleted = true (đối với yêu cầu xóa).
-  5. Backend cập nhật trạng thái của MutationRequest liên quan thành 'Approved'.
-  6. Hệ thống báo duyệt thành công và cập nhật lại danh sách hiển thị.
+  1. Admin tìm kiếm đề tài có nhãn trạng thái chờ duyệt (Chờ duyệt, Yêu cầu xóa, Yêu cầu đổi trạng thái).
+  2. Admin nhấn nút 'Phê duyệt' (Approve) tại đề tài tương ứng.
+  3. Hệ thống gửi yêu cầu phê duyệt lên backend.
+  4. Backend cập nhật trạng thái trên nút DeTaiNghienCuu:
+    - Nếu là yêu cầu thêm mới ("Chờ duyệt"): đặt trang_thai = 'Đang thực hiện' (hoặc khôi phục trạng thái cũ).
+    - Nếu là yêu cầu xóa ("Yêu cầu xóa"): đặt is_deleted = true, trang_thai = 'Đã vào thùng rác'.
+    - Nếu là yêu cầu đổi trạng thái: cập nhật trang_thai mới theo yêu cầu.
+  5. Hệ thống thông báo duyệt thành công và tải lại danh sách.
   *Use case chức năng “Phê duyệt yêu cầu đề tài từ giảng viên (Quản trị viên)” dừng lại.*
 * **Chuỗi sự kiện thay thế:**
-  3.a. Từ chối yêu cầu phê duyệt đề tài:
-    3.a.1. Admin nhấn nút 'Từ chối' (Reject) và nhập lý do.
-    3.a.2. Backend đổi trạng thái đề tài thành 'Từ chối' (nếu là yêu cầu thêm), hoặc khôi phục dữ liệu cũ, cập nhật MutationRequest thành 'Rejected' kèm lý do.
+  2.a. Từ chối yêu cầu phê duyệt đề tài:
+    2.a.1. Admin nhấn nút 'Từ chối' (Reject) tại đề tài tương ứng.
+    2.a.2. Hệ thống gửi yêu cầu từ chối lên backend.
+    2.a.3. Backend xử lý:
+      - Nếu là yêu cầu thêm mới ("Chờ duyệt"): đặt trang_thai = 'Từ chối'.
+      - Nếu là yêu cầu xóa hoặc yêu cầu đổi trạng thái: khôi phục trạng thái cũ của đề tài bằng thuộc tính old_status, đồng thời xóa bỏ trường old_status.
+    2.a.4. Hệ thống thông báo từ chối thành công và tải lại danh sách.
 
 ---
 ### Bảng 3.63. Đặc tả chức năng Xem danh sách lĩnh vực nghiên cứu (Quản trị viên)
@@ -1370,6 +1628,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   5. Backend thực hiện tạo nút LinhVucNghienCuu mới trên Neo4j.
   6. Hệ thống thông báo thêm lĩnh vực thành công.
   *Use case chức năng “Thêm mới lĩnh vực nghiên cứu (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 * **Chuỗi sự kiện ngoại lệ:**
   4.a. Trùng tên lĩnh vực đã có sẵn trên hệ thống:
     4.a.1. Hệ thống báo lỗi 'Tên lĩnh vực nghiên cứu đã tồn tại'.
@@ -1391,6 +1655,12 @@ Tài liệu dưới đây chứa thông tin đặc tả chi tiết của các Us
   4. Backend cập nhật thuộc tính tên của nút LinhVucNghienCuu tương ứng trên Neo4j.
   5. Hệ thống báo cập nhật thành công.
   *Use case chức năng “Sửa lĩnh vực nghiên cứu (Quản trị viên)” dừng lại.*
+
+* **Chuỗi sự kiện thay thế:**
+  3.a. Hủy bỏ thao tác (Hủy/Đóng):
+    3.a.1. Người dùng nhấn nút 'Hủy' hoặc nút 'Đóng' (X) trên form/modal/giao diện.
+    3.a.2. Hệ thống đóng form/modal/giao diện và giữ nguyên trạng thái dữ liệu cũ, không thực hiện thay đổi nào trên Neo4j.
+    Use case dừng lại.
 
 ---
 ### Bảng 3.66. Đặc tả chức năng Xóa lĩnh vực nghiên cứu (Quản trị viên)

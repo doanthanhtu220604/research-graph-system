@@ -67,6 +67,9 @@ function truncateLabel(text, maxLen) {
 }
 
 function buildTooltip(node) {
+    if (node.is_deleted) {
+        return '';
+    }
     const props = node.properties || {};
     const container = document.createElement('div');
     container.style.cssText = 'font-family:Inter;padding:8px;max-width:350px;white-space:normal;line-height:1.4;font-size:13px;';
@@ -196,6 +199,9 @@ function renderGraph(containerId, nodes, edges, callback) {
             const nodeId = params.nodes[0];
             const node = nodes.find(n => n.id === nodeId);
             if (node) {
+                if (node.is_deleted) {
+                    return; // Vô hiệu hóa tương tác
+                }
                 if (node.group === 'GiangVien' && node.id !== undefined) {
                     showLecturerDetail(node.id);
                 } else if (node.group === 'CongTrinhNghienCuu' && node.id !== undefined) {

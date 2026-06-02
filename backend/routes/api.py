@@ -171,8 +171,7 @@ def get_cong_trinh_detail(ct_id):
         MATCH (ct:CongTrinhNghienCuu) 
         WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
-        WHERE coalesce(gv.is_deleted, false) = false
-        RETURN ct, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS tac_gia
+        RETURN ct, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS tac_gia
     """, {"id": ct_id})
 
     tac_gia_ngoai_res = conn.query("""
@@ -234,8 +233,7 @@ def get_de_tai_detail(dt_id):
         MATCH (dt:DeTaiNghienCuu) 
         WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
-        WHERE coalesce(gv.is_deleted, false) = false
-        RETURN dt, collect({ten: gv.ho_va_ten, vai_tro: type(r)}) AS thanh_vien
+        RETURN dt, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS thanh_vien
     """, {"id": dt_id})
 
     tac_gia_ngoai_res = conn.query("""
@@ -518,16 +516,19 @@ def get_node_graph(node_id):
             clabel = r["center_labels"][0] if r["center_labels"] else "Unknown"
             cprops = dict(r["center"])
             cconfig = label_config.get(clabel, {"color": "#95A5A6", "shape": "dot", "size": 15})
+            is_del = cprops.get("is_deleted", False)
+            color_val = "#d1d5db" if is_del else cconfig["color"]
             nodes_map[cid] = {
                 "id": cid,
                 "label": cprops.get("ho_va_ten") or cprops.get("ten_cong_trinh")
                          or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
                          or cprops.get("ten_khoa") or str(cprops.get("id", "")),
                 "group": clabel,
-                "color": cconfig["color"],
+                "color": color_val,
                 "shape": cconfig["shape"],
                 "size": cconfig["size"] + 10,
                 "properties": cprops,
+                "is_deleted": is_del
             }
 
         # Neighbor node
@@ -536,16 +537,19 @@ def get_node_graph(node_id):
             nlabel = r["neighbor_labels"][0] if r["neighbor_labels"] else "Unknown"
             nprops = dict(r["neighbor"])
             nconfig = label_config.get(nlabel, {"color": "#95A5A6", "shape": "dot", "size": 15})
+            is_del = nprops.get("is_deleted", False)
+            color_val = "#d1d5db" if is_del else nconfig["color"]
             nodes_map[nid] = {
                 "id": nid,
                 "label": nprops.get("ho_va_ten") or nprops.get("ten_cong_trinh")
                          or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
                          or nprops.get("ten_khoa") or str(nprops.get("id", "")),
                 "group": nlabel,
-                "color": nconfig["color"],
+                "color": color_val,
                 "shape": nconfig["shape"],
                 "size": nconfig["size"],
                 "properties": nprops,
+                "is_deleted": is_del
             }
 
         edges.append({

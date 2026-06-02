@@ -121,17 +121,33 @@ async function showProjectDetail(dtId) {
                 bodyHtml += `
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);"><i class="fas fa-users"></i> Thành viên tham gia (trong khoa)</h3>
-                        ${dt.thanh_vien.map(tv => `
-                            <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid ${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--border-color)'}; display:flex; align-items:center; gap:10px;">
-                                <div style="width:32px; height:32px; border-radius:50%; background:${tv.vai_tro === 'CHU_NHIEM' ? 'rgba(245,158,11,0.15)' : 'rgba(0,0,0,0.05)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                    <i class="fas fa-user-tie" style="color:${tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--text-muted)'}; font-size:13px;"></i>
+                        ${dt.thanh_vien.map(tv => {
+                            let borderLeftColor = tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--border-color)';
+                            let iconBg = tv.vai_tro === 'CHU_NHIEM' ? 'rgba(245,158,11,0.15)' : 'rgba(0,0,0,0.05)';
+                            let iconColor = tv.vai_tro === 'CHU_NHIEM' ? 'var(--accent-orange)' : 'var(--text-muted)';
+                            let nameColor = 'inherit';
+                            let roleSubtitle = tv.vai_tro === 'CHU_NHIEM' ? '<span style="color:var(--accent-orange); font-weight:600;">Chủ nhiệm đề tài</span>' : 'Thành viên';
+                            
+                            if (tv.is_deleted) {
+                                borderLeftColor = '#d1d5db';
+                                iconBg = 'rgba(156, 163, 175, 0.1)';
+                                iconColor = '#9ca3af';
+                                nameColor = '#9ca3af';
+                                roleSubtitle = '';
+                            }
+                            
+                            return `
+                                <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid ${borderLeftColor}; display:flex; align-items:center; gap:10px;">
+                                    <div style="width:32px; height:32px; border-radius:50%; background:${iconBg}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <i class="fas fa-user-tie" style="color:${iconColor}; font-size:13px;"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="color:${nameColor};">${tv.ten || 'N/A'}</strong>
+                                        ${roleSubtitle ? `<div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">${roleSubtitle}</div>` : ''}
+                                    </div>
                                 </div>
-                                <div>
-                                    <strong>${tv.ten}</strong>
-                                    <div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">${tv.vai_tro === 'CHU_NHIEM' ? '<span style="color:var(--accent-orange); font-weight:600;">Chủ nhiệm đề tài</span>' : 'Thành viên'}</div>
-                                </div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 `;
             }

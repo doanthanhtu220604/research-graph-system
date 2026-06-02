@@ -129,15 +129,21 @@ async function showPublicationDetail(ctId) {
                                 let roleText = '';
                                 let roleColor = 'rgba(79, 142, 247, 0.1)';
                                 let textColor = 'var(--accent-blue)';
-                                if (tg.vai_tro === 'TAC_GIA_CHINH') {
-                                    roleText = ' <small style="opacity:0.8;">(Tác giả chính)</small>';
-                                    roleColor = 'rgba(79, 142, 247, 0.15)';
-                                } else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') {
-                                    roleText = ' <small style="opacity:0.8;">(Đồng tác giả)</small>';
-                                    roleColor = 'rgba(16, 185, 129, 0.1)';
-                                    textColor = '#10b981';
+                                if (tg.is_deleted) {
+                                    roleText = '';
+                                    roleColor = 'rgba(156, 163, 175, 0.1)';
+                                    textColor = '#9ca3af';
+                                } else {
+                                    if (tg.vai_tro === 'TAC_GIA_CHINH') {
+                                        roleText = ' <small style="opacity:0.8;">(Tác giả chính)</small>';
+                                        roleColor = 'rgba(79, 142, 247, 0.15)';
+                                    } else if (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') {
+                                        roleText = ' <small style="opacity:0.8;">(Đồng tác giả)</small>';
+                                        roleColor = 'rgba(16, 185, 129, 0.1)';
+                                        textColor = '#10b981';
+                                    }
                                 }
-                                return `<span style="padding:6px 14px; background:${roleColor}; color:${textColor}; border-radius:20px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fas fa-user-tie" style="font-size:11px;"></i>${tg.ten}${roleText}</span>`;
+                                return `<span style="padding:6px 14px; background:${roleColor}; color:${textColor}; border-radius:20px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fas fa-user-tie" style="font-size:11px;"></i>${tg.ten || 'N/A'}${roleText}</span>`;
                             }).join('')}
                         </div>
                     </div>
