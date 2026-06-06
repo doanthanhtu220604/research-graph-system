@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -334,7 +334,7 @@
                             <div class="export-columns-list">
                                 <span class="export-col-tag">ten_de_tai</span>
                                 <span class="export-col-tag">cap_de_tai</span>
-                                <span class="export-col-tag">nam_bat_dau</span>
+                                <span class="export-col-tag">nam</span>
                                 <span class="export-col-tag">chu_nhiem</span>
                                 <span class="export-col-tag">...</span>
                             </div>
@@ -490,8 +490,7 @@
             'de-tai': [
                 { name: 'ten_de_tai', desc: 'Tên đề tài nghiên cứu khoa học các cấp (Bắt buộc)' },
                 { name: 'cap_de_tai', desc: 'Cấp quản lý đề tài (Cơ sở, Tỉnh, Bộ, Nhà nước...)' },
-                { name: 'nam_bat_dau', desc: 'Năm bắt đầu thực hiện đề tài' },
-                { name: 'nam_ket_thuc', desc: 'Năm hoàn thành / nghiệm thu đề tài' },
+                { name: 'nam', desc: 'Năm thực hiện đề tài' },
                 { name: 'tom_tat', desc: 'Tóm tắt mục tiêu và nội dung của đề tài' },
                 { name: 'trang_thai', desc: 'Trạng thái thực hiện (Đang thực hiện, Đã nghiệm thu, Hủy...)' },
                 { name: 'link', desc: 'Liên kết tới thuyết minh đề tài hoặc tài liệu đính kèm' },
@@ -677,7 +676,7 @@
                     if (dataType === 'cong-trinh') {
                         list = list.filter(ct => String(ct.nam_xuat_ban) === selectedYear);
                     } else if (dataType === 'de-tai') {
-                        list = list.filter(dt => String(dt.nam_bat_dau) === selectedYear);
+                        list = list.filter(dt => String(dt.nam || dt.nam_bat_dau) === selectedYear);
                     }
                 }
 
@@ -704,12 +703,12 @@
                         csvContent += `"${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}","${(ct.tom_tat || '').replace(/"/g, '""')}","${ct.trang_thai || ''}","${ct.link || ''}","${tacGiaGV}","${tacGiaNgoai}"\n`;
                     });
                 } else if (dataType === 'de-tai') {
-                    csvContent += "ten_de_tai,cap_de_tai,nam_bat_dau,nam_ket_thuc,tom_tat,trang_thai,link,chu_nhiem,thanh_vien,tac_gia_ngoai\n";
+                    csvContent += "ten_de_tai,cap_de_tai,nam,tom_tat,trang_thai,link,chu_nhiem,thanh_vien,tac_gia_ngoai\n";
                     list.forEach(dt => {
                         const chuNhiem = Array.isArray(dt.chu_nhiem) ? dt.chu_nhiem.join('|') : (dt.chu_nhiem || '');
                         const thanhVien = Array.isArray(dt.thanh_vien) ? dt.thanh_vien.join('|') : (dt.thanh_vien || '');
                         const tacGiaNgoai = Array.isArray(dt.tac_gia_ngoai) ? dt.tac_gia_ngoai.join('|') : (dt.tac_gia_ngoai || '');
-                        csvContent += `"${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam_bat_dau || ''}","${dt.nam_ket_thuc || ''}","${(dt.tom_tat || '').replace(/"/g, '""')}","${dt.trang_thai || ''}","${dt.link || ''}","${chuNhiem}","${thanhVien}","${tacGiaNgoai}"\n`;
+                        csvContent += `"${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam || dt.nam_bat_dau || ''}","${(dt.tom_tat || '').replace(/"/g, '""')}","${dt.trang_thai || ''}","${dt.link || ''}","${chuNhiem}","${thanhVien}","${tacGiaNgoai}"\n`;
                     });
                 } else if (dataType === 'linh-vuc') {
                     csvContent += "ten_linh_vuc\n";

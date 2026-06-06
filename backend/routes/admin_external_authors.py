@@ -106,7 +106,7 @@ def get_tac_gia_ngoai_detail(id):
             MATCH (tgn:TacGiaNgoai)-[:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
             WHERE tgn.id = $id AND coalesce(dt.is_deleted, false) = false
             RETURN dt {.*} as item
-            ORDER BY dt.nam_bat_dau DESC
+            ORDER BY dt.nam DESC
         """, {"id": id})
         
         # Lấy danh sách giảng viên đã hợp tác (từ cả CT và DT)
@@ -123,12 +123,21 @@ def get_tac_gia_ngoai_detail(id):
             ORDER BY workCount DESC
         """, {"id": id})
         
+        projects_data = []
+        for r in projects:
+            item = dict(r["item"])
+            if "nam" in item:
+                item["nam_bat_dau"] = item["nam"]
+                item["nam_ket_thuc"] = item["nam"]
+                item["nam_thuc_hien"] = str(item["nam"])
+            projects_data.append(item)
+
         return jsonify({
             "status": "ok", 
             "data": {
                 "info": author_res["info"],
                 "publications": [r["item"] for r in publications],
-                "projects": [r["item"] for r in projects],
+                "projects": projects_data,
                 "collaborators": [r["lecturer"] for r in collaborators]
             }
         })

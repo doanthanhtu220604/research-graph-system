@@ -32,7 +32,7 @@ def create_database_indexes():
             
             # Tối ưu tìm kiếm theo năm
             "CREATE INDEX congtrinh_nam_idx IF NOT EXISTS FOR (n:CongTrinhNghienCuu) ON (n.nam_xuat_ban)",
-            "CREATE INDEX detai_nghiencuu_nam_idx IF NOT EXISTS FOR (n:DeTaiNghienCuu) ON (n.nam_bat_dau)"
+            "CREATE INDEX detai_nghiencuu_nam_idx IF NOT EXISTS FOR (n:DeTaiNghienCuu) ON (n.nam)"
         ]
         
         for query in cypher_queries:

@@ -599,10 +599,7 @@ const ENTITY_CONFIG = {
 
             ]},
 
-            { name: 'nam_bat_dau', label: 'Năm bắt đầu', type: 'number' },
-
-            { name: 'nam_ket_thuc', label: 'Năm kết thúc', type: 'number' },
-
+            { name: 'nam', label: 'Năm thực hiện', type: 'number' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
 
             { name: 'link', label: 'Link đề tài', type: 'url' },

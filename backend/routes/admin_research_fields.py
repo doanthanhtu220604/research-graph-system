@@ -106,9 +106,9 @@ def get_linh_vuc_detail(id):
                   (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             WHERE lv.id = $id AND coalesce(gv.is_deleted, false) = false AND coalesce(dt.is_deleted, false) = false
             RETURN DISTINCT dt.id AS id, dt.ten_de_tai AS ten_de_tai, 
-                            dt.cap_de_tai AS cap_de_tai, dt.nam_bat_dau AS nam_bat_dau, 
-                            dt.nam_ket_thuc AS nam_ket_thuc
-            ORDER BY dt.nam_bat_dau DESC, dt.ten_de_tai
+                            dt.cap_de_tai AS cap_de_tai, dt.nam AS nam_bat_dau, 
+                            dt.nam AS nam_ket_thuc
+            ORDER BY dt.nam DESC, dt.ten_de_tai
         """, {"id": id})
         projects = [dict(r) for r in projects_res]
         

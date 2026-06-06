@@ -13,18 +13,19 @@ def create_de_tai():
     chu_nhiem_ids = data.pop("chu_nhiem_ids", [])
     tham_gia_ids  = data.pop("tham_gia_ids", [])
     tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
+    nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
+    data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
+    
     conn = get_neo4j_connection()
     try:
         result = conn.write("""
             CREATE (dt:DeTaiNghienCuu {
                 ten_de_tai: toUpper($ten_de_tai),
                 cap_de_tai: toUpper($cap_de_tai),
-                nam_bat_dau: $nam_bat_dau,
-                nam_ket_thuc: $nam_ket_thuc,
+                nam: $nam,
                 tom_tat: $tom_tat,
                 trang_thai: coalesce($trang_thai, 'Đang thực hiện'),
-                link: $link,
-                created_at: timestamp()
+                link: $link
             })
             SET dt.id = 'dt_' + toString(id(dt))
             RETURN dt.id AS id
@@ -64,15 +65,17 @@ def create_de_tai():
 
 @admin_projects_bp.route("/de-tai/<id>", methods=["PUT"])
 def update_de_tai(id):
-    data = request.json
+    data = dict(request.json)
+    nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
+    data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
+    
     conn = get_neo4j_connection()
     try:
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
             SET dt.ten_de_tai = toUpper($ten_de_tai),
                 dt.cap_de_tai = toUpper($cap_de_tai),
-                dt.nam_bat_dau = $nam_bat_dau,
-                dt.nam_ket_thuc = $nam_ket_thuc,
+                dt.nam = $nam,
                 dt.tom_tat = $tom_tat,
                 dt.trang_thai = coalesce($trang_thai, 'Hoàn thành'),
                 dt.link = $link

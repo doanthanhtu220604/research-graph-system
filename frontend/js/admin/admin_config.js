@@ -56,8 +56,7 @@ const ENTITY_CONFIG = {
         fields: [
             { name: 'ten_de_tai', label: 'Tên đề tài', type: 'text', required: true },
             { name: 'cap_de_tai', label: 'Cấp đề tài', type: 'text' },
-            { name: 'nam_bat_dau', label: 'Năm bắt đầu', type: 'number' },
-            { name: 'nam_ket_thuc', label: 'Năm kết thúc', type: 'number' },
+            { name: 'nam', label: 'Năm thực hiện', type: 'number' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
             { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
                 { value: 'Đang thực hiện', label: 'Đang thực hiện' },

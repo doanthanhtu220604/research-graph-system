@@ -66,12 +66,11 @@ def standardize_properties(conn):
     """)
     print(f"TacGiaNgoai details updated: {res[0]['count'] if res else 0}")
 
-    # Label: CongTrinhNghienCuu -> ten_cong_trinh, noi_xuat_ban, loai_an_pham
+    # Label: CongTrinhNghienCuu -> ten_cong_trinh, noi_xuat_ban
     res = conn.write("""
         MATCH (ct:CongTrinhNghienCuu)
         SET ct.ten_cong_trinh = CASE WHEN ct.ten_cong_trinh IS NOT NULL THEN toUpper(ct.ten_cong_trinh) ELSE ct.ten_cong_trinh END,
-            ct.noi_xuat_ban = CASE WHEN ct.noi_xuat_ban IS NOT NULL THEN toUpper(ct.noi_xuat_ban) ELSE ct.noi_xuat_ban END,
-            ct.loai_an_pham = CASE WHEN ct.loai_an_pham IS NOT NULL THEN toUpper(ct.loai_an_pham) ELSE ct.loai_an_pham END
+            ct.noi_xuat_ban = CASE WHEN ct.noi_xuat_ban IS NOT NULL THEN toUpper(ct.noi_xuat_ban) ELSE ct.noi_xuat_ban END
         RETURN count(ct) AS count
     """)
     print(f"CongTrinhNghienCuu details updated: {res[0]['count'] if res else 0}")

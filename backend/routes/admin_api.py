@@ -138,15 +138,16 @@ def delete_cong_trinh(id):
 
 @admin_api_bp.route("/de-tai", methods=["POST"])
 def create_de_tai():
-    data = request.json
+    data = dict(request.json)
+    nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
+    data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
     conn = get_neo4j_connection()
     try:
         result = conn.write("""
             CREATE (dt:DeTaiNghienCuu {
                 ten_de_tai: $ten_de_tai,
                 cap_de_tai: $cap_de_tai,
-                nam_bat_dau: $nam_bat_dau,
-                nam_ket_thuc: $nam_ket_thuc
+                nam: $nam
             })
             RETURN id(dt) AS id
         """, data)
@@ -156,15 +157,16 @@ def create_de_tai():
 
 @admin_api_bp.route("/de-tai/<int:id>", methods=["PUT"])
 def update_de_tai(id):
-    data = request.json
+    data = dict(request.json)
+    nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
+    data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
     conn = get_neo4j_connection()
     try:
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE id(dt) = $id
             SET dt.ten_de_tai = $ten_de_tai,
                 dt.cap_de_tai = $cap_de_tai,
-                dt.nam_bat_dau = $nam_bat_dau,
-                dt.nam_ket_thuc = $nam_ket_thuc
+                dt.nam = $nam
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:

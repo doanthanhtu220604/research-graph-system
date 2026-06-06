@@ -257,16 +257,13 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
             continue
 
         ten = ten.upper()
-        nam_bat_dau_str = safe_str(row.get("nam_bat_dau"))
-        nam_ket_thuc_str = safe_str(row.get("nam_ket_thuc"))
-        nam_bat_dau = int(nam_bat_dau_str) if nam_bat_dau_str.isdigit() else None
-        nam_ket_thuc = int(nam_ket_thuc_str) if nam_ket_thuc_str.isdigit() else None
+        nam_str = safe_str(row.get("nam")) or safe_str(row.get("nam_bat_dau")) or safe_str(row.get("nam_ket_thuc"))
+        nam = int(nam_str) if nam_str.isdigit() else None
 
         props = {
             "ten_de_tai":   ten,
             "cap_de_tai":   safe_str(row.get("cap_de_tai")).upper() if safe_str(row.get("cap_de_tai")) else None,
-            "nam_bat_dau":  nam_bat_dau,
-            "nam_ket_thuc": nam_ket_thuc,
+            "nam":          nam,
             "tom_tat":      safe_str(row.get("tom_tat")),
             "trang_thai":   safe_str(row.get("trang_thai")) or "Đang thực hiện",
             "link":         safe_str(row.get("link")),
@@ -277,7 +274,6 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
                 MERGE (dt:DeTaiNghienCuu {ten_de_tai: $ten_de_tai})
                 ON CREATE SET
                     dt.id = 'dt_' + toString(id(dt)),
-                    dt.created_at = timestamp(),
                     dt += $props
                 ON MATCH SET dt += $props
                 RETURN dt.id AS dt_id
@@ -458,7 +454,7 @@ def download_template(data_type: str):
             "tac_gia_giang_vien", "tac_gia_ngoai"
         ],
         "de-tai": [
-            "ten_de_tai", "cap_de_tai", "nam_bat_dau", "nam_ket_thuc",
+            "ten_de_tai", "cap_de_tai", "nam",
             "tom_tat", "trang_thai", "link",
             "chu_nhiem", "thanh_vien", "tac_gia_ngoai"
         ],

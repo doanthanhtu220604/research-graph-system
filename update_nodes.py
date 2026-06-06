@@ -12,7 +12,6 @@ def main():
             query = """
                 MATCH (n:CongTrinhNghienCuu)
                 SET n.link = coalesce(n.link, ""),
-                    n.loai_an_pham = coalesce(n.loai_an_pham, ""),
                     n.tom_tat = coalesce(n.tom_tat, ""),
                     n.nam_xuat_ban = coalesce(n.nam_xuat_ban, ""),
                     n.ten_cong_trinh = coalesce(n.ten_cong_trinh, "")
@@ -26,7 +25,6 @@ def main():
                 MATCH (n:CongTrinhNghienCuu)
                 RETURN count(n) as total,
                        count(n.link) as has_link, 
-                       count(n.loai_an_pham) as has_loai,
                        count(n.nam_xuat_ban) as has_nam,
                        count(n.ten_cong_trinh) as has_ten,
                        count(n.tom_tat) as has_tom_tat

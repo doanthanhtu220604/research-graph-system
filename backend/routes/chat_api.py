@@ -372,7 +372,7 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
     if "đề tài" in q or "dự án" in q or "nckh" in q:
         if year:
             r = conn.query_single(
-                "MATCH (n:DeTaiNghienCuu) WHERE (n.nam_bat_dau = $year OR n.nam_ket_thuc = $year) AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
+                "MATCH (n:DeTaiNghienCuu) WHERE n.nam = $year AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
                 {"year": int(year)}
             )
             count = int(r["count"]) if r else 0
@@ -562,8 +562,8 @@ def handle_search_project(question: str, entities: Optional[dict] = None):
               AND coalesce(gv.is_deleted, false) = false
               AND coalesce(dt.is_deleted, false) = false
             RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, type(r) AS vai_tro,
-                   dt.nam_bat_dau AS nam_bd, dt.nam_ket_thuc AS nam_kt
-            ORDER BY dt.nam_bat_dau DESC
+                   dt.nam AS nam_bd, dt.nam AS nam_kt
+            ORDER BY dt.nam DESC
             LIMIT 8
             """,
             {"name": name}
@@ -590,7 +590,7 @@ def handle_search_project(question: str, entities: Optional[dict] = None):
         results = conn.query(
             """
             MATCH (dt:DeTaiNghienCuu)
-            WHERE dt.nam_bat_dau = $year OR dt.nam_ket_thuc = $year
+            WHERE dt.nam = $year
             OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
             RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, gv.ho_va_ten AS chu_nhiem
             LIMIT 8
@@ -612,7 +612,7 @@ def handle_search_project(question: str, entities: Optional[dict] = None):
         MATCH (dt:DeTaiNghienCuu)
         OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
         RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap, gv.ho_va_ten AS chu_nhiem
-        ORDER BY dt.nam_bat_dau DESC
+        ORDER BY dt.nam DESC
         LIMIT 5
     """)
     if results:
@@ -910,8 +910,8 @@ def handle_project_by_level(question: str, entities: Optional[dict] = None):
             WHERE toLower(coalesce(dt.cap_de_tai,'')) CONTAINS toLower($level)
             OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
             RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id, dt.ten_de_tai AS ten, dt.cap_de_tai AS cap,
-                   gv.ho_va_ten AS chu_nhiem, dt.nam_bat_dau AS nam_bd, dt.nam_ket_thuc AS nam_kt
-            ORDER BY dt.nam_bat_dau DESC
+                   gv.ho_va_ten AS chu_nhiem, dt.nam AS nam_bd, dt.nam AS nam_kt
+            ORDER BY dt.nam DESC
             LIMIT 10
             """,
             {"level": level}
@@ -1015,7 +1015,7 @@ def handle_who_leads(question: str, entities: Optional[dict] = None):
             MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
             WHERE toLower(dt.ten_de_tai) CONTAINS toLower($project)
             RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
-                   dt.ten_de_tai AS de_tai, dt.cap_de_tai AS cap, dt.nam_bat_dau AS nam_bd
+                   dt.ten_de_tai AS de_tai, dt.cap_de_tai AS cap, dt.nam AS nam_bd
             LIMIT 5
             """,
             {"project": project_name}

@@ -98,7 +98,7 @@ def get_giang_vien_detail(gv_id):
         MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         WHERE gv.id = $id AND coalesce(dt.is_deleted, false) = false
         RETURN dt, type(r) AS vai_tro
-        ORDER BY dt.nam_bat_dau DESC
+        ORDER BY dt.nam DESC
     """, {"id": gv_id})
 
     linh_vuc = conn.query("""
@@ -124,6 +124,10 @@ def get_giang_vien_detail(gv_id):
         if r.get("dt"):
             dt_item = dict(r["dt"])
             dt_item["vai_tro"] = r.get("vai_tro")
+            if "nam" in dt_item:
+                dt_item["nam_bat_dau"] = dt_item["nam"]
+                dt_item["nam_ket_thuc"] = dt_item["nam"]
+                dt_item["nam_thuc_hien"] = str(dt_item["nam"])
             result["de_tai"].append(dt_item)
 
     # Lĩnh vực nghiên cứu
@@ -211,13 +215,17 @@ def get_all_de_tai():
                collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
                collect(DISTINCT tgn.ho_va_ten)   AS tac_gia_ngoai
         ORDER BY CASE WHEN dt.trang_thai IN ['Chờ duyệt', 'Yêu cầu xóa', 'Yêu cầu đổi trạng thái'] THEN 0 ELSE 1 END ASC,
-                 toInteger(dt.nam_bat_dau) DESC,
+                 toInteger(dt.nam) DESC,
                  coalesce(dt.created_at, 0) DESC,
                  id(dt) DESC
     """)
     de_tai_list = []
     for r in results:
         dt = dict(r["dt"])
+        if "nam" in dt:
+            dt["nam_bat_dau"] = dt["nam"]
+            dt["nam_ket_thuc"] = dt["nam"]
+            dt["nam_thuc_hien"] = str(dt["nam"])
         dt["chu_nhiem"]    = [t for t in (r["chu_nhiem"] or []) if t]
         dt["thanh_vien"]   = [t for t in (r["thanh_vien"] or []) if t]
         dt["tac_gia_ngoai"] = [t for t in (r["tac_gia_ngoai"] or []) if t]
@@ -246,6 +254,10 @@ def get_de_tai_detail(dt_id):
         return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
         
     data = dict(result["dt"])
+    if "nam" in data:
+        data["nam_bat_dau"] = data["nam"]
+        data["nam_ket_thuc"] = data["nam"]
+        data["nam_thuc_hien"] = str(data["nam"])
     data["thanh_vien"] = result["thanh_vien"]
     data["tac_gia_ngoai"] = [
         {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"], "trang_thai": r["trang_thai"]} for r in tac_gia_ngoai_res
@@ -638,8 +650,8 @@ def get_overview_stats():
         # Thống kê đề tài theo năm bắt đầu
         dt_theo_nam = conn.query("""
             MATCH (dt:DeTaiNghienCuu)
-            WHERE dt.nam_bat_dau IS NOT NULL AND toString(dt.nam_bat_dau) <> ''
-            RETURN toInteger(dt.nam_bat_dau) AS nam, count(dt) AS so_luong
+            WHERE dt.nam IS NOT NULL
+            RETURN toInteger(dt.nam) AS nam, count(dt) AS so_luong
             ORDER BY nam ASC
         """)
 
@@ -651,10 +663,10 @@ def get_overview_stats():
             RETURN dt.id AS id,
                    dt.ten_de_tai AS ten_de_tai,
                    dt.cap_de_tai AS cap_de_tai,
-                   dt.nam_bat_dau AS nam_bat_dau,
-                   dt.nam_ket_thuc AS nam_ket_thuc,
+                   dt.nam AS nam_bat_dau,
+                   dt.nam AS nam_ket_thuc,
                    collect(gv.ho_va_ten)[0] AS chu_nhiem
-            ORDER BY dt.nam_bat_dau DESC
+            ORDER BY dt.nam DESC
             LIMIT 6
         """)
 
@@ -665,7 +677,7 @@ def get_overview_stats():
             OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
             RETURN ct.id AS id,
                    ct.ten_cong_trinh AS ten_cong_trinh,
-                   ct.loai_an_pham AS loai_an_pham,
+                   'Bài báo' AS loai_an_pham,
                    ct.nam_xuat_ban AS nam_xuat_ban,
                    collect(gv.ho_va_ten) AS tac_gia
             ORDER BY ct.nam_xuat_ban DESC
@@ -675,9 +687,8 @@ def get_overview_stats():
         # ── Thống kê công trình theo loại ấn phẩm ───────────────────────────
         ct_theo_loai = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.loai_an_pham IS NOT NULL AND coalesce(ct.is_deleted, false) = false
-            RETURN ct.loai_an_pham AS loai, count(ct) AS so_luong
-            ORDER BY so_luong DESC
+            WHERE coalesce(ct.is_deleted, false) = false
+            RETURN 'Bài báo' AS loai, count(ct) AS so_luong
         """)
 
         # ── Thống kê giảng viên theo học vị ─────────────────────────────────

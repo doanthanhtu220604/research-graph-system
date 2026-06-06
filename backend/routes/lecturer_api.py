@@ -420,6 +420,10 @@ def get_my_projects():
         projects = []
         for r in results:
             p = dict(r['de_tai'])
+            if 'nam' in p:
+                p['nam_bat_dau'] = p['nam']
+                p['nam_ket_thuc'] = p['nam']
+                p['nam_thuc_hien'] = str(p['nam'])
             p['vai_tro'] = p.get('vai_tro', 'THAM_GIA')
             p['thanh_vien_ids'] = [x for x in (r.get('thanh_vien_ids') or []) if x]
             p['tac_gia_ngoai_ids'] = [x for x in (r.get('tac_gia_ngoai_ids') or []) if x]
@@ -460,13 +464,10 @@ def add_my_project():
         CREATE (dt:DeTaiNghienCuu {{
             ten_de_tai: toUpper($ten_dt),
             cap_de_tai: toUpper($cap),
-            nam_bat_dau: toInteger($nam_bd),
-            nam_ket_thuc: toInteger($nam_kt),
+            nam: toInteger($nam),
             tom_tat: $tom_tat,
             link: $link,
-            trang_thai: 'Chờ duyệt',
-            nguoi_tao: g.ho_va_ten,
-            created_at: timestamp()
+            trang_thai: 'Chờ duyệt'
         }})
         WITH g, members, dt
         SET dt.id = 'dt_' + toString(id(dt))
@@ -486,12 +487,16 @@ def add_my_project():
             'thanh_vien_ids': thanh_vien_ids,
             'ten_dt': data.get('ten_de_tai', ''),
             'cap': data.get('cap_de_tai', ''),
-            'nam_bd': data.get('nam_bat_dau'),
-            'nam_kt': data.get('nam_ket_thuc'),
+            'nam': data.get('nam') or data.get('nam_bat_dau') or data.get('nam_ket_thuc'),
             'tom_tat': data.get('tom_tat', ''),
             'link': data.get('link', '')
         })
         new_dt = result[0]['new_dt'] if result else None
+        if new_dt:
+            if 'nam' in new_dt:
+                new_dt['nam_bat_dau'] = new_dt['nam']
+                new_dt['nam_ket_thuc'] = new_dt['nam']
+                new_dt['nam_thuc_hien'] = str(new_dt['nam'])
         if new_dt and tac_gia_ngoai_ids:
             conn.query("""
                 UNWIND $ids AS tgn_id
@@ -541,7 +546,7 @@ def get_lecturer_timeline():
             RETURN ct.id AS id,
                    ct.ten_cong_trinh AS tieu_de,
                    ct.nam_xuat_ban AS nam,
-                   ct.loai_an_pham AS loai,
+                   'Bài báo' AS loai,
                    ct.tom_tat AS tom_tat,
                    ct.link AS link,
                    ct.trang_thai AS trang_thai,
@@ -558,15 +563,15 @@ def get_lecturer_timeline():
             WHERE tv.id <> $id AND coalesce(tv.is_deleted, false) = false
             RETURN coalesce(dt.id, 'dt_' + toString(id(dt))) AS id,
                    dt.ten_de_tai AS tieu_de,
-                   dt.nam_bat_dau AS nam,
-                   dt.nam_ket_thuc AS nam_ket_thuc,
+                   dt.nam AS nam,
+                   dt.nam AS nam_ket_thuc,
                    dt.cap_de_tai AS cap,
                    dt.tom_tat AS tom_tat,
                    dt.link AS link,
                    dt.trang_thai AS trang_thai,
                    type(r) AS vai_tro,
                    collect(DISTINCT tv.ho_va_ten) AS thanh_vien
-            ORDER BY dt.nam_bat_dau DESC
+            ORDER BY dt.nam DESC
         """, {'id': gv_id})
 
         # ── 4. Chuyển đổi thành Events Array thống nhất ───────────────────────
@@ -783,8 +788,7 @@ def update_my_project(dt_id):
             SET dt.old_status = CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END,
                 dt.ten_de_tai = toUpper($ten_dt),
                 dt.cap_de_tai = toUpper($cap),
-                dt.nam_bat_dau = toInteger($nam_bd),
-                dt.nam_ket_thuc = toInteger($nam_kt),
+                dt.nam = toInteger($nam),
                 dt.tom_tat = $tom_tat,
                 dt.link = $link,
                 dt.trang_thai = {new_status}
@@ -794,8 +798,7 @@ def update_my_project(dt_id):
                 'dt_id': dt_id,
                 'ten_dt': data.get('ten_de_tai', ''),
                 'cap': data.get('cap_de_tai', ''),
-                'nam_bd': data.get('nam_bat_dau'),
-                'nam_kt': data.get('nam_ket_thuc'),
+                'nam': data.get('nam') or data.get('nam_bat_dau') or data.get('nam_ket_thuc'),
                 'tom_tat': data.get('tom_tat', ''),
                 'link': data.get('link', '')
             })
