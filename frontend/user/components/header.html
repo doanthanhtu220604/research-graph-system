@@ -64,6 +64,134 @@
             </a>
         </div>
     </div>
+
+    <!-- Mobile: Auth + Hamburger -->
+    <div class="mobile-nav-right">
+        <div id="mobileAuthContainerNav"></div>
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Mở menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
 </nav>
 
+<!-- Mobile Navigation Overlay + Drawer -->
+<div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+<div class="mobile-nav-drawer" id="mobileNavDrawer">
+    <div class="mobile-nav-header">
+        <a href="index.html" class="logo">
+            <i class="fas fa-project-diagram"></i>
+            <span class="logo-text">NTUKnowledge</span>
+        </a>
+        <button class="mobile-nav-close" id="mobileNavClose" aria-label="Đóng menu">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
 
+    <div class="mobile-nav-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="mobileSearch" placeholder="Tìm kiếm nhanh...">
+    </div>
+
+    <ul class="mobile-nav-menu">
+        <li><a href="index.html" class="mobile-nav-link" data-page="index">
+            <i class="fas fa-home"></i> <span>Trang chủ</span>
+        </a></li>
+        <li><a href="explore.html" class="mobile-nav-link" data-page="explore">
+            <i class="fas fa-search"></i> <span>Khám phá Bản đồ</span>
+        </a></li>
+        <li class="mobile-nav-group">
+            <button class="mobile-nav-group-toggle" onclick="toggleMobileGroup(this)">
+                <span><i class="fas fa-database"></i> Danh sách dữ liệu</span>
+                <i class="fas fa-chevron-down mobile-group-arrow"></i>
+            </button>
+            <ul class="mobile-nav-submenu">
+                <li><a href="lecturers.html" class="mobile-nav-link">
+                    <i class="fas fa-user-tie"></i> <span>Giảng viên</span>
+                </a></li>
+                <li><a href="publications.html" class="mobile-nav-link">
+                    <i class="fas fa-file-alt"></i> <span>Công trình</span>
+                </a></li>
+                <li><a href="projects.html" class="mobile-nav-link">
+                    <i class="fas fa-flask"></i> <span>Đề tài</span>
+                </a></li>
+            </ul>
+        </li>
+        <li><a href="statistics.html" class="mobile-nav-link" data-page="statistics">
+            <i class="fas fa-chart-bar"></i> <span>Thống kê</span>
+        </a></li>
+        <li><a href="collaboration.html" class="mobile-nav-link" data-page="collaboration">
+            <i class="fas fa-handshake"></i> <span>Hợp tác Nghiên cứu</span>
+        </a></li>
+        <li><a href="chat.html" class="mobile-nav-link" data-page="chat">
+            <i class="fas fa-comments"></i> <span>Hỏi đáp AI</span>
+        </a></li>
+    </ul>
+
+    <div class="mobile-nav-drawer-footer" id="mobileDrawerAuth">
+        <a href="login.html" class="btn-mobile-login">
+            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+        </a>
+    </div>
+</div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="mobile-bottom-nav" aria-label="Điều hướng dưới">
+    <a href="index.html" class="mobile-bottom-item" data-page="index">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+    <a href="explore.html" class="mobile-bottom-item" data-page="explore">
+        <i class="fas fa-search"></i>
+        <span>Khám phá</span>
+    </a>
+    <a href="chat.html" class="mobile-bottom-item mobile-bottom-center" data-page="chat">
+        <div class="mobile-bottom-center-btn">
+            <i class="fas fa-robot"></i>
+        </div>
+        <span>AI Chat</span>
+    </a>
+    <a href="statistics.html" class="mobile-bottom-item" data-page="statistics">
+        <i class="fas fa-chart-bar"></i>
+        <span>Thống kê</span>
+    </a>
+    <!-- Dữ liệu tab — opens popup sheet -->
+    <button class="mobile-bottom-item mobile-bottom-data-btn" id="mobileDataTabBtn"
+            aria-haspopup="true" aria-expanded="false" aria-label="Danh sách dữ liệu">
+        <i class="fas fa-database"></i>
+        <span>Dữ liệu</span>
+    </button>
+</nav>
+
+<!-- Data popup sheet (appears above bottom nav) -->
+<div class="mobile-data-sheet-overlay" id="mobileDataSheetOverlay"></div>
+<div class="mobile-data-sheet" id="mobileDataSheet" role="dialog" aria-label="Danh sách dữ liệu">
+    <div class="mobile-data-sheet-handle"></div>
+    <div class="mobile-data-sheet-title">
+        <i class="fas fa-database"></i> Danh sách dữ liệu
+    </div>
+    <div class="mobile-data-sheet-grid">
+        <a href="lecturers.html" class="mobile-data-sheet-item" data-page="lecturers">
+            <div class="mobile-data-sheet-icon" style="background: linear-gradient(135deg,#3b82f6,#6366f1);">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <span>Giảng viên</span>
+        </a>
+        <a href="publications.html" class="mobile-data-sheet-item" data-page="publications">
+            <div class="mobile-data-sheet-icon" style="background: linear-gradient(135deg,#10b981,#14b8a6);">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <span>Công trình</span>
+        </a>
+        <a href="projects.html" class="mobile-data-sheet-item" data-page="projects">
+            <div class="mobile-data-sheet-icon" style="background: linear-gradient(135deg,#f59e0b,#ea580c);">
+                <i class="fas fa-flask"></i>
+            </div>
+            <span>Đề tài</span>
+        </a>
+    </div>
+</div>
+
+<!-- Mobile nav logic is handled in layout.js (injected via outerHTML,
+     browser does not execute inline scripts in innerHTML/outerHTML) -->

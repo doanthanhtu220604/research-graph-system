@@ -36,6 +36,96 @@ document.addEventListener("DOMContentLoaded", function() {
     // Replace placeholders with real HTML components
     loadComponent('header-placeholder', 'components/header.html', () => {
         setActiveMenu();
+
+        // ── Mobile Nav Logic (runs after header HTML is injected) ──────────
+        const mobileMenuBtn   = document.getElementById('mobileMenuBtn');
+        const mobileDrawer    = document.getElementById('mobileNavDrawer');
+        const mobileOverlay   = document.getElementById('mobileNavOverlay');
+        const mobileCloseBtn  = document.getElementById('mobileNavClose');
+        const dataTabBtn      = document.getElementById('mobileDataTabBtn');
+        const dataSheet       = document.getElementById('mobileDataSheet');
+        const dataSheetOverlay = document.getElementById('mobileDataSheetOverlay');
+        const mobileSearch    = document.getElementById('mobileSearch');
+        const globalSearch    = document.getElementById('globalSearch');
+
+        function openDrawer() {
+            if (!mobileDrawer) return;
+            mobileDrawer.classList.add('open');
+            mobileOverlay.classList.add('open');
+            mobileMenuBtn.classList.add('open');
+            mobileMenuBtn.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDrawer() {
+            if (!mobileDrawer) return;
+            mobileDrawer.classList.remove('open');
+            mobileOverlay.classList.remove('open');
+            mobileMenuBtn.classList.remove('open');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+        }
+        function openDataSheet() {
+            if (!dataSheet) return;
+            dataSheet.classList.add('open');
+            if (dataSheetOverlay) dataSheetOverlay.classList.add('open');
+            if (dataTabBtn) dataTabBtn.setAttribute('aria-expanded', 'true');
+        }
+        function closeDataSheet() {
+            if (!dataSheet) return;
+            dataSheet.classList.remove('open');
+            if (dataSheetOverlay) dataSheetOverlay.classList.remove('open');
+            if (dataTabBtn) dataTabBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileDrawer.classList.contains('open') ? closeDrawer() : openDrawer();
+            });
+        }
+        if (mobileCloseBtn)   mobileCloseBtn.addEventListener('click', closeDrawer);
+        if (mobileOverlay)    mobileOverlay.addEventListener('click', closeDrawer);
+        if (dataTabBtn)       dataTabBtn.addEventListener('click', () => {
+            dataSheet && dataSheet.classList.contains('open') ? closeDataSheet() : openDataSheet();
+        });
+        if (dataSheetOverlay) dataSheetOverlay.addEventListener('click', closeDataSheet);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { closeDrawer(); closeDataSheet(); }
+        });
+
+        // Sync mobile search input with desktop global search
+        if (mobileSearch && globalSearch) {
+            mobileSearch.addEventListener('input', function() {
+                globalSearch.value = this.value;
+                globalSearch.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        }
+
+        // Active state: bottom nav + drawer links
+        const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+        const currentPage = currentFile.replace('.html', '');
+        const dataPages   = ['lecturers', 'publications', 'projects'];
+
+        document.querySelectorAll('.mobile-bottom-item[data-page]').forEach(el => {
+            if (el.getAttribute('data-page') === currentPage) el.classList.add('active');
+        });
+        document.querySelectorAll('.mobile-nav-link[data-page]').forEach(el => {
+            if (el.getAttribute('data-page') === currentPage) el.classList.add('active');
+        });
+        document.querySelectorAll('.mobile-data-sheet-item[data-page]').forEach(el => {
+            if (el.getAttribute('data-page') === currentPage) el.classList.add('active');
+        });
+        if (dataTabBtn && dataPages.includes(currentPage)) {
+            dataTabBtn.classList.add('active');
+        }
+        // ─────────────────────────────────────────────────────────────────
+
+        // toggleMobileGroup must be global (called from onclick in HTML)
+        window.toggleMobileGroup = function(btn) {
+            const group = btn.closest('.mobile-nav-group');
+            if (group) group.classList.toggle('open');
+        };
+
         const role = localStorage.getItem('userRole');
         const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
         const authContainer = document.getElementById('authContainer');
