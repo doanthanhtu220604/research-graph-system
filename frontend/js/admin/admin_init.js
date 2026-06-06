@@ -125,6 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (document.getElementById('page-admin-projects')) {
             const input = document.getElementById('filterProjName');
             if (input) input.value = searchTerm;
+        } else if (document.getElementById('page-admin-lecturers')) {
+            const input = document.getElementById('filterName');
+            if (input) input.value = searchTerm;
         }
     }
 
@@ -175,7 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function navigateToManage(type, name) {
     const pageMap = {
         'cong-trinh': 'publications.html',
-        'de-tai': 'projects.html'
+        'de-tai': 'projects.html',
+        'giang-vien': 'lecturers.html'
     };
     const page = pageMap[type];
     if (page) {

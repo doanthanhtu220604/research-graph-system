@@ -8,24 +8,65 @@ async function loadResearchFields() {
     try {
         const res   = await fetch(ENTITY_CONFIG['linh-vuc'].apiUrl);
         const data  = await res.json();
-        const tbody = document.getElementById('adminResearchFieldsBody');
 
         if (data.status === 'ok') {
             currentEntitiesData['linh-vuc'] = data.data;
-            tbody.innerHTML = data.data.map((lv, i) => `
-                <tr>
-                    <td>${lv.id || i + 1}</td>
-                    <td><strong>${lv.ten_linh_vuc || 'N/A'}</strong></td>
-                    <td>
-                        <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('linh-vuc', '${lv.id}', ${i})"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('linh-vuc', '${lv.id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            filterResearchFields(); // Áp dụng tìm kiếm và sắp xếp
         }
     } catch (err) {
         console.error(err);
     }
+}
+
+function renderResearchFieldsTable(dataList) {
+    const tbody = document.getElementById('adminResearchFieldsBody');
+    if (!tbody) return;
+
+    if (dataList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy lĩnh vực nghiên cứu phù hợp.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = dataList.map((lv) => {
+        const originalIndex = currentEntitiesData['linh-vuc'].indexOf(lv);
+        return `
+            <tr>
+                <td>${lv.id || 'N/A'}</td>
+                <td><strong>${lv.ten_linh_vuc || 'N/A'}</strong></td>
+                <td style="text-align: center;"><span class="badge" style="background: rgba(0, 123, 255, 0.1); color: #007bff; padding: 3px 8px; border-radius: 4px; font-weight: 600;">${lv.so_giang_vien || 0}</span></td>
+                <td>
+                    <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewResearchFieldDetail('${lv.id}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('linh-vuc', '${lv.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('linh-vuc', '${lv.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterResearchFields() {
+    const list        = currentEntitiesData['linh-vuc'] || [];
+    const nameFilter  = (document.getElementById('filterLvName')?.value || '').normalize('NFC').toLowerCase().trim();
+    const sortVal     = document.getElementById('sortLv')?.value || 'name_asc';
+
+    let filtered = list.filter(lv => {
+        const name      = (lv.ten_linh_vuc || '').normalize('NFC').toLowerCase();
+        return name.includes(nameFilter);
+    });
+
+    // Sắp xếp
+    filtered.sort((a, b) => {
+        if (sortVal === 'name_asc') {
+            return (a.ten_linh_vuc || '').localeCompare(b.ten_linh_vuc || '');
+        } else if (sortVal === 'name_desc') {
+            return (b.ten_linh_vuc || '').localeCompare(a.ten_linh_vuc || '');
+        } else if (sortVal === 'gv_desc') {
+            return (b.so_giang_vien || 0) - (a.so_giang_vien || 0);
+        }
+        return 0;
+    });
+
+    renderResearchFieldsTable(filtered);
 }
 
 

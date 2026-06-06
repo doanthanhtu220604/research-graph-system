@@ -213,3 +213,47 @@ async function viewExternalAuthorDetail(tgnId) {
         body.innerHTML = html;
     } catch (e) { body.innerHTML = `<p style="color:red">Lỗi mạng: ${e.message}</p>`; }
 }
+
+/* ─── Chi tiết Lĩnh vực nghiên cứu ────────────────────────── */
+
+async function viewResearchFieldDetail(lvId) {
+    const body = _openStatsModal();
+    try {
+        const res  = await fetch(`${ADMIN_API_BASE}/linh-vuc/${lvId}/detail`);
+        const data = await res.json();
+        if (data.status !== 'ok') { body.innerHTML = `<p style="color:red">Lỗi: ${data.message}</p>`; return; }
+        const { info, lecturers } = data.data;
+        document.getElementById('adminStatsModalTitle').textContent = `Lĩnh vực: ${info.ten_linh_vuc}`;
+
+        let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
+            <p style="margin-bottom:0;"><b>Tên Lĩnh vực:</b> ${info.ten_linh_vuc || 'N/A'} (ID: ${info.id || 'N/A'})</p>
+        </div>`;
+
+        // 1. Giảng viên
+        html += `<h4 style="margin-top:20px;color:var(--accent-blue);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-user-tie"></i> Giảng viên thuộc lĩnh vực (${lecturers.length})</h4>`;
+        if (lecturers.length) {
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:15px;margin-bottom:20px;">';
+            lecturers.forEach(gv => {
+                const avatar = gv.anh_dai_dien ? `<img src="${gv.anh_dai_dien}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">` : `<div style="width:35px;height:35px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-muted);"><i class="fas fa-user"></i></div>`;
+                const titleStr = [gv.hoc_vi, gv.chuc_danh].filter(Boolean).join(' / ') || 'Giảng viên';
+                html += `
+                    <div style="display:flex;align-items:center;gap:10px;background:white;padding:10px 12px;border-radius:10px;border:1px solid var(--border-color);cursor:pointer;" onclick="closeStatsModal(); navigateToManage('giang-vien', '${gv.ho_va_ten.replace(/'/g,"\\'")}')">
+                        ${avatar}
+                        <div style="min-width: 0; flex: 1;">
+                            <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${gv.ho_va_ten}">${gv.ho_va_ten}</div>
+                            <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${titleStr}</div>
+                            <div style="font-size:11px;color:var(--accent-blue);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${gv.bo_mon || ''}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        } else {
+            html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;margin-top:10px;">Chưa có giảng viên nào đăng ký lĩnh vực này.</p>';
+        }
+
+        body.innerHTML = html;
+    } catch (e) {
+        body.innerHTML = `<p style="color:red">Lỗi mạng: ${e.message}</p>`;
+    }
+}

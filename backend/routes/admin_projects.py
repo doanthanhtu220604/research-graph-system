@@ -17,8 +17,8 @@ def create_de_tai():
     try:
         result = conn.write("""
             CREATE (dt:DeTaiNghienCuu {
-                ten_de_tai: $ten_de_tai,
-                cap_de_tai: $cap_de_tai,
+                ten_de_tai: toUpper($ten_de_tai),
+                cap_de_tai: toUpper($cap_de_tai),
                 nam_bat_dau: $nam_bat_dau,
                 nam_ket_thuc: $nam_ket_thuc,
                 tom_tat: $tom_tat,
@@ -69,8 +69,8 @@ def update_de_tai(id):
     try:
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
-            SET dt.ten_de_tai = $ten_de_tai,
-                dt.cap_de_tai = $cap_de_tai,
+            SET dt.ten_de_tai = toUpper($ten_de_tai),
+                dt.cap_de_tai = toUpper($cap_de_tai),
                 dt.nam_bat_dau = $nam_bat_dau,
                 dt.nam_ket_thuc = $nam_ket_thuc,
                 dt.tom_tat = $tom_tat,

@@ -73,15 +73,16 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu họ và tên – bỏ qua.")
             continue
 
+        ho_va_ten = ho_va_ten.upper()
         props = {
             "ho_va_ten": ho_va_ten,
             "ma_gv":                safe_str(row.get("ma_gv")),
-            "hoc_vi":               safe_str(row.get("hoc_vi")),
-            "chuc_danh":            safe_str(row.get("chuc_danh")),
-            "chuc_vu":              safe_str(row.get("chuc_vu")),
+            "hoc_vi":               safe_str(row.get("hoc_vi")).upper() if safe_str(row.get("hoc_vi")) else None,
+            "chuc_danh":            safe_str(row.get("chuc_danh")).upper() if safe_str(row.get("chuc_danh")) else None,
+            "chuc_vu":              safe_str(row.get("chuc_vu")).upper() if safe_str(row.get("chuc_vu")) else None,
             "email":                safe_str(row.get("email")),
             "dien_thoai":           safe_str(row.get("dien_thoai")),
-            "chuyen_nganh":         safe_str(row.get("chuyen_nganh")),
+            "chuyen_nganh":         safe_str(row.get("chuyen_nganh")).upper() if safe_str(row.get("chuyen_nganh")) else None,
             "trang_thai_cong_tac":  safe_str(row.get("trang_thai_cong_tac")) or "Đang công tác",
             "anh_dai_dien":         safe_str(row.get("anh_dai_dien")),
         }
@@ -103,7 +104,8 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
 
             if not existing and ho_va_ten:
                 existing = conn.query_single("""
-                    MATCH (gv:GiangVien {ho_va_ten: $ho_va_ten})
+                    MATCH (gv:GiangVien)
+                    WHERE toUpper(gv.ho_va_ten) = toUpper($ho_va_ten)
                     RETURN gv.id AS gv_id
                 """, {"ho_va_ten": ho_va_ten})
 
@@ -133,6 +135,7 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
             # Xử lý Bộ môn
             bo_mon = safe_str(row.get("bo_mon"))
             if bo_mon:
+                bo_mon = bo_mon.upper()
                 conn.write("""
                     MATCH (gv:GiangVien) WHERE gv.id = $gv_id
                     MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
@@ -143,6 +146,7 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
             # Xử lý Lĩnh vực nghiên cứu
             linh_vucs = parse_list_field(row.get("linh_vuc_nghien_cuu"))
             for lv_name in linh_vucs:
+                lv_name = lv_name.upper()
                 conn.write("""
                     MATCH (gv:GiangVien) WHERE gv.id = $gv_id
                     MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
@@ -172,12 +176,14 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên công trình – bỏ qua.")
             continue
 
+        ten = ten.upper()
         nam_xuat_ban_str = safe_str(row.get("nam_xuat_ban"))
         nam_xuat_ban = int(nam_xuat_ban_str) if nam_xuat_ban_str.isdigit() else None
 
         props = {
             "ten_cong_trinh": ten,
             "nam_xuat_ban":   nam_xuat_ban,
+            "noi_xuat_ban":   safe_str(row.get("noi_xuat_ban")).upper() if safe_str(row.get("noi_xuat_ban")) else None,
             "tom_tat":        safe_str(row.get("tom_tat")),
             "trang_thai":     safe_str(row.get("trang_thai")) or "Hoàn thành",
             "link":           safe_str(row.get("link")),
@@ -209,14 +215,15 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
                     """, {"key": tg, "ct_id": ct_id})
                 else:
                     conn.write("""
-                        MATCH (gv:GiangVien {ho_va_ten: $key}),
-                              (ct:CongTrinhNghienCuu {id: $ct_id})
+                        MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu {id: $ct_id})
+                        WHERE toUpper(gv.ho_va_ten) = toUpper($key)
                         MERGE (gv)-[:LA_TAC_GIA_CUA]->(ct)
                     """, {"key": tg, "ct_id": ct_id})
 
             # Tác giả ngoài
             tac_gia_ngoai = parse_list_field(row.get("tac_gia_ngoai"))
             for ten_tgn in tac_gia_ngoai:
+                ten_tgn = ten_tgn.upper()
                 conn.write("""
                     MERGE (tgn:TacGiaNgoai {ho_va_ten: $ten})
                     ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn))
@@ -249,6 +256,7 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên đề tài – bỏ qua.")
             continue
 
+        ten = ten.upper()
         nam_bat_dau_str = safe_str(row.get("nam_bat_dau"))
         nam_ket_thuc_str = safe_str(row.get("nam_ket_thuc"))
         nam_bat_dau = int(nam_bat_dau_str) if nam_bat_dau_str.isdigit() else None
@@ -256,7 +264,7 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
 
         props = {
             "ten_de_tai":   ten,
-            "cap_de_tai":   safe_str(row.get("cap_de_tai")),
+            "cap_de_tai":   safe_str(row.get("cap_de_tai")).upper() if safe_str(row.get("cap_de_tai")) else None,
             "nam_bat_dau":  nam_bat_dau,
             "nam_ket_thuc": nam_ket_thuc,
             "tom_tat":      safe_str(row.get("tom_tat")),
@@ -280,17 +288,24 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
 
             def _link_gv(col: str, rel: str):
                 for tg in parse_list_field(row.get(col)):
-                    key_field = "email" if "@" in tg else "ho_va_ten"
-                    conn.write(f"""
-                        MATCH (gv:GiangVien {{{key_field}: $key}}),
-                              (dt:DeTaiNghienCuu {{id: $dt_id}})
-                        MERGE (gv)-[:{rel}]->(dt)
-                    """, {"key": tg, "dt_id": dt_id})
+                    if "@" in tg:
+                        conn.write(f"""
+                            MATCH (gv:GiangVien {{email: $key}}),
+                                  (dt:DeTaiNghienCuu {{id: $dt_id}})
+                            MERGE (gv)-[:{rel}]->(dt)
+                        """, {"key": tg, "dt_id": dt_id})
+                    else:
+                        conn.write(f"""
+                            MATCH (gv:GiangVien), (dt:DeTaiNghienCuu {{id: $dt_id}})
+                            WHERE toUpper(gv.ho_va_ten) = toUpper($key)
+                            MERGE (gv)-[:{rel}]->(dt)
+                        """, {"key": tg, "dt_id": dt_id})
 
             _link_gv("chu_nhiem", "CHU_NHIEM")
             _link_gv("thanh_vien", "THAM_GIA")
 
             for ten_tgn in parse_list_field(row.get("tac_gia_ngoai")):
+                ten_tgn = ten_tgn.upper()
                 conn.write("""
                     MERGE (tgn:TacGiaNgoai {ho_va_ten: $ten})
                     ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn))
@@ -319,6 +334,7 @@ def import_bo_mon(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên bộ môn – bỏ qua.")
             continue
 
+        ten = ten.upper()
         props = {
             "ten_bo_mon": ten,
             "mo_ta":      safe_str(row.get("mo_ta")),
@@ -340,12 +356,18 @@ def import_bo_mon(df: pd.DataFrame, conn) -> dict:
 
             truong = safe_str(row.get("truong_bo_mon"))
             if truong:
-                key_field = "email" if "@" in truong else "ho_va_ten"
-                conn.write(f"""
-                    MATCH (gv:GiangVien {{{key_field}: $key}}),
-                          (bm:BoMon {{id: $bm_id}})
-                    MERGE (gv)-[:TRUONG_BO_MON]->(bm)
-                """, {"key": truong, "bm_id": bm_id})
+                if "@" in truong:
+                    conn.write(f"""
+                        MATCH (gv:GiangVien {{email: $key}}),
+                              (bm:BoMon {{id: $bm_id}})
+                        MERGE (gv)-[:TRUONG_BO_MON]->(bm)
+                    """, {"key": truong, "bm_id": bm_id})
+                else:
+                    conn.write(f"""
+                        MATCH (gv:GiangVien), (bm:BoMon {{id: $bm_id}})
+                        WHERE toUpper(gv.ho_va_ten) = toUpper($key)
+                        MERGE (gv)-[:TRUONG_BO_MON]->(bm)
+                    """, {"key": truong, "bm_id": bm_id})
 
         except Exception as e:
             errors.append(f"Dòng {idx} ({ten}): {str(e)}")

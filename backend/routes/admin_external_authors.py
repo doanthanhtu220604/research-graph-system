@@ -31,10 +31,10 @@ def create_tac_gia_ngoai():
     try:
         result = conn.write("""
             CREATE (tgn:TacGiaNgoai {
-                ho_va_ten: $ho_va_ten,
-                don_vi_cong_tac: $don_vi_cong_tac,
-                hoc_vi: $hoc_vi,
-                chuc_danh: $chuc_danh,
+                ho_va_ten: toUpper($ho_va_ten),
+                don_vi_cong_tac: toUpper($don_vi_cong_tac),
+                hoc_vi: toUpper($hoc_vi),
+                chuc_danh: toUpper($chuc_danh),
                 email: $email
             })
             SET tgn.id = 'tgn_' + toString(id(tgn))
@@ -52,10 +52,10 @@ def update_tac_gia_ngoai(id):
     try:
         conn.write("""
             MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id
-            SET tgn.ho_va_ten = $ho_va_ten,
-                tgn.don_vi_cong_tac = $don_vi_cong_tac,
-                tgn.hoc_vi = $hoc_vi,
-                tgn.chuc_danh = $chuc_danh,
+            SET tgn.ho_va_ten = toUpper($ho_va_ten),
+                tgn.don_vi_cong_tac = toUpper($don_vi_cong_tac),
+                tgn.hoc_vi = toUpper($hoc_vi),
+                tgn.chuc_danh = toUpper($chuc_danh),
                 tgn.email = $email
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})

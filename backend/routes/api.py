@@ -263,18 +263,32 @@ def get_de_tai_detail(dt_id):
 
 @api_bp.route("/linh-vuc")
 def get_all_linh_vuc():
-    """Lấy danh sách lĩnh vực nghiên cứu."""
+    """Lấy danh sách lĩnh vực nghiên cứu kèm số lượng thống kê."""
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (lv:LinhVucNghienCuu)
         WHERE coalesce(lv.is_deleted, false) = false
-        RETURN lv
+        OPTIONAL MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv)
+        WHERE coalesce(gv.is_deleted, false) = false
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+        WHERE coalesce(ct.is_deleted, false) = false
+        OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        WHERE coalesce(dt.is_deleted, false) = false
+        RETURN lv.id AS id, lv.ten_linh_vuc AS ten_linh_vuc,
+               count(DISTINCT gv) AS so_giang_vien,
+               count(DISTINCT ct) AS so_cong_trinh,
+               count(DISTINCT dt) AS so_de_tai
         ORDER BY lv.ten_linh_vuc
     """)
     linh_vuc_list = []
     for r in results:
-        lv = dict(r["lv"])
-        linh_vuc_list.append(lv)
+        linh_vuc_list.append({
+            "id": r["id"],
+            "ten_linh_vuc": r["ten_linh_vuc"],
+            "so_giang_vien": r["so_giang_vien"],
+            "so_cong_trinh": r["so_cong_trinh"],
+            "so_de_tai": r["so_de_tai"]
+        })
     return jsonify({"status": "ok", "data": linh_vuc_list})
 
 def remove_accents(input_str):

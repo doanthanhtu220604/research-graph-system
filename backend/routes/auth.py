@@ -376,21 +376,21 @@ def update_profile():
             
             linh_vuc_raw = data.get('linh_vuc', [])
             if isinstance(linh_vuc_raw, list):
-                linh_vuc = [lv.strip() for lv in linh_vuc_raw if lv.strip()]
+                linh_vuc = [lv.strip().upper() for lv in linh_vuc_raw if lv.strip()]
             else:
-                linh_vuc = [lv.strip() for lv in str(linh_vuc_raw).split(',') if lv.strip()]
+                linh_vuc = [lv.strip().upper() for lv in str(linh_vuc_raw).split(',') if lv.strip()]
                 
             result = conn.write("""
                 MATCH (g:GiangVien) WHERE g.id = $id
-                SET g.pending_ho_va_ten = $ho_va_ten,
+                SET g.pending_ho_va_ten = toUpper($ho_va_ten),
                     g.pending_email = $email,
                     g.pending_anh_dai_dien = $avatar,
                     g.pending_dien_thoai = $dien_thoai,
-                    g.pending_hoc_vi = $hoc_vi,
-                    g.pending_chuc_danh = $chuc_danh,
-                    g.pending_chuc_vu = $chuc_vu,
-                    g.pending_chuyen_nganh = $chuyen_nganh,
-                    g.pending_bo_mon = $bo_mon,
+                    g.pending_hoc_vi = toUpper($hoc_vi),
+                    g.pending_chuc_danh = toUpper($chuc_danh),
+                    g.pending_chuc_vu = toUpper($chuc_vu),
+                    g.pending_chuyen_nganh = toUpper($chuyen_nganh),
+                    g.pending_bo_mon = toUpper($bo_mon),
                     g.pending_linh_vuc = $linh_vuc,
                     g.profile_edit_status = 'Chờ duyệt'
                 RETURN g.id AS id, g.ho_va_ten AS ho_va_ten, g.email AS email, g.anh_dai_dien AS avatar

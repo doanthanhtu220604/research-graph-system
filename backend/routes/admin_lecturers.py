@@ -59,13 +59,13 @@ def create_giang_vien():
         result = conn.write("""
             CREATE (gv:GiangVien {
                 ma_gv: $ma_gv,
-                ho_va_ten: $ho_va_ten,
-                hoc_vi: $hoc_vi,
-                chuc_danh: $chuc_danh,
-                chuc_vu: $chuc_vu,
+                ho_va_ten: toUpper($ho_va_ten),
+                hoc_vi: toUpper($hoc_vi),
+                chuc_danh: toUpper($chuc_danh),
+                chuc_vu: toUpper($chuc_vu),
                 email: $email,
                 dien_thoai: $dien_thoai,
-                chuyen_nganh: $chuyen_nganh,
+                chuyen_nganh: toUpper($chuyen_nganh),
                 trang_thai_cong_tac: $trang_thai_cong_tac,
                 anh_dai_dien: $anh_dai_dien
             })
@@ -78,7 +78,7 @@ def create_giang_vien():
         if data.get("bo_mon"):
             conn.write("""
                 MATCH (gv:GiangVien) WHERE gv.id = $gv_id
-                MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                MERGE (bm:BoMon {ten_bo_mon: toUpper($bo_mon)})
                 ON CREATE SET bm.id = 'bm_' + toString(id(bm)),
                              bm.created_at = timestamp()
                 MERGE (gv)-[:THUOC_BO_MON]->(bm)
@@ -97,7 +97,7 @@ def create_giang_vien():
             for lv_name in data["linh_vuc_names"]:
                 conn.write("""
                     MATCH (gv:GiangVien) WHERE gv.id = $gv_id
-                    MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
+                    MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: toUpper($lv_name)})
                     ON CREATE SET lv.id = 'lv_' + toString(id(lv))
                     MERGE (gv)-[:NGHIEN_CUU]->(lv)
                 """, {"gv_id": gv_id, "lv_name": lv_name})
@@ -153,13 +153,13 @@ def update_giang_vien(id):
         conn.write("""
             MATCH (gv:GiangVien) WHERE gv.id = $id
             SET gv.ma_gv = $ma_gv,
-                gv.ho_va_ten = $ho_va_ten,
-                gv.hoc_vi = $hoc_vi,
-                gv.chuc_danh = $chuc_danh,
-                gv.chuc_vu = $chuc_vu,
+                gv.ho_va_ten = toUpper($ho_va_ten),
+                gv.hoc_vi = toUpper($hoc_vi),
+                gv.chuc_danh = toUpper($chuc_danh),
+                gv.chuc_vu = toUpper($chuc_vu),
                 gv.email = $email,
                 gv.dien_thoai = $dien_thoai,
-                gv.chuyen_nganh = $chuyen_nganh,
+                gv.chuyen_nganh = toUpper($chuyen_nganh),
                 gv.trang_thai_cong_tac = $trang_thai_cong_tac,
                 gv.anh_dai_dien = $anh_dai_dien
         """, props)
@@ -176,7 +176,7 @@ def update_giang_vien(id):
             if data["bo_mon"]:
                 conn.write("""
                     MATCH (gv:GiangVien) WHERE gv.id = $id
-                    MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                    MERGE (bm:BoMon {ten_bo_mon: toUpper($bo_mon)})
                     ON CREATE SET bm.id = 'bm_' + toString(id(bm)),
                                  bm.created_at = timestamp()
                     MERGE (gv)-[:THUOC_BO_MON]->(bm)
@@ -205,7 +205,7 @@ def update_giang_vien(id):
                 for lv_name in data["linh_vuc_names"]:
                     conn.write("""
                         MATCH (gv:GiangVien) WHERE gv.id = $id
-                        MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
+                        MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: toUpper($lv_name)})
                         ON CREATE SET lv.id = 'lv_' + toString(id(lv))
                         MERGE (gv)-[:NGHIEN_CUU]->(lv)
                     """, {"id": id, "lv_name": lv_name})
@@ -261,14 +261,14 @@ def approve_profile_update(id):
         params['id'] = id
         conn.write("""
             MATCH (g:GiangVien) WHERE g.id = $id
-            SET g.ho_va_ten = coalesce($ho_va_ten, g.ho_va_ten),
+            SET g.ho_va_ten = coalesce(toUpper($ho_va_ten), g.ho_va_ten),
                 g.email = coalesce($email, g.email),
                 g.anh_dai_dien = coalesce($anh_dai_dien, g.anh_dai_dien),
                 g.dien_thoai = $dien_thoai,
-                g.hoc_vi = $hoc_vi,
-                g.chuc_danh = $chuc_danh,
-                g.chuc_vu = $chuc_vu,
-                g.chuyen_nganh = $chuyen_nganh,
+                g.hoc_vi = toUpper($hoc_vi),
+                g.chuc_danh = toUpper($chuc_danh),
+                g.chuc_vu = toUpper($chuc_vu),
+                g.chuyen_nganh = toUpper($chuyen_nganh),
                 g.profile_edit_status = 'Phê duyệt',
                 g.pending_ho_va_ten = null,
                 g.pending_email = null,
@@ -290,7 +290,7 @@ def approve_profile_update(id):
             if gv['bo_mon']:
                 conn.write("""
                     MATCH (g:GiangVien) WHERE g.id = $id
-                    MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
+                    MERGE (bm:BoMon {ten_bo_mon: toUpper($bo_mon)})
                     ON CREATE SET bm.id = 'bm_' + toString(id(bm)), bm.created_at = timestamp()
                     MERGE (g)-[:THUOC_BO_MON]->(bm)
                 """, {'id': id, 'bo_mon': gv['bo_mon']})
@@ -304,7 +304,7 @@ def approve_profile_update(id):
                 if lv_name:
                     conn.write("""
                         MATCH (g:GiangVien) WHERE g.id = $id
-                        MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: $lv_name})
+                        MERGE (lv:LinhVucNghienCuu {ten_linh_vuc: toUpper($lv_name)})
                         ON CREATE SET lv.id = 'lv_' + toString(id(lv))
                         MERGE (g)-[:NGHIEN_CUU]->(lv)
                     """, {'id': id, 'lv_name': lv_name})

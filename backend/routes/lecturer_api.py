@@ -243,7 +243,7 @@ def add_my_publication():
         CREATE (ct:CongTrinhNghienCuu {
             ten_cong_trinh: toUpper($ten_ct),
             nam_xuat_ban: toInteger($nam_xb),
-            noi_xuat_ban: $noi_xb,
+            noi_xuat_ban: toUpper($noi_xb),
             tom_tat: $tom_tat,
             link: $link,
             trang_thai: 'Chờ duyệt',
@@ -343,7 +343,7 @@ def update_my_publication(ct_id):
             SET ct.old_status = CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END,
                 ct.ten_cong_trinh = toUpper($ten_ct),
                 ct.nam_xuat_ban = toInteger($nam_xb),
-                ct.noi_xuat_ban = $noi_xb,
+                ct.noi_xuat_ban = toUpper($noi_xb),
                 ct.tom_tat = $tom_tat,
                 ct.link = $link,
                 ct.trang_thai = {new_status}
@@ -458,8 +458,8 @@ def add_my_project():
         WITH g, collect(member) AS members
         
         CREATE (dt:DeTaiNghienCuu {{
-            ten_de_tai: $ten_dt,
-            cap_de_tai: $cap,
+            ten_de_tai: toUpper($ten_dt),
+            cap_de_tai: toUpper($cap),
             nam_bat_dau: toInteger($nam_bd),
             nam_ket_thuc: toInteger($nam_kt),
             tom_tat: $tom_tat,
@@ -781,8 +781,8 @@ def update_my_project(dt_id):
             query = f"""
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
             SET dt.old_status = CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END,
-                dt.ten_de_tai = $ten_dt,
-                dt.cap_de_tai = $cap,
+                dt.ten_de_tai = toUpper($ten_dt),
+                dt.cap_de_tai = toUpper($cap),
                 dt.nam_bat_dau = toInteger($nam_bd),
                 dt.nam_ket_thuc = toInteger($nam_kt),
                 dt.tom_tat = $tom_tat,
@@ -1036,10 +1036,10 @@ def lecturer_create_tac_gia_ngoai():
             
         result = conn.write("""
             CREATE (tgn:TacGiaNgoai {
-                ho_va_ten: $ho_va_ten,
-                don_vi_cong_tac: $don_vi_cong_tac,
-                hoc_vi: $hoc_vi,
-                chuc_danh: $chuc_danh,
+                ho_va_ten: toUpper($ho_va_ten),
+                don_vi_cong_tac: toUpper($don_vi_cong_tac),
+                hoc_vi: toUpper($hoc_vi),
+                chuc_danh: toUpper($chuc_danh),
                 email: $email,
                 trang_thai: 'Chờ duyệt',
                 created_by: $gv_id,

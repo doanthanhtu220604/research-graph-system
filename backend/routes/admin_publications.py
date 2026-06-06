@@ -24,7 +24,7 @@ def create_cong_trinh():
             CREATE (ct:CongTrinhNghienCuu {
                 ten_cong_trinh: toUpper($ten_cong_trinh),
                 nam_xuat_ban: $nam_xuat_ban,
-                noi_xuat_ban: $noi_xuat_ban,
+                noi_xuat_ban: toUpper($noi_xuat_ban),
                 tom_tat: $tom_tat,
                 trang_thai: coalesce($trang_thai, 'Đang thực hiện'),
                 link: $link,
@@ -84,7 +84,7 @@ def update_cong_trinh(id):
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.ten_cong_trinh = toUpper($ten_cong_trinh),
                 ct.nam_xuat_ban = $nam_xuat_ban,
-                ct.noi_xuat_ban = $noi_xuat_ban,
+                ct.noi_xuat_ban = toUpper($noi_xuat_ban),
                 ct.tom_tat = $tom_tat,
                 ct.trang_thai = coalesce($trang_thai, 'Hoàn thành'),
                 ct.link = $link

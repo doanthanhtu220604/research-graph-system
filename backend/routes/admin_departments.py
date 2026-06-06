@@ -32,7 +32,7 @@ def create_bo_mon():
     try:
         result = conn.write("""
             CREATE (bm:BoMon {
-                ten_bo_mon: $ten_bo_mon
+                ten_bo_mon: toUpper($ten_bo_mon)
             })
             SET bm.id = 'bm_' + toString(id(bm)),
                 bm.created_at = timestamp()
@@ -55,7 +55,7 @@ def update_bo_mon(id):
             
         conn.write(f"""
             MATCH (bm:BoMon) {query_match}
-            SET bm.ten_bo_mon = $ten_bo_mon,
+            SET bm.ten_bo_mon = toUpper($ten_bo_mon),
                 bm.updated_at = timestamp()
         """, {"id": id, **data})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
