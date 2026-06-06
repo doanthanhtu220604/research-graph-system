@@ -363,6 +363,10 @@ def search():
                 search_text = item.get("ten_bo_mon") or ""
             elif "Khoa" in labels:
                 search_text = item.get("ten_khoa") or ""
+            elif "DaiHoc" in labels:
+                search_text = item.get("ten_dai_hoc") or ""
+            elif "TruongCon" in labels:
+                search_text = item.get("ten_truong") or ""
             elif "LinhVucNghienCuu" in labels:
                 search_text = item.get("ten_linh_vuc") or ""
             elif "NhomNghienCuu" in labels:
@@ -375,6 +379,8 @@ def search():
                     str(item.get("ten_de_tai") or ""),
                     str(item.get("ten_bo_mon") or ""),
                     str(item.get("ten_khoa") or ""),
+                    str(item.get("ten_dai_hoc") or ""),
+                    str(item.get("ten_truong") or ""),
                     str(item.get("ten_linh_vuc") or ""),
                     str(item.get("ten_nhom") or "")
                 ])
@@ -425,11 +431,13 @@ def get_full_graph():
 
     # Map label -> color và shape cho Vis.js
     label_config = {
+        "DaiHoc": {"color": "#F1C40F", "shape": "star", "size": 45},
+        "TruongCon": {"color": "#2980B9", "shape": "hexagon", "size": 35},
+        "Khoa": {"color": "#9B59B6", "shape": "star", "size": 30},
         "GiangVien": {"color": "#4F8EF7", "shape": "dot", "size": 25},
         "CongTrinhNghienCuu": {"color": "#2ECC71", "shape": "diamond", "size": 18},
         "DeTaiNghienCuu": {"color": "#F39C12", "shape": "triangle", "size": 20},
         "BoMon": {"color": "#E74C3C", "shape": "square", "size": 22},
-        "Khoa": {"color": "#9B59B6", "shape": "star", "size": 30},
         "LinhVucNghienCuu": {"color": "#1ABC9C", "shape": "hexagon", "size": 22},
         "NhomNghienCuu": {"color": "#E67E22", "shape": "triangle", "size": 20},
     }
@@ -447,6 +455,8 @@ def get_full_graph():
             or props.get("ten_de_tai")
             or props.get("ten_bo_mon")
             or props.get("ten_khoa")
+            or props.get("ten_dai_hoc")
+            or props.get("ten_truong")
             or props.get("ten_linh_vuc")
             or props.get("ten_nhom")
             or str(props.get("id", ""))
@@ -497,11 +507,13 @@ def get_node_graph(node_id):
     """, {"node_id": node_id})
 
     label_config = {
+        "DaiHoc": {"color": "#F1C40F", "shape": "star", "size": 45},
+        "TruongCon": {"color": "#2980B9", "shape": "hexagon", "size": 35},
+        "Khoa": {"color": "#9B59B6", "shape": "star", "size": 30},
         "GiangVien": {"color": "#4F8EF7", "shape": "dot", "size": 25},
         "CongTrinhNghienCuu": {"color": "#2ECC71", "shape": "diamond", "size": 18},
         "DeTaiNghienCuu": {"color": "#F39C12", "shape": "triangle", "size": 20},
         "BoMon": {"color": "#E74C3C", "shape": "square", "size": 22},
-        "Khoa": {"color": "#9B59B6", "shape": "star", "size": 30},
         "LinhVucNghienCuu": {"color": "#1ABC9C", "shape": "hexagon", "size": 22},
         "NhomNghienCuu": {"color": "#E67E22", "shape": "triangle", "size": 20},
     }
@@ -522,7 +534,8 @@ def get_node_graph(node_id):
                 "id": cid,
                 "label": cprops.get("ho_va_ten") or cprops.get("ten_cong_trinh")
                          or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
-                         or cprops.get("ten_khoa") or str(cprops.get("id", "")),
+                         or cprops.get("ten_khoa") or cprops.get("ten_dai_hoc")
+                         or cprops.get("ten_truong") or str(cprops.get("id", "")),
                 "group": clabel,
                 "color": color_val,
                 "shape": cconfig["shape"],
@@ -543,7 +556,8 @@ def get_node_graph(node_id):
                 "id": nid,
                 "label": nprops.get("ho_va_ten") or nprops.get("ten_cong_trinh")
                          or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
-                         or nprops.get("ten_khoa") or str(nprops.get("id", "")),
+                         or nprops.get("ten_khoa") or nprops.get("ten_dai_hoc")
+                         or nprops.get("ten_truong") or str(nprops.get("id", "")),
                 "group": nlabel,
                 "color": color_val,
                 "shape": nconfig["shape"],

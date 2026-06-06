@@ -1,15 +1,10 @@
 # Danh sách phân nhóm chức năng hệ thống
 
 ### 1. Nhóm Khách vãng lai và Sinh viên (Người dùng phổ thông)
-- Tra cứu giảng viên
-- Xem chi tiết giảng viên
-- Tra cứu công trình khoa học
-- Xem chi tiết công trình
-- Tra cứu đề tài nghiên cứu
-- Xem chi tiết đề tài
+- Tra cứu (giảng viên/ công trình/ đề tài)
+- Xem chi tiết (giảng viên/ công trình/ đề tài)
 - Hỏi đáp qua Chatbot GraphRAG
 - Xem bản đồ tri thức tương tác
-- Dịch thuật nội dung
 - Xem thống kê hệ thống
 - Xem mạng lưới hợp tác
 
@@ -17,65 +12,25 @@
 - Đăng nhập
 - Quên mật khẩu
 - Đăng xuất
-- Đổi mật khẩu
-- Cập nhật lý lịch cá nhân (gửi yêu cầu phê duyệt)
-- Xem danh sách công trình cá nhân
-- Yêu cầu thêm công trình cá nhân (chờ duyệt)
-- Yêu cầu sửa công trình cá nhân (chờ duyệt)
-- Yêu cầu xóa công trình cá nhân (chờ duyệt)
-- Xem danh sách đề tài cá nhân
-- Yêu cầu thêm đề tài cá nhân (chờ duyệt)
-- Yêu cầu sửa đề tài cá nhân (chờ duyệt)
-- Yêu cầu xóa đề tài cá nhân (chờ duyệt)
-- Xem danh sách thùng rác cá nhân
-- Yêu cầu khôi phục dữ liệu từ thùng rác
-- Gợi ý cộng sự tiềm năng
-- Xem dòng thời gian khoa học
+- Quản lý tài khoản lý lịch cá nhân (Giảng viên)
+- Xem danh sách công trình cá nhân (Giảng viên)
+- Thêm mới công trình cá nhân (Giảng viên)
+- Chỉnh sửa công trình cá nhân (Giảng viên)
+- Xóa công trình cá nhân (Giảng viên)
+- Quản lý đề tài cá nhân (Giảng viên)
+- Xem dòng thời gian (Giảng viên)
 
 ### 3. Nhóm Quản trị viên (Admin)
 - Đăng nhập
 - Quên mật khẩu
 - Đăng xuất
-- Quản lý tài khoản cá nhân (Admin)
-- Xem danh sách tài khoản người dùng (giảng viên)
-- Khởi tạo tài khoản đăng nhập cho giảng viên
-- Đặt lại mật khẩu và Khóa/Mở khóa tài khoản giảng viên
-- Xem danh sách giảng viên
-- Xem chi tiết giảng viên
-- Thêm mới giảng viên
-- Sửa thông tin giảng viên
-- Xóa giảng viên (xóa mềm)
-- Phê duyệt yêu cầu thay đổi lý lịch từ giảng viên
-- Xem danh sách bộ môn
-- Thêm mới bộ môn
-- Sửa thông tin bộ môn
-- Xóa bộ môn (xóa mềm)
-- Xem danh sách tác giả ngoài
-- Xem chi tiết tác giả ngoài
-- Thêm mới tác giả ngoài
-- Sửa thông tin tác giả ngoài
-- Xóa tác giả ngoài (xóa mềm)
-- Xem danh sách công trình khoa học
-- Xem chi tiết công trình khoa học
-- Thêm mới công trình khoa học
-- Sửa thông tin công trình khoa học
-- Biên tập liên kết công trình khoa học
-- Xóa công trình khoa học (xóa mềm)
-- Phê duyệt yêu cầu công trình từ giảng viên
-- Xem danh sách đề tài nghiên cứu
-- Xem chi tiết đề tài nghiên cứu
-- Thêm mới đề tài nghiên cứu
-- Sửa thông tin đề tài nghiên cứu
-- Biên tập liên kết đề tài nghiên cứu
-- Xóa đề tài nghiên cứu (xóa mềm)
-- Phê duyệt yêu cầu đề tài từ giảng viên
-- Xem danh sách lĩnh vực nghiên cứu
-- Thêm mới lĩnh vực nghiên cứu
-- Sửa lĩnh vực nghiên cứu
-- Xóa lĩnh vực nghiên cứu (xóa mềm)
-- Xem danh sách thùng rác hệ thống
-- Khôi phục thực thể từ thùng rác
-- Xóa vĩnh viễn thực thể khỏi hệ thống
-- Nhập dữ liệu từ Excel
-- Xuất dữ liệu ra CSV
-- Xem thống kê báo cáo (Dashboard Admin)
+- Xem danh sách giảng viên (Quản trị viên)
+- Xem chi tiết giảng viên (Quản trị viên)
+- Thêm mới giảng viên (Quản trị viên)
+- Sửa thông tin giảng viên (Quản trị viên)
+- Xóa giảng viên (Quản trị viên)
+- Phê duyệt yêu cầu thay đổi lý lịch (Quản trị viên)
+- Quản lý công trình (Quản trị viên)
+- Quản lý đề tài (Quản trị viên)
+- Quản lý tác giả ngoài (Quản trị viên)
+- Quản lý thùng rác (Quản trị viên)

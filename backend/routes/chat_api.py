@@ -1292,11 +1292,13 @@ def build_graph_for_answer(answer: str) -> dict | None:
     try:
         conn = get_neo4j_connection()
         label_config = {
+            "DaiHoc":            {"color": "#F1C40F", "shape": "star",     "size": 45},
+            "TruongCon":         {"color": "#2980B9", "shape": "hexagon", "size": 35},
+            "Khoa":              {"color": "#9B59B6", "shape": "star",     "size": 24},
             "GiangVien":         {"color": "#4F8EF7", "shape": "dot",      "size": 22},
             "CongTrinhNghienCuu":{"color": "#2ECC71", "shape": "diamond",  "size": 16},
             "DeTaiNghienCuu":    {"color": "#F39C12", "shape": "triangle", "size": 18},
             "BoMon":             {"color": "#E74C3C", "shape": "square",   "size": 18},
-            "Khoa":              {"color": "#9B59B6", "shape": "star",     "size": 24},
             "LinhVucNghienCuu":  {"color": "#1ABC9C", "shape": "hexagon", "size": 18},
             "TacGiaNgoai":       {"color": "#8b5cf6", "shape": "dot",      "size": 14},
         }
@@ -1328,7 +1330,8 @@ def build_graph_for_answer(answer: str) -> dict | None:
                         "id": cid,
                         "label": (cprops.get("ho_va_ten") or cprops.get("ten_cong_trinh")
                                   or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
-                                  or cprops.get("ten_khoa") or cprops.get("ten_linh_vuc")
+                                  or cprops.get("ten_khoa") or cprops.get("ten_dai_hoc")
+                                  or cprops.get("ten_truong") or cprops.get("ten_linh_vuc")
                                   or str(cprops.get("id", ""))),
                         "group": clabel,
                         "color": cfg["color"],
@@ -1347,7 +1350,8 @@ def build_graph_for_answer(answer: str) -> dict | None:
                         "id": nid2,
                         "label": (nprops.get("ho_va_ten") or nprops.get("ten_cong_trinh")
                                   or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
-                                  or nprops.get("ten_khoa") or nprops.get("ten_linh_vuc")
+                                  or nprops.get("ten_khoa") or nprops.get("ten_dai_hoc")
+                                  or nprops.get("ten_truong") or nprops.get("ten_linh_vuc")
                                   or str(nprops.get("id", ""))),
                         "group": nlabel,
                         "color": cfg["color"],
