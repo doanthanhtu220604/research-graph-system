@@ -169,7 +169,7 @@ def update_tac_gia_ngoai_cong_trinh(ct_id):
                     UNWIND $ids AS tgn_id
                     MATCH (tgn:TacGiaNgoai), (ct:CongTrinhNghienCuu)
                     WHERE tgn.id = tgn_id AND ct.id = $id
-                    MERGE (tgn)-[:CONG_SU]->(ct)
+                    MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
                 """, {"id": ct_id, "ids": phu_ids})
         else:
             # Fallback cho kiểu cũ
