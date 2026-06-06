@@ -1,0 +1,6 @@
+Total paragraphs read: 3697
+
+--- Found 3 matches: ---
+[316]: Ngôn ngữ truy vấn mang tính cấu trúc.
+[563]: Tốc độ xử lý chậm: Do yêu cầu nhiều lần truy vấn cơ sở dữ liệu hoặc xử lý nhiều yêu cầu HTTP khiến t
+[596]: MySQL là một hệ quản trị cơ sở dữ liệu mã nguồn mở (open-source) phổ biến được sử dụng rộng rãi trên

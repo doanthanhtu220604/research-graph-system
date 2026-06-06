@@ -35,7 +35,9 @@ def create_tac_gia_ngoai():
                 don_vi_cong_tac: toUpper($don_vi_cong_tac),
                 hoc_vi: toUpper($hoc_vi),
                 chuc_danh: toUpper($chuc_danh),
-                email: $email
+                email: $email,
+                trang_thai: 'Đã duyệt',
+                is_deleted: false
             })
             SET tgn.id = 'tgn_' + toString(id(tgn))
             RETURN tgn.id AS id

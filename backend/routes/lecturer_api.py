@@ -1036,7 +1036,6 @@ def lecturer_create_tac_gia_ngoai():
                 "id": existing["id"], 
                 "trang_thai": existing.get("trang_thai", "Đã duyệt")
             })
-            
         result = conn.write("""
             CREATE (tgn:TacGiaNgoai {
                 ho_va_ten: toUpper($ho_va_ten),
@@ -1046,7 +1045,8 @@ def lecturer_create_tac_gia_ngoai():
                 email: $email,
                 trang_thai: 'Chờ duyệt',
                 created_by: $gv_id,
-                created_at: timestamp()
+                created_at: timestamp(),
+                is_deleted: false
             })
             SET tgn.id = 'tgn_' + toString(id(tgn))
             RETURN tgn.id AS id

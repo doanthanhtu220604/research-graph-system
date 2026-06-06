@@ -205,19 +205,20 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
 
             # Tác giả là Giảng viên
             tac_gia_gv = parse_list_field(row.get("tac_gia_giang_vien"))
-            for tg in tac_gia_gv:
+            for idx_tg, tg in enumerate(tac_gia_gv):
+                rel_type = "TAC_GIA_CHINH" if idx_tg == 0 else "CONG_SU"
                 # Tìm theo email trước, nếu không có thì theo tên
                 if "@" in tg:
-                    conn.write("""
-                        MATCH (gv:GiangVien {email: $key}),
-                              (ct:CongTrinhNghienCuu {id: $ct_id})
-                        MERGE (gv)-[:LA_TAC_GIA_CUA]->(ct)
+                    conn.write(f"""
+                        MATCH (gv:GiangVien {{email: $key}}),
+                              (ct:CongTrinhNghienCuu {{id: $ct_id}})
+                        MERGE (gv)-[:{rel_type}]->(ct)
                     """, {"key": tg, "ct_id": ct_id})
                 else:
-                    conn.write("""
-                        MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu {id: $ct_id})
+                    conn.write(f"""
+                        MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu {{id: $ct_id}})
                         WHERE toUpper(gv.ho_va_ten) = toUpper($key)
-                        MERGE (gv)-[:LA_TAC_GIA_CUA]->(ct)
+                        MERGE (gv)-[:{rel_type}]->(ct)
                     """, {"key": tg, "ct_id": ct_id})
 
             # Tác giả ngoài
@@ -226,7 +227,13 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
                 ten_tgn = ten_tgn.upper()
                 conn.write("""
                     MERGE (tgn:TacGiaNgoai {ho_va_ten: $ten})
-                    ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn))
+                    ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn)),
+                                  tgn.hoc_vi = "",
+                                  tgn.chuc_danh = "",
+                                  tgn.don_vi_cong_tac = "",
+                                  tgn.email = "",
+                                  tgn.trang_thai = "Đã duyệt",
+                                  tgn.is_deleted = false
                     WITH tgn
                     MATCH (ct:CongTrinhNghienCuu {id: $ct_id})
                     MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
@@ -304,7 +311,13 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
                 ten_tgn = ten_tgn.upper()
                 conn.write("""
                     MERGE (tgn:TacGiaNgoai {ho_va_ten: $ten})
-                    ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn))
+                    ON CREATE SET tgn.id = 'tgn_' + toString(id(tgn)),
+                                  tgn.hoc_vi = "",
+                                  tgn.chuc_danh = "",
+                                  tgn.don_vi_cong_tac = "",
+                                  tgn.email = "",
+                                  tgn.trang_thai = "Đã duyệt",
+                                  tgn.is_deleted = false
                     WITH tgn
                     MATCH (dt:DeTaiNghienCuu {id: $dt_id})
                     MERGE (tgn)-[:DONG_TAC_GIA]->(dt)

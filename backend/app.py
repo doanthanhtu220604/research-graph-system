@@ -1,5 +1,5 @@
 """
-Flask Application - Knowledge Map NCKH Khoa CNTT
+Flask Application - ntuknowledge NCKH Khoa CNTT
 Ứng dụng web Bản đồ tri thức nghiên cứu khoa học.
 """
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     app = create_app()
     print()
     print("=" * 55)
-    print("  KNOWLEDGE MAP - KHOA CNTT, DH NHA TRANG")
+    print("  NTUKNOWLEDGE - KHOA CNTT, DH NHA TRANG")
     print("=" * 55)
     print("  Web app : http://localhost:5000")
     print("  API     : http://localhost:5000/api/stats/overview")

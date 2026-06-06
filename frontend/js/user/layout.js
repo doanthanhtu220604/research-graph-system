@@ -220,6 +220,16 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(detailOverlayPlaceholder);
     loadComponent('entity-detail-placeholder', 'components/entity_detail.html');
 
+    // Add Footer Placeholder dynamically if mainContent is present and it is not the chat page
+    const mainContent = document.getElementById('mainContent');
+    const isChatPage = window.location.pathname.includes('chat.html');
+    if (mainContent && !isChatPage) {
+        const footerPlaceholder = document.createElement('div');
+        footerPlaceholder.id = 'footer-placeholder';
+        mainContent.appendChild(footerPlaceholder);
+        loadComponent('footer-placeholder', 'components/footer.html');
+    }
+
     // Add Scroll to Top Button dynamically
     const scrollToTopBtn = document.createElement('button');
     scrollToTopBtn.id = 'scrollToTopBtn';

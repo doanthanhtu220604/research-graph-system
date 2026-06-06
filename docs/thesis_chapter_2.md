@@ -98,33 +98,185 @@ Cypher tuân theo triết lý của ngôn ngữ khai báo (declarative language)
 Điểm độc đáo nhất của Cypher là cú pháp trực quan mô phỏng nghệ thuật ASCII (ASCII-art syntax). Các nút được bọc trong dấu ngoặc đơn `()` tương tự hình tròn của nút đồ thị, các mối quan hệ được biểu diễn bằng các ký hiệu mũi tên `-->` hoặc `<--`, và các thông tin chi tiết về kiểu quan hệ được đặt trong dấu ngoặc vuông `[]`. Cú pháp này giúp các câu truy vấn Cypher cực kỳ dễ đọc, dễ viết và tự tài liệu hóa (self-documenting).
 
 ### 2.3.2. Các mệnh đề truy vấn cơ bản trong Cypher
-Cypher cung cấp nhiều mệnh đề hỗ trợ thao tác dữ liệu theo mô hình CRUD (Create, Read, Update, Delete) cũng như xử lý và điều hướng kết quả truy vấn.
+Cypher cung cấp nhiều mệnh đề hỗ trợ thao tác dữ liệu theo mô hình CRUD (Create, Read, Update, Delete) cũng như xử lý và điều hướng kết quả truy vấn. Dưới đây là các mệnh đề cơ bản kèm theo ví dụ thực tế được áp dụng trong dự án quản lý nghiên cứu khoa học Khoa Công nghệ thông tin - Trường Đại học Nha Trang:
 
-Mệnh đề `MATCH` được sử dụng để tìm kiếm dữ liệu trong đồ thị thông qua cơ chế khớp mẫu (Pattern Matching). Đây là mệnh đề quan trọng nhất trong Cypher, cho phép xác định các nút và mối quan hệ thỏa mãn điều kiện truy vấn.
+- **Mệnh đề MATCH:** Được sử dụng để tìm kiếm dữ liệu trong đồ thị thông qua cơ chế khớp mẫu (Pattern Matching). Đây là mệnh đề quan hàng đầu trong Cypher, giúp định vị các nút và mối quan hệ cần truy xuất.
+  *Ví dụ:* Truy vấn thông tin của giảng viên và bộ môn trực thuộc:
+  ```cypher
+  MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
+  WHERE coalesce(gv.is_deleted, false) = false
+  RETURN gv.ho_va_ten AS ten_giang_vien, bm.ten_bo_mon AS ten_bo_mon
+  ```
+  *Ý nghĩa:* Tìm kiếm thực thể Giảng viên có liên kết trực thuộc bộ môn (`THUOC_BO_MON`) với thực thể Bộ môn, trả về họ tên giảng viên cùng tên bộ môn.
 
-Mệnh đề `CREATE` dùng để tạo mới các nút hoặc mối quan hệ trong cơ sở dữ liệu đồ thị. Trong khi đó, `MERGE` hỗ trợ kiểm tra sự tồn tại của dữ liệu trước khi tạo mới nhằm hạn chế trùng lặp thực thể.
+- **Mệnh đề CREATE:** Dùng để tạo mới các nút hoặc mối quan hệ trong cơ sở dữ liệu đồ thị.
+  *Ví dụ:* Tạo mới một thực thể công trình nghiên cứu khoa học:
+  ```cypher
+  CREATE (ct:CongTrinhNghienCuu {
+      id: 'ct_new_99',
+      ten_cong_trinh: 'ỨNG DỤNG MẠNG NƠ-RON TRONG HỆ THỐNG IOT GIÁM SÁT HÀNH VI TÉ NGÃ',
+      nam_xuat_ban: 2024,
+      noi_xuat_ban: 'Hội thảo Quốc gia FAIR',
+      trang_thai: 'Chờ duyệt',
+      is_deleted: false
+  })
+  ```
+  *Ý nghĩa:* Tạo mới nút `CongTrinhNghienCuu` có mã định danh `ct_new_99` với các thuộc tính như tên công trình, năm xuất bản, nơi xuất bản và trạng thái ban đầu là "Chờ duyệt".
 
-Đối với thao tác cập nhật dữ liệu, Cypher sử dụng mệnh đề `SET` để bổ sung hoặc thay đổi thuộc tính của nút và mối quan hệ. Mệnh đề `REMOVE` cho phép xóa nhãn hoặc thuộc tính không còn cần thiết.
+- **Mệnh đề MERGE:** Hỗ trợ kiểm tra sự tồn tại của dữ liệu trước khi tạo mới. Nếu mẫu dữ liệu đã tồn tại, `MERGE` sẽ truy xuất nó; nếu chưa có, `MERGE` sẽ tạo mới. Mệnh đề này rất hữu ích để hạn chế trùng lặp thực thể và mối quan hệ.
+  *Ví dụ:* Thiết lập mối quan hệ tác giả của giảng viên với công trình nghiên cứu:
+  ```cypher
+  MATCH (gv:GiangVien {id: 'gv_5'}), (ct:CongTrinhNghienCuu {id: 'ct_new_99'})
+  MERGE (gv)-[:LA_TAC_GIA_CUA]->(ct)
+  ```
+  *Ý nghĩa:* Đảm bảo chỉ tồn tại duy nhất một mối quan hệ tác giả `LA_TAC_GIA_CUA` giữa giảng viên và công trình nghiên cứu cụ thể, tránh tạo trùng lặp quan hệ khi chạy lại câu lệnh.
 
-Để xóa dữ liệu khỏi hệ thống, Cypher hỗ trợ `DELETE` và `DETACH DELETE`. Trong đó, `DETACH DELETE` cho phép tự động xóa toàn bộ các mối quan hệ liên quan trước khi xóa nút dữ liệu.
+- **Mệnh đề SET:** Được dùng để cập nhật, bổ sung các thuộc tính hoặc thay đổi nhãn của nút/mối quan hệ.
+  *Ví dụ:* Phê duyệt trạng thái của công trình nghiên cứu:
+  ```cypher
+  MATCH (ct:CongTrinhNghienCuu {id: 'ct_new_99'})
+  SET ct.trang_thai = 'Đã phê duyệt'
+  ```
+  *Ý nghĩa:* Sử dụng `SET` để cập nhật thuộc tính `trang_thai` thành "Đã phê duyệt" cho nút công trình nghiên cứu.
 
-Ngoài các thao tác cơ bản, Cypher còn cung cấp nhiều mệnh đề hỗ trợ xử lý kết quả truy vấn. Mệnh đề `WHERE` được sử dụng để áp đặt các điều kiện lọc dữ liệu. `RETURN` dùng để xác định dữ liệu cần trả về sau truy vấn. Các mệnh đề `ORDER BY`, `SKIP` và `LIMIT` hỗ trợ sắp xếp, phân trang và giới hạn số lượng kết quả.
+- **Mệnh đề REMOVE:** Cho phép xóa bỏ các thuộc tính của nút/mối quan hệ hoặc xóa bỏ nhãn (Label) của nút mà không xóa thực thể.
+  *Ví dụ:* Xóa thuộc tính số điện thoại tạm thời của giảng viên:
+  ```cypher
+  MATCH (gv:GiangVien {id: 'gv_20'})
+  REMOVE gv.dien_thoai_tam
+  ```
+  *Ý nghĩa:* Loại bỏ hoàn toàn thuộc tính tạm thời `dien_thoai_tam` khỏi nút giảng viên `gv_20` mà không ảnh hưởng tới các thuộc tính chính của giảng viên.
 
-Bên cạnh đó, Cypher còn hỗ trợ các cơ chế xử lý truy vấn nâng cao như `WITH` và `UNWIND`. Trong đó, `WITH` cho phép truyền kết quả trung gian giữa các bước truy vấn, còn `UNWIND` hỗ trợ chuyển đổi dữ liệu dạng danh sách thành nhiều dòng dữ liệu riêng biệt để tiếp tục xử lý.
+- **Mệnh đề DELETE và DETACH DELETE:**
+  * `DELETE` được sử dụng để xóa các nút hoặc các mối quan hệ.
+  * `DETACH DELETE` cho phép tự động xóa toàn bộ các mối quan hệ liên quan của nút trước khi tiến hành xóa nút đó khỏi hệ thống.
+  *Ví dụ 1 (DELETE):* Xóa mối quan hệ tác giả cũ của một công trình:
+  ```cypher
+  MATCH (gv:GiangVien {id: 'gv_5'})-[r:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu {id: 'ct_new_99'})
+  DELETE r
+  ```
+  *Ví dụ 2 (DETACH DELETE):* Xóa hoàn toàn một giảng viên khỏi cơ sở dữ liệu:
+  ```cypher
+  MATCH (gv:GiangVien {id: 'gv_999'})
+  DETACH DELETE gv
+  ```
+  *Ý nghĩa:* Truy vấn đầu tiên chỉ xóa cạnh quan hệ `LA_TAC_GIA_CUA` kết nối giữa giảng viên và công trình. Truy vấn thứ hai sử dụng `DETACH DELETE` để cắt đứt tất cả các mối quan hệ của giảng viên `gv_999` trước khi xóa nút giảng viên này khỏi đồ thị.
+
+- **Mệnh đề WHERE:** Dùng để áp đặt các điều kiện lọc dữ liệu (áp dụng cho các thuộc tính, loại quan hệ hoặc cấu trúc đồ thị).
+  *Ví dụ:* Lọc danh sách giảng viên thuộc Bộ môn Công nghệ phần mềm có học vị Tiến sĩ:
+  ```cypher
+  MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
+  WHERE bm.id = 'bm_0' AND gv.hoc_vi = 'Tiến sĩ'
+  RETURN gv.ho_va_ten AS ho_va_ten, gv.hoc_vi AS hoc_vi
+  ```
+  *Ý nghĩa:* Lọc các kết quả khớp mẫu sao cho chỉ lấy những giảng viên có thuộc tính học vị là "Tiến sĩ" và thuộc bộ môn có mã định danh `bm_0` (Bộ môn Công nghệ phần mềm).
+
+- **Mệnh đề RETURN:** Xác định các dữ liệu hoặc cấu trúc cần trả về sau truy vấn (có thể trả về nút, quan hệ, thuộc tính hoặc giá trị tính toán dưới dạng bí danh `AS`).
+  *Ví dụ:* Trả về thông tin đề tài thực hiện năm 2024:
+  ```cypher
+  MATCH (dt:DeTaiNghienCuu)
+  WHERE dt.nam_thuc_hien = 2024
+  RETURN dt.id AS ma_de_tai, dt.ten_de_tai AS ten_de_tai
+  ```
+  *Ý nghĩa:* Chỉ định trả về hai cột dữ liệu gồm mã đề tài và tên đề tài với các bí danh dễ đọc cho người dùng.
+
+- **Mệnh đề ORDER BY, SKIP và LIMIT:** Hỗ trợ sắp xếp kết quả, phân trang và giới hạn số lượng dòng dữ liệu trả về.
+  *Ví dụ:* Lấy danh sách 3 công trình nghiên cứu mới nhất xuất bản năm 2025:
+  ```cypher
+  MATCH (ct:CongTrinhNghienCuu)
+  WHERE ct.nam_xuat_ban = 2025
+  RETURN ct.ten_cong_trinh AS ten_cong_trinh, ct.nam_xuat_ban AS nam_xb
+  ORDER BY ct.nam_xuat_ban DESC, ct.ten_cong_trinh ASC
+  SKIP 0
+  LIMIT 3
+  ```
+  *Ý nghĩa:* Sắp xếp các công trình nghiên cứu năm 2025 theo thứ tự giảm dần của năm và tăng dần theo bảng chữ cái của tên, bỏ qua 0 dòng đầu tiên và chỉ lấy 3 kết quả hàng đầu.
+
+- **Mệnh đề WITH:** Cho phép truyền kết quả trung gian từ bước truy vấn này sang bước truy vấn tiếp theo, hoạt động như một cầu nối lọc dữ liệu hoặc thực hiện tính toán gom nhóm trước khi chạy các mệnh đề sau.
+  *Ví dụ:* Tìm các giảng viên có từ 3 công trình nghiên cứu trở lên:
+  ```cypher
+  MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA]->(ct:CongTrinhNghienCuu)
+  WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+  WITH gv, count(ct) AS so_luong_bai_bao
+  WHERE so_luong_bai_bao >= 3
+  RETURN gv.ho_va_ten AS ten_giang_vien, so_luong_bai_bao
+  ```
+  *Ý nghĩa:* Gom nhóm theo giảng viên (`gv`) để tính số lượng công trình nghiên cứu qua hàm `count(ct)`. Nhờ mệnh đề `WITH`, kết quả đếm này được truyền tiếp sang bước sau để lọc ra những người có `so_luong_bai_bao >= 3` trước khi trả về kết quả cuối cùng.
+
+- **Mệnh đề UNWIND:** Hỗ trợ chuyển đổi một danh sách dữ liệu thành các dòng dữ liệu riêng biệt để tiếp tục xử lý.
+  *Ví dụ:* Tìm các giảng viên có hướng nghiên cứu tương thích với danh sách các từ khóa cho trước:
+  ```cypher
+  UNWIND ['Lập trình Web', 'Trí tuệ nhân tạo', 'Học sâu'] AS huong_nc
+  MATCH (gv:GiangVien)
+  WHERE gv.chuyen_nganh CONTAINS huong_nc OR gv.huong_nghien_cuu CONTAINS huong_nc
+  RETURN huong_nc AS huong_nghien_cuu, gv.ho_va_ten AS ten_giang_vien
+  ```
+  *Ý nghĩa:* Tách mảng gồm 3 hướng nghiên cứu thành 3 dòng độc lập, sau đó thực hiện tìm kiếm giảng viên tương ứng với từng dòng đó.
 
 ### 2.3.3. Các hàm tổng hợp và xử lý dữ liệu
-Cypher cung cấp nhiều hàm tổng hợp nhằm phục vụ các bài toán thống kê và phân tích dữ liệu trong đồ thị.
+Cypher cung cấp nhiều hàm tổng hợp để phục vụ các bài toán thống kê, phân tích dữ liệu trực tiếp trên đồ thị tri thức:
 
-Hàm `COUNT` được sử dụng để đếm số lượng nút, mối quan hệ hoặc đường đi thỏa mãn điều kiện truy vấn. Hàm `COLLECT` cho phép gom nhiều kết quả thành một danh sách duy nhất, hỗ trợ biểu diễn các quan hệ một-nhiều trong dữ liệu đồ thị.
+- **Hàm COUNT:** Đếm số lượng thực thể, mối quan hệ hoặc đường đi khớp với mẫu tìm kiếm.
+  *Ví dụ:* Thống kê tổng số lượng giảng viên, công trình và đề tài trong hệ thống:
+  ```cypher
+  MATCH (gv:GiangVien) WHERE coalesce(gv.is_deleted, false) = false
+  MATCH (ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+  MATCH (dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
+  RETURN count(DISTINCT gv) AS tong_giang_vien, 
+         count(DISTINCT ct) AS tong_cong_trinh, 
+         count(DISTINCT dt) AS tong_de_tai
+  ```
 
-Ngoài ra, Cypher còn hỗ trợ các hàm thống kê phổ biến như `SUM`, `AVG`, `MIN` và `MAX` để tính toán trên các thuộc tính dạng số. Các hàm này thường được sử dụng trong việc phân tích số lượng công trình nghiên cứu, thống kê số lượng giảng viên tham gia đề tài hoặc đánh giá mức độ liên kết giữa các thực thể trong hệ thống.
+- **Hàm COLLECT:** Gom các giá trị hoặc các nút từ nhiều dòng kết quả khác nhau thành một danh sách duy nhất. Hàm này cực kỳ hiệu quả để biểu diễn quan hệ một-nhiều hoặc nhiều-nhiều trong đồ thị mà không cần tạo nhiều dòng lặp lại.
+  *Ví dụ:* Lấy danh sách các lĩnh vực nghiên cứu của từng giảng viên:
+  ```cypher
+  MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
+  WHERE coalesce(gv.is_deleted, false) = false
+  RETURN gv.ho_va_ten AS giang_vien, collect(lv.ten_linh_vuc) AS danh_sach_linh_vuc
+  ```
+  *Ý nghĩa:* Gom toàn bộ các tên lĩnh vực của cùng một giảng viên thành một danh sách, trả về một dòng duy nhất cho mỗi giảng viên thay vì trả về nhiều dòng tương ứng với số lĩnh vực của họ.
+
+- **Các hàm thống kê SUM, AVG, MIN và MAX:** Thực hiện các phép toán số học trên thuộc tính dữ liệu:
+  * `SUM`: Tính tổng giá trị.
+  * `AVG`: Tính giá trị trung bình.
+  * `MIN`: Tìm giá trị nhỏ nhất.
+  * `MAX`: Tìm giá trị lớn nhất.
+  *Ví dụ:* Thống kê số lượng cộng sự (tác giả chung) lớn nhất, nhỏ nhất và trung bình của các công trình nghiên cứu có từ 2 tác giả trở lên:
+  ```cypher
+  MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+  WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+  WITH ct, count(gv) AS so_tac_gia
+  WHERE so_tac_gia >= 2
+  RETURN max(so_tac_gia) AS so_tac_gia_nhieu_nhat,
+         min(so_tac_gia) AS so_tac_gia_it_nhat,
+         avg(so_tac_gia) AS so_tac_gia_trung_binh
+  ```
 
 ### 2.3.4. Truy vấn đường đi trong Cypher
-Một trong những ưu điểm quan trọng của Cypher là khả năng truy vấn đường đi có độ dài biến đổi (Variable-length Paths). Cypher cho phép xác định các mối quan hệ trực tiếp và gián tiếp giữa các nút thông qua việc khai báo số bước liên kết trong truy vấn.
+Một trong những ưu thế vượt trội của Cypher so với SQL truyền thống là khả năng truy vấn đường đi có độ dài biến đổi (Variable-length Paths). Thay vì phải thực hiện nhiều phép JOIN lồng nhau gây suy giảm hiệu năng nghiêm trọng, Cypher hỗ trợ cú pháp khai báo số bước liên kết linh hoạt.
 
-Tính năng này giúp việc khai thác dữ liệu liên kết trở nên hiệu quả hơn so với cơ sở dữ liệu quan hệ truyền thống, nơi thường phải sử dụng nhiều phép JOIN lồng nhau để biểu diễn quan hệ đa cấp.
+Cú pháp truy vấn đường đi có độ dài biến đổi trong Cypher được biểu diễn dưới dạng `-[r:RELATION_TYPE*min..max]->` hoặc `-[r:RELATION_TYPE*length]->`.
 
-Trong hệ thống quản lý hoạt động nghiên cứu khoa học, truy vấn đường đi được sử dụng để phân tích mạng lưới cộng tác giữa các giảng viên, xác định mối liên hệ giữa các lĩnh vực nghiên cứu hoặc truy vết các chuỗi liên kết học thuật trong cơ sở dữ liệu tri thức.
+Trong dự án quản lý hoạt động nghiên cứu khoa học, tính năng này được ứng dụng cụ thể trong các bài toán sau:
+
+1. **Phân tích mạng lưới cộng tác gián tiếp giữa các giảng viên:**
+   Để tìm các giảng viên có liên kết hợp tác gián tiếp trong phạm vi 2 bước (nghĩa là gv1 hợp tác với gv_trung_gian qua một công trình, và gv_trung_gian lại hợp tác với gv2 qua một công trình khác, tương ứng độ dài đường đi qua các quan hệ là 4 cạnh):
+   ```cypher
+   MATCH path = (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU*4]-(gv2:GiangVien)
+   WHERE gv1.id = $gv_id AND gv1 <> gv2
+     AND all(n IN nodes(path) WHERE not n:CongTrinhNghienCuu OR coalesce(n.is_deleted, false) = false)
+   RETURN path
+   LIMIT 5
+   ```
+   *Ý nghĩa:* Mẫu truy vấn trên tìm các đường đi có độ dài quan hệ là 4 (mỗi bước đi từ Giảng viên -> Công trình -> Giảng viên -> Công trình -> Giảng viên tương ứng với 4 cạnh đồ thị). Điều này giúp phát hiện chuỗi cộng tác gián tiếp để gợi ý cộng sự tiềm năng.
+
+2. **Truy vết chuỗi liên kết học thuật kết nối giữa các thực thể:**
+   Tìm kiếm đường đi kết nối ngắn nhất giữa hai giảng viên bất kỳ để phân tích mức độ liên kết trong mạng lưới nghiên cứu:
+   ```cypher
+   MATCH path = shortestPath((gv1:GiangVien {id: $gv_id1})-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|CHU_NHIEM|THAM_GIA*1..6]-(gv2:GiangVien {id: $gv_id2}))
+   RETURN path
+   ```
+   *Ý nghĩa:* Hàm `shortestPath` kết hợp với mối quan hệ có độ dài biến đổi từ 1 đến 6 bước (`*1..6`) giúp tìm ra con đường ngắn nhất kết nối hai giảng viên thông qua các công trình hoặc đề tài chung, từ đó trực quan hóa đường đi kết nối xã hội/học thuật giữa họ.
 
 ---
 
