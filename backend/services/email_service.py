@@ -57,11 +57,11 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
     <div class="container">
         <div class="header">
             <h1>🔑 Khôi phục mật khẩu</h1>
-            <p>ntuknowledge - Khoa CNTT, ĐH Nha Trang</p>
+            <p>NTUKnowledge - Khoa CNTT, ĐH Nha Trang</p>
         </div>
         <div class="body">
             <p>{greeting}</p>
-            <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn trên hệ thống <strong>ntuknowledge</strong>. Nhấn vào nút bên dưới để tạo mật khẩu mới:</p>
+            <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn trên hệ thống <strong>NTUKnowledge</strong>. Nhấn vào nút bên dưới để tạo mật khẩu mới:</p>
             
             <a href="{reset_link}" class="btn-reset">🔐 Đặt lại mật khẩu</a>
             
@@ -76,7 +76,7 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
             <p style="margin-top:24px; font-size:13px; color:#94a3b8;">Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này. Tài khoản của bạn vẫn an toàn.</p>
         </div>
         <div class="footer">
-            &copy; 2024 ntuknowledge - Khoa Công nghệ Thông tin, ĐH Nha Trang
+            &copy; 2024 NTUKnowledge - Khoa Công nghệ Thông tin, ĐH Nha Trang
         </div>
     </div>
 </body>
@@ -86,7 +86,7 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
     text_body = f"""
 {greeting}
 
-Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản ntuknowledge.
+Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản NTUKnowledge.
 
 Truy cập đường link sau để đặt lại mật khẩu (hết hạn sau 15 phút):
 {reset_link}
@@ -94,12 +94,12 @@ Truy cập đường link sau để đặt lại mật khẩu (hết hạn sau 1
 If you did not request a password reset, please ignore this email.
 
 Sincerely,
-ntuknowledge - Khoa CNTT, ĐH Nha Trang
+NTUKnowledge - Khoa CNTT, ĐH Nha Trang
 """
 
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "🔑 [ntuknowledge] Yêu cầu đặt lại mật khẩu"
+        msg["Subject"] = "🔑 [NTUKnowledge] Yêu cầu đặt lại mật khẩu"
         msg["From"] = mail_sender
         msg["To"] = recipient_email
 

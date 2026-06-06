@@ -2298,10 +2298,10 @@ body:has(.sidebar) .card {
 
 /* ---------- Footer Styling ---------- */
 .site-footer {
-    background-color: #f3ece0;
-    color: #5d4f45;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
     padding: 50px 0 30px 0;
-    border-top: 1px solid #e5dccf;
+    border-top: 1px solid var(--border-color);
     font-size: 13px;
     line-height: 1.8;
     position: relative;
@@ -2323,31 +2323,33 @@ body:has(.sidebar) .card {
 }
 
 .footer-col-brand .footer-brand {
-    font-family: 'Inter', 'Segoe UI', serif;
+    font-family: 'Inter', sans-serif;
     font-size: 26px;
     font-weight: 800;
-    color: #882b1d;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 12px;
-    text-transform: none;
     letter-spacing: -0.5px;
 }
 
 .footer-col-brand .footer-desc {
     font-size: 14px;
     font-weight: 700;
-    color: #44372e;
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
 .footer-col-brand .footer-subdesc {
-    color: #7a6a5e;
+    color: var(--text-secondary);
     max-width: 350px;
 }
 
 .footer-col-title {
     font-size: 13px;
     font-weight: 700;
-    color: #271f1a;
+    color: var(--text-primary);
     margin-bottom: 16px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -2364,18 +2366,18 @@ body:has(.sidebar) .card {
 }
 
 .footer-links a {
-    color: #7a6a5e;
+    color: var(--text-secondary);
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: var(--transition);
 }
 
 .footer-links a:hover {
-    color: #882b1d;
-    padding-left: 2px;
+    color: var(--accent-purple);
+    padding-left: 4px;
 }
 
 .footer-col-connect .connect-desc {
-    color: #7a6a5e;
+    color: var(--text-secondary);
     margin-bottom: 16px;
 }
 
@@ -2389,25 +2391,25 @@ body:has(.sidebar) .card {
 .btn-connect {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 16px;
+    gap: 8px;
+    padding: 8px 18px;
     border-radius: 20px;
-    background: #ffffff;
-    color: #4a3c31;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 12px;
     text-decoration: none;
-    border: 1px solid #e1d6c4;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    box-shadow: var(--shadow);
 }
 
 .btn-connect:hover {
-    background: #882b1d;
+    background: var(--gradient-primary);
     color: #ffffff;
-    border-color: #882b1d;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(136, 43, 29, 0.15);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.15);
 }
 
 .btn-connect i {
@@ -2415,10 +2417,10 @@ body:has(.sidebar) .card {
 }
 
 .footer-bottom {
-    border-top: 1px solid #e5dccf;
+    border-top: 1px solid var(--border-color);
     padding-top: 20px;
     text-align: center;
-    color: #8a786a;
+    color: var(--text-muted);
     font-size: 12px;
 }
 
