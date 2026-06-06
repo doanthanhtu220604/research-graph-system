@@ -9,7 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-def send_reset_password_email(recipient_email: str, reset_link: str, user_name: str = None) -> bool:
+def send_reset_password_email(recipient_email: str, reset_link: str, user_name: str | None = None) -> bool:
     """
     Gửi email chứa link khôi phục mật khẩu.
     
@@ -28,7 +28,7 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
     mail_sender = os.getenv("MAIL_DEFAULT_SENDER", mail_username)
 
     if not mail_username or not mail_password or "your-email" in mail_username:
-        print("[EMAIL] Cấu hình email chưa được thiết lập trong .env")
+        print("[EMAIL] Email configuration is not set in .env")
         return False
 
     greeting = f"Kính chào {user_name}," if user_name else "Kính chào,"
@@ -112,15 +112,15 @@ NTUKnowledge - Khoa CNTT, ĐH Nha Trang
             server.login(mail_username, mail_password)
             server.sendmail(mail_username, recipient_email, msg.as_string())
 
-        print(f"[EMAIL] Đã gửi email khôi phục tới: {recipient_email}")
+        print(f"[EMAIL] Reset email sent to: {recipient_email}")
         return True
 
     except smtplib.SMTPAuthenticationError:
-        print("[EMAIL] Lỗi xác thực SMTP. Kiểm tra lại MAIL_USERNAME và MAIL_PASSWORD trong .env")
+        print("[EMAIL] SMTP Authentication Error. Check MAIL_USERNAME and MAIL_PASSWORD in .env")
         return False
     except smtplib.SMTPException as e:
-        print(f"[EMAIL] Lỗi SMTP: {e}")
+        print(f"[EMAIL] SMTP Error: {e}")
         return False
     except Exception as e:
-        print(f"[EMAIL] Lỗi không xác định: {e}")
+        print(f"[EMAIL] Unknown Error: {e}")
         return False

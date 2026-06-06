@@ -7,8 +7,10 @@ import os
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
-# Load biến môi trường từ file .env
-load_dotenv()
+# Load biến môi trường từ file .env ở thư mục gốc của dự án
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
+load_dotenv(os.path.join(project_root, ".env"))
 
 
 class Neo4jConnection:
@@ -64,6 +66,8 @@ class Neo4jConnection:
         """
         if self._driver is None:
             self.connect()
+        if self._driver is None:
+            raise RuntimeError("Neo4j driver is not connected")
 
         try:
             with self._driver.session(database=db) as session:
@@ -102,6 +106,8 @@ class Neo4jConnection:
         """
         if self._driver is None:
             self.connect()
+        if self._driver is None:
+            raise RuntimeError("Neo4j driver is not connected")
 
         try:
             with self._driver.session(database=db) as session:

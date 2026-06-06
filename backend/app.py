@@ -5,9 +5,12 @@ Flask Application - NTUKnowledge NCKH Khoa CNTT
 
 import os
 import sys
+from dotenv import load_dotenv
 
-# Thêm thư mục gốc vào Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+# Thêm thư mục gốc vào Python path và load .env
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
+load_dotenv(os.path.join(project_root, ".env"))
 
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS  # type: ignore

@@ -173,7 +173,7 @@
         </form>
 
         <div style="text-align: center; margin-top: 16px; display: flex; justify-content: center; gap: 15px; align-items: center;">
-            <a href="forgot-password.html" style="color: var(--accent-blue); font-size: 14px; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+            <a href="forgot-password.html" id="forgotPasswordLink" style="color: var(--accent-blue); font-size: 14px; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
                 <i class="fas fa-key" style="margin-right: 5px;"></i>Quên mật khẩu?
             </a>
         </div>
@@ -232,6 +232,20 @@
                 btn.disabled = false;
                 btn.innerHTML = '<span>Đăng nhập</span><i class="fas fa-sign-in-alt"></i>';
             }
+        });
+
+        document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username').value.trim();
+            if (!usernameInput) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = 'Vui lòng nhập tài khoản hoặc email để khôi phục mật khẩu!';
+                errorDiv.style.display = 'block';
+                document.getElementById('username').focus();
+                return;
+            }
+            // Đi tới trang quên mật khẩu và truyền email qua query parameter
+            window.location.href = `forgot-password.html?email=${encodeURIComponent(usernameInput)}`;
         });
     </script>
 </body>
