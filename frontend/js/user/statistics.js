@@ -176,7 +176,7 @@ function renderCharts(data) {
         chartDept = new Chart(ctxDept, {
             type: 'bar',
             data: {
-                labels: data.giang_vien_theo_bo_mon.map(d => d.bo_mon.replace('Bộ môn ', '')),
+                labels: data.giang_vien_theo_bo_mon.map(d => d.bo_mon.replace(/bộ môn\s+/gi, '')),
                 datasets: [{
                     label: 'Số lượng giảng viên',
                     data: data.giang_vien_theo_bo_mon.map(d => d.so_luong),

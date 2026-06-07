@@ -3,7 +3,7 @@ Admin API - Quản lý Đề tài Nghiên cứu
 """
 
 from flask import Blueprint, jsonify, request
-from backend.services.neo4j_connection import get_neo4j_connection
+from backend.services.neo4j_connection import get_neo4j_connection, generate_slug
 
 admin_projects_bp = Blueprint("admin_projects_api", __name__)
 
@@ -18,9 +18,25 @@ def create_de_tai():
     
     conn = get_neo4j_connection()
     try:
+        ten_de_tai = data.get("ten_de_tai", "")
+        ten_de_tai = " ".join(ten_de_tai.split())
+        data["ten_de_tai"] = ten_de_tai
+        if not ten_de_tai:
+            return jsonify({"status": "error", "message": "Tên đề tài không được để trống"}), 400
+
+        slug = generate_slug(ten_de_tai)
+        exists = conn.query_single("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE dt.slug = $slug AND coalesce(dt.is_deleted, false) = false
+            RETURN dt.id AS id
+        """, {"slug": slug})
+        if exists:
+            return jsonify({"status": "error", "message": "Đề tài nghiên cứu với tên này đã tồn tại trong hệ thống"}), 400
+
         result = conn.write("""
             CREATE (dt:DeTaiNghienCuu {
                 ten_de_tai: toUpper($ten_de_tai),
+                slug: $slug,
                 cap_de_tai: toUpper($cap_de_tai),
                 nam: $nam,
                 tom_tat: $tom_tat,
@@ -29,7 +45,7 @@ def create_de_tai():
             })
             SET dt.id = 'dt_' + toString(id(dt))
             RETURN dt.id AS id
-        """, data)
+        """, {**data, "slug": slug})
         new_id = result[0]["id"]
 
         # Gán Chủ nhiệm
@@ -68,18 +84,23 @@ def update_de_tai(id):
     data = dict(request.json)
     nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
     data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
+    ten_de_tai = data.get("ten_de_tai", "")
+    ten_de_tai = " ".join(ten_de_tai.split())
+    data["ten_de_tai"] = ten_de_tai
+    slug = generate_slug(ten_de_tai)
     
     conn = get_neo4j_connection()
     try:
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
             SET dt.ten_de_tai = toUpper($ten_de_tai),
+                dt.slug = $slug,
                 dt.cap_de_tai = toUpper($cap_de_tai),
                 dt.nam = $nam,
                 dt.tom_tat = $tom_tat,
                 dt.trang_thai = coalesce($trang_thai, 'Hoàn thành'),
                 dt.link = $link
-        """, {"id": id, **data})
+        """, {"id": id, **data, "slug": slug})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

@@ -561,7 +561,8 @@ def get_node_graph(node_id):
                 "label": cprops.get("ho_va_ten") or cprops.get("ten_cong_trinh")
                          or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
                          or cprops.get("ten_khoa") or cprops.get("ten_dai_hoc")
-                         or cprops.get("ten_truong") or str(cprops.get("id", "")),
+                         or cprops.get("ten_truong") or cprops.get("ten_linh_vuc")
+                         or cprops.get("ten_nhom") or str(cprops.get("id", "")),
                 "group": clabel,
                 "color": color_val,
                 "shape": cconfig["shape"],
@@ -583,7 +584,8 @@ def get_node_graph(node_id):
                 "label": nprops.get("ho_va_ten") or nprops.get("ten_cong_trinh")
                          or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
                          or nprops.get("ten_khoa") or nprops.get("ten_dai_hoc")
-                         or nprops.get("ten_truong") or str(nprops.get("id", "")),
+                         or nprops.get("ten_truong") or nprops.get("ten_linh_vuc")
+                         or nprops.get("ten_nhom") or str(nprops.get("id", "")),
                 "group": nlabel,
                 "color": color_val,
                 "shape": nconfig["shape"],

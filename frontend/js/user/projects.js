@@ -38,7 +38,11 @@ function renderProjectRows(list) {
     }
     container.innerHTML = list.map(dt => {
         const title = String(dt.ten_de_tai || 'N/A').replace(/</g, '&lt;');
-        const years = (dt.nam_bat_dau || dt.nam_thuc_hien) ? `${dt.nam_bat_dau || dt.nam_thuc_hien} – ${dt.nam_ket_thuc || 'nay'}` : '';
+        const startYear = dt.nam_bat_dau || dt.nam_thuc_hien;
+        const endYear = dt.nam_ket_thuc;
+        const years = (startYear && endYear && startYear !== endYear) 
+            ? `${startYear} – ${endYear}` 
+            : (startYear || 'N/A');
         return `
             <div class="data-row" onclick="showProjectDetail('${dt.id}')">
                 <div class="data-row-icon row-icon-orange"><i class="fas fa-flask"></i></div>
@@ -91,9 +95,12 @@ async function showProjectDetail(dtId) {
             iconEl.innerHTML = '<i class="fas fa-flask" style="color: #f59e0b;"></i>';
             iconEl.style.background = 'rgba(245, 158, 11, 0.1)';
 
+            const displayTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc)
+                ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}`
+                : (dt.nam_bat_dau || dt.nam || 'N/A');
             let fieldsHtml = `
                 <div><span style="color:var(--text-muted);font-size:12px;">Cấp đề tài</span><br><b>${dt.cap_de_tai || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Thời gian thực hiện</span><br><b>${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Thời gian thực hiện</span><br><b>${displayTime}</b></div>
             `;
             if (dt.link) {
                 fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${dt.link}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-orange); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem chi tiết</a></div>`;

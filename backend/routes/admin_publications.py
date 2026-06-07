@@ -3,7 +3,7 @@ Admin API - Quản lý Công trình Nghiên cứu
 """
 
 from flask import Blueprint, jsonify, request
-from backend.services.neo4j_connection import get_neo4j_connection
+from backend.services.neo4j_connection import get_neo4j_connection, generate_slug
 
 admin_publications_bp = Blueprint("admin_publications_api", __name__)
 
@@ -15,6 +15,21 @@ def create_cong_trinh():
     tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
     conn = get_neo4j_connection()
     try:
+        ten_cong_trinh = data.get("ten_cong_trinh", "")
+        ten_cong_trinh = " ".join(ten_cong_trinh.split())
+        data["ten_cong_trinh"] = ten_cong_trinh
+        if not ten_cong_trinh:
+            return jsonify({"status": "error", "message": "Tên công trình không được để trống"}), 400
+
+        slug = generate_slug(ten_cong_trinh)
+        exists = conn.query_single("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
+            RETURN ct.id AS id
+        """, {"slug": slug})
+        if exists:
+            return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên này đã tồn tại trong hệ thống"}), 400
+
         # Ensure all expected fields exist in data so that Cypher parameters match cleanly
         for field in ["ten_cong_trinh", "nam_xuat_ban", "noi_xuat_ban", "tom_tat", "trang_thai", "link"]:
             if field not in data:
@@ -23,6 +38,7 @@ def create_cong_trinh():
         result = conn.write("""
             CREATE (ct:CongTrinhNghienCuu {
                 ten_cong_trinh: toUpper($ten_cong_trinh),
+                slug: $slug,
                 nam_xuat_ban: $nam_xuat_ban,
                 noi_xuat_ban: toUpper($noi_xuat_ban),
                 tom_tat: $tom_tat,
@@ -32,7 +48,7 @@ def create_cong_trinh():
             })
             SET ct.id = 'ct_' + toString(id(ct))
             RETURN ct.id AS id
-        """, data)
+        """, {**data, "slug": slug})
         new_id = result[0]["id"]
 
         # Gán Tác giả chính ngay khi tạo
@@ -71,9 +87,13 @@ def update_cong_trinh(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
+        ten_cong_trinh = data.get("ten_cong_trinh", "")
+        ten_cong_trinh = " ".join(ten_cong_trinh.split())
+        slug = generate_slug(ten_cong_trinh)
         params = {
             "id": id,
-            "ten_cong_trinh": data.get("ten_cong_trinh"),
+            "ten_cong_trinh": ten_cong_trinh,
+            "slug": slug,
             "nam_xuat_ban": data.get("nam_xuat_ban"),
             "noi_xuat_ban": data.get("noi_xuat_ban"),
             "tom_tat": data.get("tom_tat"),
@@ -83,6 +103,7 @@ def update_cong_trinh(id):
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.ten_cong_trinh = toUpper($ten_cong_trinh),
+                ct.slug = $slug,
                 ct.nam_xuat_ban = $nam_xuat_ban,
                 ct.noi_xuat_ban = toUpper($noi_xuat_ban),
                 ct.tom_tat = $tom_tat,

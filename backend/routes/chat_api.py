@@ -1332,7 +1332,7 @@ def build_graph_for_answer(answer: str) -> dict | None:
                                   or cprops.get("ten_de_tai") or cprops.get("ten_bo_mon")
                                   or cprops.get("ten_khoa") or cprops.get("ten_dai_hoc")
                                   or cprops.get("ten_truong") or cprops.get("ten_linh_vuc")
-                                  or str(cprops.get("id", ""))),
+                                  or cprops.get("ten_nhom") or str(cprops.get("id", ""))),
                         "group": clabel,
                         "color": cfg["color"],
                         "shape": cfg["shape"],
@@ -1352,7 +1352,7 @@ def build_graph_for_answer(answer: str) -> dict | None:
                                   or nprops.get("ten_de_tai") or nprops.get("ten_bo_mon")
                                   or nprops.get("ten_khoa") or nprops.get("ten_dai_hoc")
                                   or nprops.get("ten_truong") or nprops.get("ten_linh_vuc")
-                                  or str(nprops.get("id", ""))),
+                                  or nprops.get("ten_nhom") or str(nprops.get("id", ""))),
                         "group": nlabel,
                         "color": cfg["color"],
                         "shape": cfg["shape"],

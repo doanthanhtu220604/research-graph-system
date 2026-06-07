@@ -117,7 +117,7 @@ async function loadTopConnectors() {
                     <div class="rank-info">
                         <div class="rank-name" title="${gv.ten}">${gv.ten}</div>
                         <div class="rank-sub">
-                            ${gv.bo_mon ? gv.bo_mon.replace('Bộ môn ', '') : 'N/A'}
+                            ${gv.bo_mon ? gv.bo_mon.replace(/bộ môn\s+/gi, '') : 'N/A'}
                         </div>
                         <div style="margin-top:4px; height:4px; background:rgba(0,0,0,0.06); border-radius:2px; overflow:hidden;">
                             <div style="width:${barWidth}%; height:100%; background:linear-gradient(90deg,#4F8EF7,#6ea8ff); border-radius:2px; transition:width 0.8s ease;"></div>
@@ -155,7 +155,7 @@ async function loadBridgeConnectors() {
                 : `<div class="rank-avatar"><i class="fas fa-user-tie"></i></div>`;
 
             const tagsHtml = (gv.bo_mon_ket_noi || []).slice(0, 3).map(bm => `
-                <span class="bridge-bm-tag">${bm.replace('Bộ môn ', '')}</span>
+                <span class="bridge-bm-tag">${bm.replace(/bộ môn\s+/gi, '')}</span>
             `).join('');
 
             return `
@@ -164,7 +164,7 @@ async function loadBridgeConnectors() {
                     ${avatarHtml}
                     <div class="rank-info">
                         <div class="rank-name" title="${gv.ten}">${gv.ten}</div>
-                        <div class="rank-sub">${gv.bo_mon_chinh ? gv.bo_mon_chinh.replace('Bộ môn ', '') : 'N/A'}</div>
+                        <div class="rank-sub">${gv.bo_mon_chinh ? gv.bo_mon_chinh.replace(/bộ môn\s+/gi, '') : 'N/A'}</div>
                         <div class="bridge-bm-tags">${tagsHtml}</div>
                     </div>
                     <div class="rank-badge">${gv.so_bo_mon_ket_noi} bộ môn</div>
@@ -374,7 +374,7 @@ function renderCollabLegend(legend) {
     const items = Object.entries(legend).map(([name, cfg]) => `
         <div class="legend-dot-item">
             <div class="legend-dot" style="background:${cfg.color};"></div>
-            <span>${name.replace('Bộ môn ', '')}</span>
+            <span>${name.replace(/bộ môn\s+/gi, '')}</span>
         </div>
     `).join('');
 

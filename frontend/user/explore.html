@@ -13,6 +13,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/responsive_user.css">
+    <style>
+        .graph-card-explore {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-results-card {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <div id="header-placeholder"></div>
@@ -58,12 +73,29 @@
             </div>
 
             <div class="explore-content">
-                <div id="searchResults" class="search-results" style="display: none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2><i class="fas fa-list"></i> Kết quả tìm kiếm</h2>
-                        </div>
-                        <div class="card-body" id="searchResultsList"></div>
+                <!-- Kết quả tìm kiếm ở trên -->
+                <div id="searchResults" class="card search-results-card" style="display: none;">
+                    <div class="card-header" style="padding:16px 24px; border-bottom:1px solid rgba(0,0,0,0.06);">
+                        <h2 style="margin:0; font-size:16px; font-weight:700; color:var(--text-primary);">
+                            <i class="fas fa-list"></i> Kết quả tìm kiếm
+                        </h2>
+                    </div>
+                    <div class="card-body" id="searchResultsList" style="padding: 20px;"></div>
+                </div>
+
+                <!-- Bản đồ tri thức ở dưới -->
+                <div class="card graph-card-explore" style="background:var(--bg-card); overflow:hidden;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid rgba(0,0,0,0.06);">
+                        <h3 style="margin:0; font-size:16px; font-weight:700; display:flex; align-items:center; gap:10px; color:var(--text-primary);">
+                            <i class="fas fa-project-diagram" style="color:#6366f1;"></i> Bản đồ kết nối tri thức
+                        </h3>
+                        <button onclick="if(exploreGraph) exploreGraph.fit({animation:{duration:500,easingFunction:'easeInOutQuad'}})" style="background:white; border:none; width:32px; height:32px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-secondary);" title="Căn giữa">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                    </div>
+                    <div style="padding:0; position:relative;">
+                        <div id="explore-graph" style="height: 600px; background:#f8fafc;"></div>
+                        <div id="exploreGraphLegend" style="position:absolute; bottom:16px; left:16px; display:flex; flex-wrap:wrap; gap:12px; background:rgba(255,255,255,0.85); padding:8px 12px; border-radius:8px; font-size:11px; backdrop-filter:blur(4px); border:1px solid rgba(0,0,0,0.06); z-index: 5;"></div>
                     </div>
                 </div>
             </div>

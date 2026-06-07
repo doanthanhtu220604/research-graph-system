@@ -309,13 +309,13 @@ def get_collaboration_graph():
         # Tính max degree để scale node size
         max_degree = max(degree_map.values()) if degree_map else 1
 
-        # Màu theo bộ môn
+        # Màu theo bộ môn (chuẩn hóa UPPERCASE để khớp với CSDL)
         bm_colors = {
-            "Bộ môn Công nghệ phần mềm": "#4F8EF7",
-            "Bộ môn Mạng máy tính và truyền thông": "#2ECC71",
-            "Bộ môn Hệ thống thông tin": "#F39C12",
-            "Bộ môn Khoa học máy tính": "#E74C3C",
-            "Bộ môn Kỹ thuật máy tính": "#9B59B6",
+            "BỘ MÔN CÔNG NGHỆ PHẦN MỀM": "#4F8EF7",
+            "BỘ MÔN MẠNG MÁY TÍNH VÀ TRUYỀN THÔNG": "#2ECC71",
+            "BỘ MÔN HỆ THỐNG THÔNG TIN": "#F39C12",
+            "BỘ MÔN KHOA HỌC MÁY TÍNH": "#E74C3C",
+            "BỘ MÔN KỸ THUẬT MÁY TÍNH": "#9B59B6",
         }
         default_color = "#95A5A6"
 

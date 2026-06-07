@@ -141,10 +141,14 @@ async function viewProjectStats(dtId) {
         const dt = data.data;
         document.getElementById('adminStatsModalTitle').textContent = 'Chi tiết Đề tài';
 
+        const displayTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc)
+            ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}`
+            : (dt.nam_bat_dau || dt.nam || 'N/A');
+
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
             <p style="margin-bottom:8px;font-size:16px;"><b>${dt.ten_de_tai || 'N/A'}</b></p>
             <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Thời gian:</b> ${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'}</p>
+            <p style="margin-bottom:5px;"><b>Thời gian:</b> ${displayTime}</p>
             <p style="margin-bottom:5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>` : 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Tóm tắt:</b> ${dt.tom_tat || 'Đang cập nhật...'}</p>
         </div>`;
@@ -197,7 +201,7 @@ async function viewExternalAuthorDetail(tgnId) {
         else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa tham gia công trình nào.</p>'; }
 
         html += `<h4 style="margin-top:20px;color:var(--accent-orange);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-flask"></i> Đề tài (${projects.length})</h4>`;
-        if (projects.length) { html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">'; projects.forEach(dt => { html += `<li><b>${dt.ten_de_tai}</b> <span style="color:var(--text-muted);font-size:12px;">(${dt.nam_bat_dau || '?'} - ${dt.nam_ket_thuc || '?'})</span></li>`; }); html += '</ul>'; }
+        if (projects.length) { html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">'; projects.forEach(dt => { const pTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` : (dt.nam_bat_dau || '?'); html += `<li><b>${dt.ten_de_tai}</b> <span style="color:var(--text-muted);font-size:12px;">(${pTime})</span></li>`; }); html += '</ul>'; }
         else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa tham gia đề tài nào.</p>'; }
 
         html += `<h4 style="margin-top:20px;color:#2ecc71;padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-handshake"></i> GV cộng tác trong khoa (${collaborators.length})</h4>`;

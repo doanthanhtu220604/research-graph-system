@@ -7,7 +7,7 @@ import io
 import math
 import pandas as pd
 from flask import Blueprint, jsonify, request
-from backend.services.neo4j_connection import get_neo4j_connection
+from backend.services.neo4j_connection import get_neo4j_connection, generate_slug
 
 admin_import_bp = Blueprint("admin_import_api", __name__)
 
@@ -176,12 +176,13 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên công trình – bỏ qua.")
             continue
 
-        ten = ten.upper()
+        ten = " ".join(ten.split()).upper()
         nam_xuat_ban_str = safe_str(row.get("nam_xuat_ban"))
         nam_xuat_ban = int(nam_xuat_ban_str) if nam_xuat_ban_str.isdigit() else None
 
         props = {
             "ten_cong_trinh": ten,
+            "slug":           generate_slug(ten),
             "nam_xuat_ban":   nam_xuat_ban,
             "noi_xuat_ban":   safe_str(row.get("noi_xuat_ban")).upper() if safe_str(row.get("noi_xuat_ban")) else None,
             "tom_tat":        safe_str(row.get("tom_tat")),
@@ -194,11 +195,12 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
                 MERGE (ct:CongTrinhNghienCuu {ten_cong_trinh: $ten_cong_trinh})
                 ON CREATE SET
                     ct.id = 'ct_' + toString(id(ct)),
+                    ct.slug = $slug,
                     ct.created_at = timestamp(),
                     ct += $props
                 ON MATCH SET ct += $props
                 RETURN ct.id AS ct_id
-            """, {"ten_cong_trinh": ten, "props": props})
+            """, {"ten_cong_trinh": ten, "slug": props["slug"], "props": props})
 
             ct_id = result[0]["ct_id"]
             created += 1   # MERGE nên tính là đã xử lý
@@ -263,12 +265,13 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
             errors.append(f"Dòng {idx}: thiếu tên đề tài – bỏ qua.")
             continue
 
-        ten = ten.upper()
+        ten = " ".join(ten.split()).upper()
         nam_str = safe_str(row.get("nam")) or safe_str(row.get("nam_bat_dau")) or safe_str(row.get("nam_ket_thuc"))
         nam = int(nam_str) if nam_str.isdigit() else None
 
         props = {
             "ten_de_tai":   ten,
+            "slug":         generate_slug(ten),
             "cap_de_tai":   safe_str(row.get("cap_de_tai")).upper() if safe_str(row.get("cap_de_tai")) else None,
             "nam":          nam,
             "tom_tat":      safe_str(row.get("tom_tat")),
@@ -281,10 +284,11 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
                 MERGE (dt:DeTaiNghienCuu {ten_de_tai: $ten_de_tai})
                 ON CREATE SET
                     dt.id = 'dt_' + toString(id(dt)),
+                    dt.slug = $slug,
                     dt += $props
                 ON MATCH SET dt += $props
                 RETURN dt.id AS dt_id
-            """, {"ten_de_tai": ten, "props": props})
+            """, {"ten_de_tai": ten, "slug": props["slug"], "props": props})
 
             dt_id = result[0]["dt_id"]
             created += 1

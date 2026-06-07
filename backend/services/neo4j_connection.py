@@ -4,6 +4,8 @@ Quản lý kết nối đến Neo4j database cho Knowledge Map system.
 """
 
 import os
+import re
+import unicodedata
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
@@ -169,3 +171,20 @@ def close_neo4j_connection():
     if _connection:
         _connection.close()
         _connection = None
+
+
+def generate_slug(text: str) -> str:
+    """Tạo slug chuẩn hóa từ một chuỗi tiếng Việt hoặc bất kỳ (bỏ hoàn toàn khoảng trắng)."""
+    if not text:
+        return ""
+    # Thay thế ký tự đ/Đ đặc trưng
+    text = text.replace('đ', 'd').replace('Đ', 'd')
+    # Phân rã ký tự Unicode để bỏ dấu tiếng Việt
+    normalized = unicodedata.normalize('NFKD', text)
+    ascii_bytes = normalized.encode('ascii', 'ignore')
+    ascii_str = ascii_bytes.decode('utf-8')
+    # Chuyển thành chữ thường
+    ascii_str = ascii_str.lower()
+    # Loại bỏ hoàn toàn khoảng trắng và ký tự đặc biệt
+    slug = re.sub(r'[^a-z0-9]+', '', ascii_str)
+    return slug

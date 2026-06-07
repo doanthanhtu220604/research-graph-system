@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, request, jsonify
-from backend.services.neo4j_connection import get_neo4j_connection
+from backend.services.neo4j_connection import get_neo4j_connection, generate_slug
 
 logger = logging.getLogger(__name__)
 lecturer_api_bp = Blueprint('lecturer_api', __name__)
@@ -156,19 +156,22 @@ def get_me():
         conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien) WHERE g.id = $id AND coalesce(g.is_deleted, false) = false
+        OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon)
         OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-        OPTIONAL MATCH (g)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
-        OPTIONAL MATCH (g)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
+        OPTIONAL MATCH (g)-[r_ct:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+        OPTIONAL MATCH (g)-[r_dt:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
         RETURN 
             g {.*} as info,
+            bm.ten_bo_mon as bo_mon,
             collect(DISTINCT lv.ten_linh_vuc) as linh_vuc,
-            collect(DISTINCT ct {.*, vai_tro: type(r)}) as cong_trinh,
-            collect(DISTINCT dt {.*, vai_tro: type(r)}) as de_tai
+            collect(DISTINCT ct {.*, vai_tro: type(r_ct)}) as cong_trinh,
+            collect(DISTINCT dt {.*, vai_tro: type(r_dt)}) as de_tai
         """
         result = conn.query_single(query, parameters={'id': gv_id})
         
         if result and result.get('info'):
             gv = result['info']
+            gv['bo_mon'] = result.get('bo_mon')
             gv['linh_vuc'] = result['linh_vuc']
             gv['cong_trinh'] = [ct for ct in result['cong_trinh'] if ct]
             gv['de_tai'] = [dt for dt in result['de_tai'] if dt]
@@ -229,6 +232,21 @@ def add_my_publication():
         
     try:
         conn = get_neo4j_connection()
+        ten_cong_trinh = data.get('ten_cong_trinh', '')
+        ten_cong_trinh = " ".join(ten_cong_trinh.split())
+        data['ten_cong_trinh'] = ten_cong_trinh
+        if not ten_cong_trinh:
+            return jsonify({'status': 'error', 'message': 'Tên công trình không được để trống'}), 400
+
+        slug = generate_slug(ten_cong_trinh)
+        exists = conn.query_single("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
+            RETURN ct.id AS id
+        """, {"slug": slug})
+        if exists:
+            return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên này đã tồn tại trong hệ thống'}), 400
+
         query = """
         // 1. Tìm người tạo dựa trên gv_id
         MATCH (creator:GiangVien) 
@@ -242,6 +260,7 @@ def add_my_publication():
         
         CREATE (ct:CongTrinhNghienCuu {
             ten_cong_trinh: toUpper($ten_ct),
+            slug: $slug,
             nam_xuat_ban: toInteger($nam_xb),
             noi_xuat_ban: toUpper($noi_xb),
             tom_tat: $tom_tat,
@@ -266,6 +285,7 @@ def add_my_publication():
             'gv_id': gv_id,
             'thanh_vien_ids': thanh_vien_ids,
             'ten_ct': data.get('ten_cong_trinh', ''),
+            'slug': slug,
             'nam_xb': data.get('nam_xuat_ban'),
             'noi_xb': data.get('noi_xuat_ban'),
             'tom_tat': data.get('tom_tat', ''),
@@ -330,6 +350,10 @@ def update_my_publication(ct_id):
             
         elif request.method == 'PUT':
             data = request.get_json()
+            ten_ct = data.get('ten_cong_trinh', '')
+            ten_ct = " ".join(ten_ct.split())
+            data['ten_cong_trinh'] = ten_ct
+            slug = generate_slug(ten_ct)
             # Nếu đang ở trạng thái 'Từ chối', cho phép giảng viên nộp lại bằng cách đặt lại thành 'Chờ duyệt'
             status_res = conn.query_single(
                 "MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id RETURN ct.trang_thai AS status",
@@ -342,6 +366,7 @@ def update_my_publication(ct_id):
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
             SET ct.old_status = CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END,
                 ct.ten_cong_trinh = toUpper($ten_ct),
+                ct.slug = $slug,
                 ct.nam_xuat_ban = toInteger($nam_xb),
                 ct.noi_xuat_ban = toUpper($noi_xb),
                 ct.tom_tat = $tom_tat,
@@ -352,6 +377,7 @@ def update_my_publication(ct_id):
             conn.write(query, parameters={
                 'ct_id': ct_id,
                 'ten_ct': data.get('ten_cong_trinh', ''),
+                'slug': slug,
                 'nam_xb': data.get('nam_xuat_ban'),
                 'noi_xb': data.get('noi_xuat_ban'),
                 'tom_tat': data.get('tom_tat', ''),
@@ -453,6 +479,21 @@ def add_my_project():
     
     try:
         conn = get_neo4j_connection()
+        ten_de_tai = data.get('ten_de_tai', '')
+        ten_de_tai = " ".join(ten_de_tai.split())
+        data['ten_de_tai'] = ten_de_tai
+        if not ten_de_tai:
+            return jsonify({'status': 'error', 'message': 'Tên đề tài không được để trống'}), 400
+
+        slug = generate_slug(ten_de_tai)
+        exists = conn.query_single("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE dt.slug = $slug AND coalesce(dt.is_deleted, false) = false
+            RETURN dt.id AS id
+        """, {"slug": slug})
+        if exists:
+            return jsonify({'status': 'error', 'message': 'Đề tài nghiên cứu với tên này đã tồn tại trong hệ thống'}), 400
+
         query = f"""
         MATCH (g:GiangVien) WHERE (g.id IS NOT NULL AND toString(g.id) = toString($gv_id)) OR (g.id IS NULL AND toString(id(g)) = toString($gv_id))
         WITH g
@@ -463,6 +504,7 @@ def add_my_project():
         
         CREATE (dt:DeTaiNghienCuu {{
             ten_de_tai: toUpper($ten_dt),
+            slug: $slug,
             cap_de_tai: toUpper($cap),
             nam: toInteger($nam),
             tom_tat: $tom_tat,
@@ -486,6 +528,7 @@ def add_my_project():
             'gv_id': gv_id,
             'thanh_vien_ids': thanh_vien_ids,
             'ten_dt': data.get('ten_de_tai', ''),
+            'slug': slug,
             'cap': data.get('cap_de_tai', ''),
             'nam': data.get('nam') or data.get('nam_bat_dau') or data.get('nam_ket_thuc'),
             'tom_tat': data.get('tom_tat', ''),
@@ -531,9 +574,10 @@ def get_lecturer_timeline():
         # ── 1. Lấy thông tin cơ bản của GV ───────────────────────────────────
         gv_res = conn.query_single("""
             MATCH (g:GiangVien) WHERE g.id = $id
+            OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon)
             OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
             RETURN g.ho_va_ten AS ten, g.hoc_vi AS hoc_vi,
-                   g.bo_mon AS bo_mon,
+                   bm.ten_bo_mon AS bo_mon,
                    collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc
         """, {'id': gv_id})
 
@@ -773,6 +817,10 @@ def update_my_project(dt_id):
         elif request.method == 'PUT':
             data = request.get_json()
             vai_tro = data.get('vai_tro')
+            ten_dt = data.get('ten_de_tai', '')
+            ten_dt = " ".join(ten_dt.split())
+            data['ten_de_tai'] = ten_dt
+            slug = generate_slug(ten_dt)
             
             # Nếu đang ở trạng thái 'Từ chối', cho phép giảng viên nộp lại bằng cách đặt lại thành 'Chờ duyệt'
             status_res = conn.query_single(
@@ -787,6 +835,7 @@ def update_my_project(dt_id):
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
             SET dt.old_status = CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END,
                 dt.ten_de_tai = toUpper($ten_dt),
+                dt.slug = $slug,
                 dt.cap_de_tai = toUpper($cap),
                 dt.nam = toInteger($nam),
                 dt.tom_tat = $tom_tat,
@@ -797,6 +846,7 @@ def update_my_project(dt_id):
             conn.write(query, parameters={
                 'dt_id': dt_id,
                 'ten_dt': data.get('ten_de_tai', ''),
+                'slug': slug,
                 'cap': data.get('cap_de_tai', ''),
                 'nam': data.get('nam') or data.get('nam_bat_dau') or data.get('nam_ket_thuc'),
                 'tom_tat': data.get('tom_tat', ''),

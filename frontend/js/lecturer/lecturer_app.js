@@ -1895,7 +1895,7 @@ async function viewProjectDetail(dtId) {
 
             <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
 
-            <p style="margin-bottom:5px;"><b>Thời gian:</b> ${dt.nam_bat_dau || '?'} – ${dt.nam_ket_thuc || '?'}</p>
+            <p style="margin-bottom:5px;"><b>Thời gian:</b> ${(dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` : (dt.nam_bat_dau || dt.nam || 'N/A')}</p>
 
             <p style="margin-bottom:5px;"><b>Người tạo:</b> ${dt.nguoi_tao || 'N/A'}</p>
 

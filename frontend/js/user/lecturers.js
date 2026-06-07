@@ -68,7 +68,7 @@ function renderLecturerPage(page) {
             ? `<img src="${String(gv.anh_dai_dien).replace(/"/g, '')}" alt="${name}">`
             : `<span class="avatar-initials">${getInitials(gv.ho_va_ten)}</span>`;
         const degreeCls = getDegreeColor(gv.hoc_vi);
-        const deptShort = (gv.bo_mon || '').replace('Bộ môn ', '');
+        const deptShort = (gv.bo_mon || '').replace(/bộ môn\s+/gi, '');
         return `
             <div class="profile-card" onclick="showLecturerDetail('${gv.id}')">
                 <div class="profile-avatar">${avatarHtml}</div>

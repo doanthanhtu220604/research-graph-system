@@ -23,7 +23,6 @@ async function loadDashboard() {
     initSimpleLecturerGrid();
     initSimplePublicationGrid();
     initSimpleProjectGrid();
-    loadKnowledgeGraph();
 }
 
 function performHeroSearch() {

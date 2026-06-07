@@ -363,6 +363,12 @@
         @media (max-width: 580px) {
             .quick-nav-grid { grid-template-columns: 1fr 1fr; }
         }
+
+        /* Ẩn thanh tìm kiếm trên header và mobile drawer khi ở trang chủ */
+        .search-bar-header,
+        .mobile-nav-search {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -376,8 +382,8 @@
                 <div class="hero-logo-wrapper">
                     <img src="../static/Logo-Khoa-CNTT-NTU.png" alt="Khoa Công nghệ thông tin - ĐH Nha Trang">
                 </div>
-                <h1>Khám phá <span class="highlight">Mạng lưới Tri thức</span> Khoa học</h1>
-                <p>Hệ thống quản lý và kết nối dữ liệu nghiên cứu khoa học, giúp bạn dễ dàng tìm kiếm giảng viên, công trình và xu hướng nghiên cứu mới nhất.</p>
+                <h1>Khám phá mạng lưới tri thức khoa học</h1>
+
 
                 <div class="hero-search-wrap">
                     <div class="hero-search-inner">
@@ -386,25 +392,6 @@
                                placeholder="Tìm kiếm tên giảng viên, đề tài hoặc lĩnh vực nghiên cứu..."
                                onkeyup="handleHeroSearch(event)">
                         <button onclick="performHeroSearch()">Tìm kiếm</button>
-                    </div>
-                </div>
-
-                <div class="hero-stats">
-                    <div class="hero-stat-item">
-                        <div class="hero-stat-num" id="count-gv">0</div>
-                        <div class="hero-stat-label">Giảng viên</div>
-                    </div>
-                    <div class="hero-stat-item">
-                        <div class="hero-stat-num" id="count-ct">0</div>
-                        <div class="hero-stat-label">Công trình</div>
-                    </div>
-                    <div class="hero-stat-item">
-                        <div class="hero-stat-num" id="count-dt">0</div>
-                        <div class="hero-stat-label">Đề tài</div>
-                    </div>
-                    <div class="hero-stat-item">
-                        <div class="hero-stat-num" id="count-bm">0</div>
-                        <div class="hero-stat-label">Bộ môn</div>
                     </div>
                 </div>
             </div>
@@ -508,26 +495,7 @@
                         </div>
                     </div>
 
-                    <!-- Bản đồ tri thức preview -->
-                    <div class="card" style="background:var(--bg-card); overflow:hidden;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid rgba(0,0,0,0.06);">
-                            <h3 style="margin:0; font-size:16px; font-weight:700; display:flex; align-items:center; gap:10px; color:var(--text-primary);">
-                                <i class="fas fa-project-diagram" style="color:#6366f1;"></i> Bản đồ kết nối tri thức
-                            </h3>
-                            <a href="explore.html" style="font-size:12px; color:#6366f1; text-decoration:none; font-weight:600;">
-                                Toàn màn hình <i class="fas fa-expand"></i>
-                            </a>
-                        </div>
-                        <div style="padding:0; position:relative;">
-                            <div id="knowledge-graph" style="height:400px; background:#f8fafc;"></div>
-                            <div id="graphLegend" style="position:absolute; bottom:16px; left:16px; display:flex; flex-wrap:wrap; gap:12px; background:rgba(255,255,255,0.85); padding:8px 12px; border-radius:8px; font-size:11px; backdrop-filter:blur(4px); border:1px solid rgba(0,0,0,0.06);"></div>
-                            <div style="position:absolute; top:16px; right:16px;">
-                                <button onclick="resetGraphView()" style="background:white; border:none; width:32px; height:32px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:pointer;" title="Căn giữa">
-                                    <i class="fas fa-compress-arrows-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+
 
                 </div>
 
