@@ -32,7 +32,7 @@ function renderResearchFieldsTable(dataList) {
         return `
             <tr>
                 <td>${lv.id || 'N/A'}</td>
-                <td><strong>${lv.ten_linh_vuc || 'N/A'}</strong></td>
+                <td><strong>${toTitleCase(lv.ten_linh_vuc) || 'N/A'}</strong></td>
                 <td style="text-align: center;"><span class="badge" style="background: rgba(0, 123, 255, 0.1); color: #007bff; padding: 3px 8px; border-radius: 4px; font-weight: 600;">${lv.so_giang_vien || 0}</span></td>
                 <td>
                     <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewResearchFieldDetail('${lv.id}')"><i class="fas fa-eye"></i></button>
@@ -112,9 +112,9 @@ function renderExternalAuthorsTable(dataList) {
         return `
         <tr>
             <td>${tgn.id || 'N/A'}</td>
-            <td><strong>${tgn.ho_va_ten || 'N/A'}</strong>${statusBadge}</td>
-            <td>${tgn.don_vi_cong_tac || ''}</td>
-            <td>${[tgn.hoc_vi, tgn.chuc_danh].filter(Boolean).join(' / ')}</td>
+            <td><strong>${toTitleCase(tgn.ho_va_ten) || 'N/A'}</strong>${statusBadge}</td>
+            <td>${toTitleCase(tgn.don_vi_cong_tac) || ''}</td>
+            <td>${[toSentenceCase(tgn.hoc_vi), toSentenceCase(tgn.chuc_danh)].filter(Boolean).join(' / ')}</td>
             <td>
                 <div style="display:flex; gap:5px;">
                     ${approveBtn}
@@ -196,7 +196,7 @@ async function loadDepartments() {
                 tbody.innerHTML = data.data.map((bm, i) => `
                     <tr>
                         <td>${bm.id || i + 1}</td>
-                        <td><strong>${bm.ten_bo_mon || 'N/A'}</strong></td>
+                        <td><strong>${toTitleCase(bm.ten_bo_mon) || 'N/A'}</strong></td>
                         <td>
                             <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('bo-mon', '${bm.id}', ${i})"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('bo-mon', '${bm.id}')"><i class="fas fa-trash"></i></button>

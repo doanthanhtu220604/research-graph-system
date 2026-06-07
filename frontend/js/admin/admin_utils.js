@@ -67,3 +67,20 @@ window.logoutAdmin = function () {
     localStorage.removeItem('userInfo');
     window.location.href = '/user/login.html';
 };
+
+
+/* ─── String Formatting Helpers (Sentence Case & Title Case) ─── */
+
+window.toTitleCase = function(str) {
+    if (!str) return '';
+    return str.toLowerCase().replace(/(^|\s)\S/g, function(l) {
+        return l.toUpperCase();
+    });
+};
+
+window.toSentenceCase = function(str) {
+    if (!str) return '';
+    const s = str.toLowerCase();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+};
+

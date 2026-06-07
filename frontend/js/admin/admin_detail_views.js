@@ -44,16 +44,16 @@ async function viewLecturerStats(gvId) {
         const data = await res.json();
         if (data.status !== 'ok') { body.innerHTML = `<p style="color:red">Lỗi: ${data.message}</p>`; return; }
         const gv = data.data;
-        document.getElementById('adminStatsModalTitle').textContent = `Thông tin Chi tiết: ${gv.ho_va_ten}`;
+        document.getElementById('adminStatsModalTitle').textContent = `Thông tin Chi tiết: ${toTitleCase(gv.ho_va_ten)}`;
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:5px;"><b>Học vị:</b> ${gv.hoc_vi || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${gv.chuc_danh || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chức vụ:</b> ${gv.chuc_vu || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Bộ môn:</b> ${gv.bo_mon || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chuyên ngành:</b> ${gv.chuyen_nganh || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Học vị:</b> ${toSentenceCase(gv.hoc_vi) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${toSentenceCase(gv.chuc_danh) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Chức vụ:</b> ${toSentenceCase(gv.chuc_vu) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Bộ môn:</b> ${toTitleCase(gv.bo_mon) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Chuyên ngành:</b> ${toTitleCase(gv.chuyen_nganh) || 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Email:</b> ${gv.email || 'N/A'}</p>
-            <p style="margin-bottom:0;"><b>Lĩnh vực:</b> ${(gv.linh_vuc?.length) ? gv.linh_vuc.map(lv => `<span style="display:inline-block;padding:2px 10px;background:rgba(26,188,156,0.12);color:#1ABC9C;border-radius:12px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${lv}</span>`).join('') : '<span style="color:var(--text-muted);">Chưa có</span>'}</p>
+            <p style="margin-bottom:0;"><b>Lĩnh vực:</b> ${(gv.linh_vuc?.length) ? gv.linh_vuc.map(lv => `<span style="display:inline-block;padding:2px 10px;background:rgba(26,188,156,0.12);color:#1ABC9C;border-radius:12px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${toTitleCase(lv)}</span>`).join('') : '<span style="color:var(--text-muted);">Chưa có</span>'}</p>
         </div>`;
 
         html += `<h4 style="margin-top:20px;color:var(--accent-blue);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-file-alt"></i> Công trình (${gv.cong_trinh?.length || 0})</h4>`;
@@ -64,7 +64,7 @@ async function viewLecturerStats(gvId) {
                 const nam = ct.nam_xuat_ban   || ct.cong_trinh?.nam_xuat_ban   || '?';
                 const vt  = ct.vai_tro || ct.cong_trinh?.vai_tro || '';
                 const vaiTroLabel = vt === 'TAC_GIA_CHINH' ? 'Tác giả chính' : (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') ? 'Đồng tác giả' : 'Tác giả';
-                html += `<li onclick="navigateToManage('cong-trinh','${ten.replace(/'/g,"\\'")}') " style="cursor:pointer;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='inherit'"><b>${ten}</b> <span style="color:var(--text-muted);font-size:12px;">(${nam}) (Vai trò: <b>${vaiTroLabel}</b>)</span></li>`;
+                html += `<li onclick="navigateToManage('cong-trinh','${ten.replace(/'/g,"\\'")}') " style="cursor:pointer;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='inherit'"><b>${toSentenceCase(ten)}</b> <span style="color:var(--text-muted);font-size:12px;">(${nam}) (Vai trò: <b>${vaiTroLabel}</b>)</span></li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa có công trình nào.</p>'; }
@@ -74,7 +74,7 @@ async function viewLecturerStats(gvId) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">';
             gv.de_tai.forEach(dt => {
                 const ten = dt.ten_de_tai || dt.de_tai?.ten_de_tai || 'N/A';
-                html += `<li onclick="navigateToManage('de-tai','${ten.replace(/'/g,"\\'")}') " style="cursor:pointer;" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='inherit'"><b>${ten}</b> <span style="color:var(--text-muted);font-size:12px;">(Vai trò: <b>${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`;
+                html += `<li onclick="navigateToManage('de-tai','${ten.replace(/'/g,"\\'")}') " style="cursor:pointer;" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='inherit'"><b>${toSentenceCase(ten)}</b> <span style="color:var(--text-muted);font-size:12px;">(Vai trò: <b>${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;">Chưa tham gia đề tài nào.</p>'; }
@@ -96,9 +96,9 @@ async function viewPublicationStats(ctId) {
         document.getElementById('adminStatsModalTitle').textContent = 'Chi tiết Công trình';
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:8px;font-size:16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
+            <p style="margin-bottom:8px;font-size:16px;"><b>${toSentenceCase(ct.ten_cong_trinh) || 'N/A'}</b></p>
             <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${toTitleCase(ct.noi_xuat_ban) || 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>
         </div>`;
@@ -108,7 +108,7 @@ async function viewPublicationStats(ctId) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">';
             ct.tac_gia.forEach(tg => {
                 const role = tg.vai_tro === 'TAC_GIA_CHINH' ? ' <span style="color:#4F8EF7;font-size:11px;">(Tác giả chính)</span>' : (tg.vai_tro === 'CONG_SU' || tg.vai_tro === 'LA_TAC_GIA_CUA') ? ' <span style="color:#10b981;font-size:11px;">(Đồng tác giả)</span>' : '';
-                html += `<li><b>${tg.ten}</b>${role}</li>`;
+                html += `<li><b>${toTitleCase(tg.ten)}</b>${role}</li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa có tác giả nào.</p>'; }
@@ -120,7 +120,7 @@ async function viewPublicationStats(ctId) {
             tgnList.forEach(tgn => {
                 const role = tgn.vai_tro === 'TAC_GIA_CHINH' ? ' <span style="color:#e67e22;font-size:11px;">(Tác giả chính)</span>' : (tgn.vai_tro === 'CONG_SU' || tgn.vai_tro === 'DONG_TAC_GIA') ? ' <span style="color:#8b5cf6;font-size:11px;">(Đồng tác giả)</span>' : '';
                 const statusLabel = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#fd7e14;font-size:11px;font-weight:600;">(Chờ duyệt)</span>' : '';
-                html += `<li><b>${tgn.ten}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : ''}${statusLabel}</li>`;
+                html += `<li><b>${toTitleCase(tgn.ten)}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${toTitleCase(tgn.don_vi)}</span>` : ''}${statusLabel}</li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;">Không có tác giả ngoài.</p>'; }
@@ -146,8 +146,8 @@ async function viewProjectStats(dtId) {
             : (dt.nam_bat_dau || dt.nam || 'N/A');
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:8px;font-size:16px;"><b>${dt.ten_de_tai || 'N/A'}</b></p>
-            <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
+            <p style="margin-bottom:8px;font-size:16px;"><b>${toSentenceCase(dt.ten_de_tai) || 'N/A'}</b></p>
+            <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${toTitleCase(dt.cap_de_tai) || 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Thời gian:</b> ${displayTime}</p>
             <p style="margin-bottom:5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>` : 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Tóm tắt:</b> ${dt.tom_tat || 'Đang cập nhật...'}</p>
@@ -156,7 +156,7 @@ async function viewProjectStats(dtId) {
         html += `<h4 style="margin-top:20px;color:var(--accent-orange);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-users"></i> Thành viên tham gia (${dt.thanh_vien?.length || 0})</h4>`;
         if (dt.thanh_vien?.length) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">';
-            dt.thanh_vien.forEach(tv => { html += `<li><b>${tv.ten}</b> <span style="color:var(--text-muted);font-size:12px;">(Vai trò: <b>${tv.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`; });
+            dt.thanh_vien.forEach(tv => { html += `<li><b>${toTitleCase(tv.ten)}</b> <span style="color:var(--text-muted);font-size:12px;">(Vai trò: <b>${tv.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`; });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa có thành viên nào.</p>'; }
 
@@ -167,7 +167,7 @@ async function viewProjectStats(dtId) {
             tgnList.forEach(tgn => {
                 const role = tgn.vai_tro === 'CHU_NHIEM' ? ' <span style="color:#e67e22;font-size:11px;">(Chủ nhiệm)</span>' : tgn.vai_tro === 'THAM_GIA' ? ' <span style="color:#8b5cf6;font-size:11px;">(Thành viên)</span>' : tgn.vai_tro === 'DONG_TAC_GIA' ? ' <span style="color:#8b5cf6;font-size:11px;">(Đồng tác giả)</span>' : '';
                 const statusLabel = tgn.trang_thai === 'Chờ duyệt' ? ' <span style="color:#fd7e14;font-size:11px;font-weight:600;">(Chờ duyệt)</span>' : '';
-                html += `<li><b>${tgn.ten}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${tgn.don_vi}</span>` : ''}${statusLabel}</li>`;
+                html += `<li><b>${toTitleCase(tgn.ten)}</b>${role}${tgn.don_vi ? ` <span style="color:var(--text-muted);font-size:12px;">— ${toTitleCase(tgn.don_vi)}</span>` : ''}${statusLabel}</li>`;
             });
             html += '</ul>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;">Không có tác giả ngoài.</p>'; }
@@ -186,22 +186,22 @@ async function viewExternalAuthorDetail(tgnId) {
         const data = await res.json();
         if (data.status !== 'ok') { body.innerHTML = `<p style="color:red">Lỗi: ${data.message}</p>`; return; }
         const { info, publications, projects, collaborators } = data.data;
-        document.getElementById('adminStatsModalTitle').textContent = `Chi tiết Tác giả ngoài: ${info.ho_va_ten}`;
+        document.getElementById('adminStatsModalTitle').textContent = `Chi tiết Tác giả ngoài: ${toTitleCase(info.ho_va_ten)}`;
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:5px;"><b>Họ và tên:</b> ${info.ho_va_ten || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Đơn vị:</b> ${info.don_vi_cong_tac || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Học vị:</b> ${info.hoc_vi || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${info.chuc_danh || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Họ và tên:</b> ${toTitleCase(info.ho_va_ten) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Đơn vị:</b> ${toTitleCase(info.don_vi_cong_tac) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Học vị:</b> ${toSentenceCase(info.hoc_vi) || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${toSentenceCase(info.chuc_danh) || 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Email:</b> ${info.email || 'N/A'}</p>
         </div>`;
 
         html += `<h4 style="margin-top:20px;color:var(--accent-blue);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-file-alt"></i> Công trình (${publications.length})</h4>`;
-        if (publications.length) { html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">'; publications.forEach(ct => { html += `<li><b>${ct.ten_cong_trinh}</b> <span style="color:var(--text-muted);font-size:12px;">(${ct.nam_xuat_ban || '?'})</span></li>`; }); html += '</ul>'; }
+        if (publications.length) { html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">'; publications.forEach(ct => { html += `<li><b>${toSentenceCase(ct.ten_cong_trinh)}</b> <span style="color:var(--text-muted);font-size:12px;">(${ct.nam_xuat_ban || '?'})</span></li>`; }); html += '</ul>'; }
         else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa tham gia công trình nào.</p>'; }
 
         html += `<h4 style="margin-top:20px;color:var(--accent-orange);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-flask"></i> Đề tài (${projects.length})</h4>`;
-        if (projects.length) { html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">'; projects.forEach(dt => { const pTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` : (dt.nam_bat_dau || '?'); html += `<li><b>${dt.ten_de_tai}</b> <span style="color:var(--text-muted);font-size:12px;">(${pTime})</span></li>`; }); html += '</ul>'; }
+        if (projects.length) { html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">'; projects.forEach(dt => { const pTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` : (dt.nam_bat_dau || '?'); html += `<li><b>${toSentenceCase(dt.ten_de_tai)}</b> <span style="color:var(--text-muted);font-size:12px;">(${pTime})</span></li>`; }); html += '</ul>'; }
         else { html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:15px;">Chưa tham gia đề tài nào.</p>'; }
 
         html += `<h4 style="margin-top:20px;color:#2ecc71;padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-handshake"></i> GV cộng tác trong khoa (${collaborators.length})</h4>`;
@@ -209,7 +209,7 @@ async function viewExternalAuthorDetail(tgnId) {
             html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:15px;">';
             collaborators.forEach(gv => {
                 const avatar = gv.anh_dai_dien ? `<img src="${gv.anh_dai_dien}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-muted);"><i class="fas fa-user"></i></div>`;
-                html += `<div style="display:flex;align-items:center;gap:10px;background:white;padding:8px 12px;border-radius:10px;border:1px solid var(--border-color);cursor:pointer;" onclick="viewLecturerStats('${gv.id}')">${avatar}<div><div style="font-size:13px;font-weight:700;">${gv.ho_va_ten}</div><div style="font-size:11px;color:var(--accent-blue);font-weight:600;">${gv.count} chung</div></div></div>`;
+                html += `<div style="display:flex;align-items:center;gap:10px;background:white;padding:8px 12px;border-radius:10px;border:1px solid var(--border-color);cursor:pointer;" onclick="viewLecturerStats('${gv.id}')">${avatar}<div><div style="font-size:13px;font-weight:700;">${toTitleCase(gv.ho_va_ten)}</div><div style="font-size:11px;color:var(--accent-blue);font-weight:600;">${gv.count} chung</div></div></div>`;
             });
             html += '</div>';
         } else { html += '<p style="color:var(--text-muted);font-size:13px;">Chưa có lịch sử cộng tác.</p>'; }
@@ -227,10 +227,10 @@ async function viewResearchFieldDetail(lvId) {
         const data = await res.json();
         if (data.status !== 'ok') { body.innerHTML = `<p style="color:red">Lỗi: ${data.message}</p>`; return; }
         const { info, lecturers } = data.data;
-        document.getElementById('adminStatsModalTitle').textContent = `Lĩnh vực: ${info.ten_linh_vuc}`;
+        document.getElementById('adminStatsModalTitle').textContent = `Lĩnh vực: ${toTitleCase(info.ten_linh_vuc)}`;
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:0;"><b>Tên Lĩnh vực:</b> ${info.ten_linh_vuc || 'N/A'} (ID: ${info.id || 'N/A'})</p>
+            <p style="margin-bottom:0;"><b>Tên Lĩnh vực:</b> ${toTitleCase(info.ten_linh_vuc) || 'N/A'} (ID: ${info.id || 'N/A'})</p>
         </div>`;
 
         // 1. Giảng viên
@@ -239,14 +239,14 @@ async function viewResearchFieldDetail(lvId) {
             html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:15px;margin-bottom:20px;">';
             lecturers.forEach(gv => {
                 const avatar = gv.anh_dai_dien ? `<img src="${gv.anh_dai_dien}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">` : `<div style="width:35px;height:35px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-muted);"><i class="fas fa-user"></i></div>`;
-                const titleStr = [gv.hoc_vi, gv.chuc_danh].filter(Boolean).join(' / ') || 'Giảng viên';
+                const titleStr = [toSentenceCase(gv.hoc_vi), toSentenceCase(gv.chuc_danh)].filter(Boolean).join(' / ') || 'Giảng viên';
                 html += `
                     <div style="display:flex;align-items:center;gap:10px;background:white;padding:10px 12px;border-radius:10px;border:1px solid var(--border-color);cursor:pointer;" onclick="closeStatsModal(); navigateToManage('giang-vien', '${gv.ho_va_ten.replace(/'/g,"\\'")}')">
                         ${avatar}
                         <div style="min-width: 0; flex: 1;">
-                            <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${gv.ho_va_ten}">${gv.ho_va_ten}</div>
+                            <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${toTitleCase(gv.ho_va_ten)}">${toTitleCase(gv.ho_va_ten)}</div>
                             <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${titleStr}</div>
-                            <div style="font-size:11px;color:var(--accent-blue);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${gv.bo_mon || ''}</div>
+                            <div style="font-size:11px;color:var(--accent-blue);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${toTitleCase(gv.bo_mon) || ''}</div>
                         </div>
                     </div>
                 `;
