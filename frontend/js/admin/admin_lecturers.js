@@ -33,17 +33,17 @@ function renderLecturersTable(dataList) {
             <td>${gv.ma_gv || 'N/A'}</td>
             <td>
                 ${gv.anh_dai_dien
-                    ? `<img src="${gv.anh_dai_dien}" alt="${toTitleCase(gv.ho_va_ten)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
+                    ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
                     : `<i class="fas fa-user-circle" style="font-size:32px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
                 }
-                <strong>${toTitleCase(gv.ho_va_ten) || 'N/A'}</strong>
+                <strong>${gv.ho_va_ten || 'N/A'}</strong>
                 ${gv.profile_edit_status === 'Chờ duyệt'
                     ? `<span class="badge" style="background:#f59e0b;color:white;font-size:10px;margin-left:5px;" title="Có yêu cầu cập nhật thông tin cá nhân cần duyệt">Chờ duyệt hồ sơ</span>`
                     : ''
                 }
             </td>
-            <td>${toSentenceCase(gv.hoc_vi) || ''}</td>
-            <td>${toTitleCase(gv.bo_mon) || ''}</td>
+            <td>${gv.hoc_vi || ''}</td>
+            <td>${gv.bo_mon || ''}</td>
             <td>
                 ${gv.trang_thai_cong_tac === 'Đang công tác'  ? '<span class="badge" style="background:#10b981;color:white;">Đang công tác</span>' :
                   gv.trang_thai_cong_tac === 'Nghỉ hưu'       ? '<span class="badge badge-gray">Nghỉ hưu</span>' :
@@ -95,7 +95,7 @@ async function loadFilterDepartments() {
             const currentVal = select.value;
             let html = '<option value="">-- Chọn Bộ môn --</option>';
             data.data.forEach(bm => {
-                html += `<option value="${bm.ten_bo_mon}">${toTitleCase(bm.ten_bo_mon)}</option>`;
+                html += `<option value="${bm.ten_bo_mon}">${bm.ten_bo_mon}</option>`;
             });
             select.innerHTML = html;
             select.value = currentVal;
@@ -190,9 +190,9 @@ async function compareLecturerProfiles(id) {
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Họ và tên</td>
-                                    <td style="padding: 10px;">${toTitleCase(d.ho_va_ten) || 'N/A'}</td>
+                                    <td style="padding: 10px;">${d.ho_va_ten || 'N/A'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_ho_va_ten && d.pending_ho_va_ten !== d.ho_va_ten ? '600; color: #b45309;' : 'normal;'}">
-                                        ${toTitleCase(d.pending_ho_va_ten) || '<em>Giữ nguyên</em>'}
+                                        ${d.pending_ho_va_ten || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
@@ -211,44 +211,44 @@ async function compareLecturerProfiles(id) {
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Học vị</td>
-                                    <td style="padding: 10px;">${toSentenceCase(d.hoc_vi) || '<em>Trống</em>'}</td>
+                                    <td style="padding: 10px;">${d.hoc_vi || '<em>Trống</em>'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_hoc_vi && d.pending_hoc_vi !== d.hoc_vi ? '600; color: #b45309;' : 'normal;'}">
-                                        ${toSentenceCase(d.pending_hoc_vi) || '<em>Giữ nguyên</em>'}
+                                        ${d.pending_hoc_vi || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Chức danh</td>
-                                    <td style="padding: 10px;">${toSentenceCase(d.chuc_danh) || '<em>Trống</em>'}</td>
+                                    <td style="padding: 10px;">${d.chuc_danh || '<em>Trống</em>'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_chuc_danh && d.pending_chuc_danh !== d.chuc_danh ? '600; color: #b45309;' : 'normal;'}">
-                                        ${toSentenceCase(d.pending_chuc_danh) || '<em>Giữ nguyên</em>'}
+                                        ${d.pending_chuc_danh || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Chức vụ</td>
-                                    <td style="padding: 10px;">${toSentenceCase(d.chuc_vu) || '<em>Trống</em>'}</td>
+                                    <td style="padding: 10px;">${d.chuc_vu || '<em>Trống</em>'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_chuc_vu && d.pending_chuc_vu !== d.chuc_vu ? '600; color: #b45309;' : 'normal;'}">
-                                        ${toSentenceCase(d.pending_chuc_vu) || '<em>Giữ nguyên</em>'}
+                                        ${d.pending_chuc_vu || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Chuyên ngành</td>
-                                    <td style="padding: 10px;">${toTitleCase(d.chuyen_nganh) || '<em>Trống</em>'}</td>
+                                    <td style="padding: 10px;">${d.chuyen_nganh || '<em>Trống</em>'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_chuyen_nganh && d.pending_chuyen_nganh !== d.chuyen_nganh ? '600; color: #b45309;' : 'normal;'}">
-                                        ${toTitleCase(d.pending_chuyen_nganh) || '<em>Giữ nguyên</em>'}
+                                        ${d.pending_chuyen_nganh || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Bộ môn</td>
-                                    <td style="padding: 10px;">${toTitleCase(d.bo_mon) || '<em>Trống</em>'}</td>
+                                    <td style="padding: 10px;">${d.bo_mon || '<em>Trống</em>'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_bo_mon && d.pending_bo_mon !== d.bo_mon ? '600; color: #b45309;' : 'normal;'}">
-                                        ${toTitleCase(d.pending_bo_mon) || '<em>Giữ nguyên</em>'}
+                                        ${d.pending_bo_mon || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Hướng nghiên cứu</td>
-                                    <td style="padding: 10px;">${(d.linh_vuc || []).map(toTitleCase).join(', ') || '<em>Trống</em>'}</td>
+                                    <td style="padding: 10px;">${(d.linh_vuc || []).join(', ') || '<em>Trống</em>'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: 600; color: #b45309;">
-                                        ${(d.pending_linh_vuc || []).map(toTitleCase).join(', ') || '<em>Giữ nguyên</em>'}
+                                        ${(d.pending_linh_vuc || []).join(', ') || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                             </tbody>

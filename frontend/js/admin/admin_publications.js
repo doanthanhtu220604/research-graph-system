@@ -41,7 +41,7 @@ function renderPublicationsTable(dataList) {
         return `
         <tr>
             <td>${ct.id || 'N/A'}</td>
-            <td><strong>${toSentenceCase(ct.ten_cong_trinh) || 'N/A'}</strong></td>
+            <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
             <td>${ct.nam_xuat_ban || ''}</td>
             <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td>

@@ -38,7 +38,7 @@ async function initDashboardOverview() {
             admChartByLevel = new Chart(ctxDonut, {
                 type: 'doughnut',
                 data: {
-                    labels: dtCap.map(r => toTitleCase(r.cap)),
+                    labels: dtCap.map(r => r.cap),
                     datasets: [{
                         data: dtCap.map(r => r.so_luong),
                         backgroundColor: palette.slice(0, dtCap.length),
@@ -73,7 +73,7 @@ async function initDashboardOverview() {
             admChartByDept = new Chart(ctxDept, {
                 type: 'bar',
                 data: {
-                    labels: gvDept.map(r => toTitleCase(r.bo_mon) || 'Khác'),
+                    labels: gvDept.map(r => r.bo_mon || 'Khác'),
                     datasets: [{
                         label: 'Số lượng giảng viên',
                         data: gvDept.map(r => r.so_luong),
@@ -105,7 +105,7 @@ async function initDashboardOverview() {
             admChartByDegree = new Chart(ctxDegree, {
                 type: 'doughnut',
                 data: {
-                    labels: gvDegree.map(r => toSentenceCase(r.hoc_vi) || 'Khác'),
+                    labels: gvDegree.map(r => r.hoc_vi || 'Khác'),
                     datasets: [{
                         data: gvDegree.map(r => r.so_luong),
                         backgroundColor: palette.slice(0, gvDegree.length),
@@ -236,7 +236,7 @@ function renderAdmTopLecturers(lecturers) {
 
     el.innerHTML = lecturers.map((gv, i) => {
         const count  = Number(gv.so_cong_trinh) || 0;
-        const name   = toTitleCase(String(gv.ten || 'N/A')).replace(/</g, '&lt;');
+        const name   = String(gv.ten || 'N/A').replace(/</g, '&lt;');
         const numCls = numClasses[i] || '';
         const pct    = Math.max(8, Math.round((count / maxCount) * 100));
         return `

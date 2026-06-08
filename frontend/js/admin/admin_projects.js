@@ -45,8 +45,8 @@ function renderProjectsTable(dataList) {
         return `
         <tr>
             <td>${dt.id || 'N/A'}</td>
-            <td><strong>${toSentenceCase(dt.ten_de_tai) || 'N/A'}</strong></td>
-            <td>${toTitleCase(dt.cap_de_tai) || ''}</td>
+            <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
+            <td>${dt.cap_de_tai || ''}</td>
             <td>${namThucHien}</td>
             <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight: 600; white-space: nowrap;">${trangThai}</span></td>
             <td>
