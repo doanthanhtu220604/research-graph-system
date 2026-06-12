@@ -6,11 +6,11 @@ let _allProjects = [];
 
 function getLevelBadge(cap) {
     if (!cap) return '<span class="badge badge-gray">Chưa xác định</span>';
-    if (cap.includes('Nhà nước')) return `<span class="badge badge-red">${cap}</span>`;
-    if (cap.includes('Bộ')) return `<span class="badge badge-orange">${cap}</span>`;
-    if (cap.includes('Tỉnh')) return `<span class="badge badge-purple">${cap}</span>`;
-    if (cap.includes('Trường') || cap.includes('Cơ sở')) return `<span class="badge badge-blue">${cap}</span>`;
-    if (cap.includes('Doanh')) return `<span class="badge badge-teal">${cap}</span>`;
+    const capUpper = cap.toUpperCase().normalize('NFC');
+    if (capUpper.includes('NHÀ NƯỚC') || capUpper.includes('NAFOSTED')) return `<span class="badge badge-red">${cap}</span>`;
+    if (capUpper.includes('BỘ') || capUpper.includes('TỈNH') || capUpper.includes('THÀNH PHỐ')) return `<span class="badge badge-orange">${cap}</span>`;
+    if (capUpper.includes('TRƯỜNG') || capUpper.includes('CƠ SỞ') || capUpper.includes('SINH VIÊN')) return `<span class="badge badge-blue">${cap}</span>`;
+    if (capUpper.includes('DOANH') || capUpper.includes('NƯỚC NGOÀI')) return `<span class="badge badge-teal">${cap}</span>`;
     return `<span class="badge badge-gray">${cap}</span>`;
 }
 
@@ -20,6 +20,7 @@ async function loadProjects() {
         const data = await res.json();
         if (data.status === 'ok') {
             _allProjects = data.data;
+            populateUserProjectYearFilter(_allProjects);
             renderProjectRows(_allProjects);
         }
     } catch (err) {
@@ -61,9 +62,56 @@ function renderProjectRows(list) {
     }).join('');
 }
 
+function matchProjectLevel(cap, selectedLevel) {
+    if (!selectedLevel) return true;
+    if (!cap) return false;
+    const capUpper = cap.toUpperCase().normalize('NFC');
+    
+    if (selectedLevel === 'Cấp Nhà nước') {
+        return capUpper.includes('NHÀ NƯỚC') || capUpper.includes('NAFOSTED');
+    }
+    if (selectedLevel === 'Cấp Bộ/Tỉnh' || selectedLevel === 'Cấp Bộ' || selectedLevel === 'Cấp Tỉnh/Thành phố' || selectedLevel === 'Cấp Tỉnh') {
+        return capUpper.includes('BỘ') || capUpper.includes('TỈNH') || capUpper.includes('THÀNH PHỐ');
+    }
+    if (selectedLevel === 'Cấp Trường' || selectedLevel === 'Cấp cơ sở') {
+        return capUpper.includes('TRƯỜNG') || capUpper.includes('CƠ SỞ') || capUpper.includes('SINH VIÊN');
+    }
+    if (selectedLevel === 'Đề tài Doanh nghiệp') {
+        return capUpper.includes('DOANH NGHIỆP') || capUpper.includes('NƯỚC NGOÀI') || capUpper.includes('DOANH');
+    }
+    return false;
+}
+
+function populateUserProjectYearFilter(data) {
+    const select = document.getElementById('projYearFilter');
+    if (!select) return;
+
+    const currentVal = select.value;
+    const years = new Set();
+    data.forEach(dt => {
+        if (dt.nam_bat_dau) {
+            const y = Number(String(dt.nam_bat_dau).trim());
+            if (!isNaN(y)) years.add(y);
+        }
+        if (dt.nam_ket_thuc) {
+            const y = Number(String(dt.nam_ket_thuc).trim());
+            if (!isNaN(y)) years.add(y);
+        }
+    });
+
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    let html = '<option value="">Tất cả năm</option>';
+    sortedYears.forEach(year => {
+        html += `<option value="${year}">Năm ${year}</option>`;
+    });
+    select.innerHTML = html;
+    select.value = currentVal;
+}
+
 function filterUserProjects() {
     const q = (document.getElementById('projSearchInput')?.value || '').normalize('NFC').toLowerCase().trim();
     const level = document.getElementById('projLevelFilter')?.value || '';
+    const year = document.getElementById('projYearFilter')?.value || '';
 
     const filtered = _allProjects.filter(dt => {
         const title = (dt.ten_de_tai || '').normalize('NFC').toLowerCase();
@@ -73,8 +121,9 @@ function filterUserProjects() {
         const members = (dt.thanh_vien || []).map(m => typeof m === 'object' ? m.ten : m).join(' ').normalize('NFC').toLowerCase();
 
         const matchQ = !q || title.includes(q) || startYear.includes(q) || endYear.includes(q) || levelText.includes(q) || members.includes(q);
-        const matchLevel = !level || (dt.cap_de_tai === level);
-        return matchQ && matchLevel;
+        const matchLevel = matchProjectLevel(dt.cap_de_tai, level);
+        const matchYear = !year || (dt.nam_bat_dau == year || dt.nam_ket_thuc == year);
+        return matchQ && matchLevel && matchYear;
     });
     renderProjectRows(filtered);
 }

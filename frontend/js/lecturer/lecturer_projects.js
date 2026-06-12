@@ -97,42 +97,43 @@ async function loadProjects() {
 
 
 
+function matchProjectLevel(cap, selectedLevel) {
+    if (!selectedLevel) return true;
+    if (!cap) return false;
+    const capUpper = cap.toUpperCase().normalize('NFC');
+    
+    if (selectedLevel === 'Cấp Nhà nước') {
+        return capUpper.includes('NHÀ NƯỚC') || capUpper.includes('NAFOSTED');
+    }
+    if (selectedLevel === 'Cấp Bộ/Tỉnh' || selectedLevel === 'Cấp Bộ' || selectedLevel === 'Cấp Tỉnh/Thành phố' || selectedLevel === 'Cấp Tỉnh') {
+        return capUpper.includes('BỘ') || capUpper.includes('TỈNH') || capUpper.includes('THÀNH PHỐ');
+    }
+    if (selectedLevel === 'Cấp Trường' || selectedLevel === 'Cấp cơ sở') {
+        return capUpper.includes('TRƯỜNG') || capUpper.includes('CƠ SỞ') || capUpper.includes('SINH VIÊN');
+    }
+    if (selectedLevel === 'Đề tài Doanh nghiệp') {
+        return capUpper.includes('DOANH NGHIỆP') || capUpper.includes('NƯỚC NGOÀI') || capUpper.includes('DOANH');
+    }
+    return false;
+}
+
 function filterProjects() {
-
-    const nameVal = document.getElementById('filterProjName').value.toLowerCase();
-
+    const nameVal = document.getElementById('filterProjName').value.toLowerCase().trim();
     const levelVal = document.getElementById('filterProjLevel').value;
-
     const statusVal = document.getElementById('filterProjStatus').value;
 
-
-
     const rows = document.querySelectorAll('#lecturerProjectsBody tr');
-
     rows.forEach(row => {
-
         if (row.cells.length < 5) return;
-
         const name = row.cells[1].textContent.toLowerCase();
-
         const level = row.cells[3].textContent;
-
         const status = row.cells[4].textContent;
 
-
-
         let visible = true;
-
         if (nameVal && !name.includes(nameVal)) visible = false;
-
-        if (levelVal && !level.includes(levelVal)) visible = false;
-
+        if (levelVal && !matchProjectLevel(level, levelVal)) visible = false;
         if (statusVal && status !== statusVal) visible = false;
 
-
-
         row.style.display = visible ? '' : 'none';
-
     });
-
 }
