@@ -334,11 +334,9 @@ async function loadCollaborationGraph() {
         });
 
         // Nút tải ảnh
-        collabNetwork.once('stabilized', () => {
-            if (typeof injectDownloadButton === 'function') {
-                injectDownloadButton(container, collabNetwork, 'mang_luoi_hop_tac');
-            }
-        });
+        if (typeof injectDownloadButton === 'function') {
+            injectDownloadButton(container, collabNetwork, 'mang_luoi_hop_tac');
+        }
 
         // Legend
         renderCollabLegend(data.legend);

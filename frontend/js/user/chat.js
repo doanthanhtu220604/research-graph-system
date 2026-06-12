@@ -67,7 +67,7 @@
     // Xử lý Graph
     if (graph && graph.nodes && graph.edges) {
         const graphContainer = document.createElement("div");
-        graphContainer.className = "chat-graph-container";
+        graphContainer.className = "chat-graph-container chat-graph-wrapper";
         graphContainer.style.height = "350px";
         graphContainer.style.width = "calc(100% - 44px)"; // Trừ đi width của icon
         graphContainer.style.marginLeft = "44px";
@@ -115,7 +115,10 @@
                 interaction: { dragNodes: true, zoomView: true, dragView: true, tooltipDelay: 200 }
             };
             
-            new vis.Network(graphContainer, data, options);
+            const network = new vis.Network(graphContainer, data, options);
+            if (typeof injectDownloadButton === 'function') {
+                injectDownloadButton(graphContainer, network, 'chatbot_do_thi');
+            }
         }, 100);
     }
 

@@ -715,7 +715,8 @@ body::before {
 .graph-container:hover .graph-download-btn,
 .detail-graph-container:hover .graph-download-btn,
 .chat-graph-wrapper:hover .graph-download-btn,
-.explore-graph-wrapper:hover .graph-download-btn {
+.explore-graph-wrapper:hover .graph-download-btn,
+#collaborationGraph:hover .graph-download-btn {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;

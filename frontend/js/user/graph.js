@@ -213,17 +213,15 @@ function renderGraph(containerId, nodes, edges, callback) {
         }
     });
 
-    // Nhúng nút tải ảnh sau khi đồ thị ổn định
-    network.once('stabilized', () => {
-        const filenameMap = {
-            'knowledge-graph':        'tong_quan_do_thi',
-            'explore-graph':          'kham_pha_do_thi',
-            'detail-graph-container': 'chi_tiet_do_thi',
-            'chat-graph-container':   'chatbot_do_thi',
-        };
-        const filename = filenameMap[containerId] || ('do_thi_' + containerId);
-        injectDownloadButton(container, network, filename);
-    });
+    // Nhúng nút tải ảnh ngay khi khởi tạo đồ thị
+    const filenameMap = {
+        'knowledge-graph':        'tong_quan_do_thi',
+        'explore-graph':          'kham_pha_do_thi',
+        'detail-graph-container': 'chi_tiet_do_thi',
+        'chat-graph-container':   'chatbot_do_thi',
+    };
+    const filename = filenameMap[containerId] || ('do_thi_' + containerId);
+    injectDownloadButton(container, network, filename);
 
     if (callback) callback(network);
 }
