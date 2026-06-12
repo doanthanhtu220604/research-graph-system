@@ -274,7 +274,7 @@ function exportDashboardCsv() {
         rows = [
             ["Công nghệ phần mềm", "15", "5"],
             ["Hệ thống thông tin", "12", "8"],
-            ["Mạng máy tính", "8", "3"]
+            ["Mạng máy tính và truyền thông", "8", "3"]
         ].map(r => r.map(cleanValueForCsv));
         filename = "thong_ke_he_thong.csv";
 

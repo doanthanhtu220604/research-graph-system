@@ -122,8 +122,8 @@ function renderLecturerPagination(totalPages, currentPage) {
 
 function filterUserLecturers() {
     const q = (document.getElementById('lecturerSearchInput')?.value || '').toLowerCase().trim();
-    const dept = document.getElementById('lecturerDeptFilter')?.value || '';
-    const degree = document.getElementById('lecturerDegreeFilter')?.value || '';
+    const dept = (document.getElementById('lecturerDeptFilter')?.value || '').toLowerCase().trim();
+    const degree = (document.getElementById('lecturerDegreeFilter')?.value || '').toLowerCase().trim();
     _filteredLecturers = _allLecturers.filter(gv => {
         const name = (gv.ho_va_ten || '').toLowerCase();
         const deg = (gv.hoc_vi || '').toLowerCase();
@@ -131,8 +131,8 @@ function filterUserLecturers() {
         const fields = (gv.linh_vuc || []).join(' ').toLowerCase();
 
         const matchQ = !q || name.includes(q) || deg.includes(q) || title.includes(q) || fields.includes(q);
-        const matchDept = !dept || (gv.bo_mon === dept);
-        const matchDeg = !degree || ((gv.hoc_vi || '').includes(degree));
+        const matchDept = !dept || ((gv.bo_mon || '').toLowerCase().trim() === dept);
+        const matchDeg = !degree || ((gv.hoc_vi || '').toLowerCase().trim().includes(degree));
         return matchQ && matchDept && matchDeg;
     });
     renderLecturerPage(1);
@@ -225,9 +225,9 @@ async function showLecturerDetail(gvId) {
             // Scholar placeholder
             bodyHtml = `
                 <div id="scholarStatsContainer" style="margin-bottom: 20px;">
-                    <div style="padding: 15px; background: rgba(66, 133, 244, 0.05); border-radius: 8px; border-left: 4px solid #4285F4; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-spinner fa-spin" style="color: #4285F4;"></i>
-                        <span style="font-size: 13px; color: var(--text-secondary);">Đang trích xuất dữ liệu Google Scholar...</span>
+                    <div style="padding: 15px; background: rgba(13, 148, 136, 0.05); border-radius: 8px; border-left: 4px solid #0d9488; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-spinner fa-spin" style="color: #0d9488;"></i>
+                        <span style="font-size: 13px; color: var(--text-secondary);">Đang trích xuất dữ liệu học thuật (OpenAlex/Scholar)...</span>
                     </div>
                 </div>
             ` + bodyHtml;
@@ -235,7 +235,7 @@ async function showLecturerDetail(gvId) {
             document.getElementById('detailBodyContent').innerHTML = bodyHtml;
 
             if (gv.ho_va_ten) {
-                loadScholarStats(gv.ho_va_ten, 'scholarStatsContainer');
+                loadAcademicStats(gv.ho_va_ten, 'scholarStatsContainer');
             }
 
             document.getElementById('globalDetailOverlay').classList.add('active');

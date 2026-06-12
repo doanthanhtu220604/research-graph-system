@@ -69,14 +69,14 @@ function renderLecturersTable(dataList) {
 function filterLecturers() {
     const list        = currentEntitiesData['giang-vien'] || [];
     const nameFilter  = (document.getElementById('filterName')?.value || '').normalize('NFC').toLowerCase().trim();
-    const deptFilter  = document.getElementById('filterDepartment')?.value || '';
-    const degreeFilter = document.getElementById('filterDegree')?.value || '';
+    const deptFilter  = (document.getElementById('filterDepartment')?.value || '').toLowerCase().trim();
+    const degreeFilter = (document.getElementById('filterDegree')?.value || '').toLowerCase().trim();
 
     const filtered = list.filter(gv => {
         const name        = (gv.ho_va_ten || '').normalize('NFC').toLowerCase();
         const matchName   = name.includes(nameFilter);
-        const matchDept   = deptFilter === '' || (gv.bo_mon === deptFilter);
-        const matchDegree = degreeFilter === '' || (gv.hoc_vi && gv.hoc_vi.toUpperCase().includes(degreeFilter.toUpperCase()));
+        const matchDept   = deptFilter === '' || ((gv.bo_mon || '').toLowerCase().trim() === deptFilter);
+        const matchDegree = degreeFilter === '' || ((gv.hoc_vi || '').toLowerCase().trim().includes(degreeFilter));
         return matchName && matchDept && matchDegree;
     });
 

@@ -8,7 +8,7 @@
  *
  *   config.js       ─ Constants & shared global state
  *   graph.js        ─ Vis.js graph render, download, legend
- *   scholar.js      ─ Google Scholar integration
+ *   academic.js     ─ Academic profile integration (OpenAlex & Scholar)
  *   translation.js  ─ Toggle dịch tóm tắt
  *   auth.js         ─ Login modal
  *   dashboard.js    ─ Trang chủ, grids, top lecturers
