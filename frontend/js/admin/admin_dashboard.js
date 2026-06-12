@@ -257,76 +257,138 @@ function renderAdmTopLecturers(lecturers) {
 
 /* ─── Export CSV (dashboard & các trang entity) ─────────────── */
 function exportDashboardCsv() {
-    let csvContent = "data:text/csv;charset=utf-8,\ufeff";
-    let filename   = "export_admin.csv";
+    let filename = "export_admin.csv";
+    let headers = [];
+    let rows = [];
+
+    const cleanValueForCsv = (val) => {
+        if (val === null || val === undefined) return '';
+        let str = String(val);
+        // Replace newlines and multiple spaces with a single space to make it look clean
+        str = str.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+        return `"${str.replace(/"/g, '""')}"`;
+    };
 
     if (document.getElementById('page-admin-overview')) {
-        csvContent += "Bộ môn,Số lượng bài báo,Số lượng đề tài\n";
-        csvContent += "Công nghệ phần mềm,15,5\n";
-        csvContent += "Hệ thống thông tin,12,8\n";
-        csvContent += "Mạng máy tính,8,3\n";
+        headers = ["Bộ môn", "Số lượng bài báo", "Số lượng đề tài"];
+        rows = [
+            ["Công nghệ phần mềm", "15", "5"],
+            ["Hệ thống thông tin", "12", "8"],
+            ["Mạng máy tính", "8", "3"]
+        ].map(r => r.map(cleanValueForCsv));
         filename = "thong_ke_he_thong.csv";
 
     } else if (document.getElementById('page-admin-lecturers')) {
-        csvContent += "ho_va_ten,ma_gv,hoc_vi,chuc_danh,chuc_vu,email,dien_thoai,chuyen_nganh,trang_thai_cong_tac,bo_mon,linh_vuc_nghien_cuu\n";
+        headers = ["ho_va_ten", "ma_gv", "hoc_vi", "chuc_danh", "chuc_vu", "email", "dien_thoai", "chuyen_nganh", "trang_thai_cong_tac", "bo_mon", "linh_vuc_nghien_cuu"];
         const list = currentEntitiesData['giang-vien'] || [];
         list.forEach(gv => {
             const linhVuc = Array.isArray(gv.linh_vuc) ? gv.linh_vuc.join('|') : (gv.linh_vuc || '');
-            csvContent += `"${gv.ho_va_ten || ''}","${gv.ma_gv || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.email || ''}","${gv.dien_thoai || ''}","${gv.chuyen_nganh || ''}","${gv.trang_thai_cong_tac || ''}","${gv.bo_mon || ''}","${linhVuc}"\n`;
+            rows.push([
+                gv.ho_va_ten || '',
+                gv.ma_gv || '',
+                gv.hoc_vi || '',
+                gv.chuc_danh || '',
+                gv.chuc_vu || '',
+                gv.email || '',
+                gv.dien_thoai || '',
+                gv.chuyen_nganh || '',
+                gv.trang_thai_cong_tac || '',
+                gv.bo_mon || '',
+                linhVuc
+            ].map(cleanValueForCsv));
         });
         filename = "danh_sach_giang_vien.csv";
 
     } else if (document.getElementById('page-admin-publications')) {
-        csvContent += "ten_cong_trinh,nam_xuat_ban,tom_tat,trang_thai,link,tac_gia_giang_vien,tac_gia_ngoai\n";
+        headers = ["ten_cong_trinh", "nam_xuat_ban", "tom_tat", "trang_thai", "link", "tac_gia_giang_vien", "tac_gia_ngoai"];
         const list = currentEntitiesData['cong-trinh'] || [];
         list.forEach(ct => {
             const tacGiaGV    = Array.isArray(ct.tac_gia) ? ct.tac_gia.join('|') : (ct.tac_gia || '');
             const tacGiaNgoai = Array.isArray(ct.tac_gia_ngoai) ? ct.tac_gia_ngoai.join('|') : (ct.tac_gia_ngoai || '');
-            csvContent += `"${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}","${(ct.tom_tat || '').replace(/"/g, '""')}","${ct.trang_thai || ''}","${ct.link || ''}","${tacGiaGV}","${tacGiaNgoai}"\n`;
+            rows.push([
+                ct.ten_cong_trinh || '',
+                ct.nam_xuat_ban || '',
+                ct.tom_tat || '',
+                ct.trang_thai || '',
+                ct.link || '',
+                tacGiaGV,
+                tacGiaNgoai
+            ].map(cleanValueForCsv));
         });
         filename = "danh_sach_cong_trinh.csv";
 
     } else if (document.getElementById('page-admin-projects')) {
-        csvContent += "ten_de_tai,cap_de_tai,nam_bat_dau,nam_ket_thuc,tom_tat,trang_thai,link,chu_nhiem,thanh_vien,tac_gia_ngoai\n";
+        headers = ["ten_de_tai", "cap_de_tai", "nam_bat_dau", "nam_ket_thuc", "tom_tat", "trang_thai", "link", "chu_nhiem", "thanh_vien", "tac_gia_ngoai"];
         const list = currentEntitiesData['de-tai'] || [];
         list.forEach(dt => {
             const chuNhiem    = Array.isArray(dt.chu_nhiem) ? dt.chu_nhiem.join('|') : (dt.chu_nhiem || '');
             const thanhVien   = Array.isArray(dt.thanh_vien) ? dt.thanh_vien.join('|') : (dt.thanh_vien || '');
             const tacGiaNgoai = Array.isArray(dt.tac_gia_ngoai) ? dt.tac_gia_ngoai.join('|') : (dt.tac_gia_ngoai || '');
-            csvContent += `"${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam_bat_dau || ''}","${dt.nam_ket_thuc || ''}","${(dt.tom_tat || '').replace(/"/g, '""')}","${dt.trang_thai || ''}","${dt.link || ''}","${chuNhiem}","${thanhVien}","${tacGiaNgoai}"\n`;
+            rows.push([
+                dt.ten_de_tai || '',
+                dt.cap_de_tai || '',
+                dt.nam_bat_dau || dt.nam || '',
+                dt.nam_ket_thuc || dt.nam || '',
+                dt.tom_tat || '',
+                dt.trang_thai || '',
+                dt.link || '',
+                chuNhiem,
+                thanhVien,
+                tacGiaNgoai
+            ].map(cleanValueForCsv));
         });
         filename = "danh_sach_de_tai.csv";
 
     } else if (document.getElementById('page-admin-research-fields')) {
-        csvContent += "ten_linh_vuc\n";
+        headers = ["ten_linh_vuc"];
         const list = currentEntitiesData['linh-vuc'] || [];
         list.forEach(lv => {
-            csvContent += `"${(lv.ten_linh_vuc || '').replace(/"/g, '""')}"\n`;
+            rows.push([lv.ten_linh_vuc || ''].map(cleanValueForCsv));
         });
         filename = "danh_sach_linh_vuc.csv";
 
     } else if (document.getElementById('page-admin-external-authors')) {
-        csvContent += "ho_va_ten,don_vi_cong_tac,hoc_vi,chuc_danh,chuc_vu,email\n";
+        headers = ["ho_va_ten", "don_vi_cong_tac", "hoc_vi", "chuc_danh", "chuc_vu", "email"];
         const list = currentEntitiesData['tac-gia-ngoai'] || [];
         list.forEach(tgn => {
-            csvContent += `"${tgn.ho_va_ten || ''}","${tgn.don_vi_cong_tac || ''}","${tgn.hoc_vi || ''}","${tgn.chuc_danh || ''}","${tgn.chuc_vu || ''}","${tgn.email || ''}"\n`;
+            rows.push([
+                tgn.ho_va_ten || '',
+                tgn.don_vi_cong_tac || '',
+                tgn.hoc_vi || '',
+                tgn.chuc_danh || '',
+                tgn.chuc_vu || '',
+                tgn.email || ''
+            ].map(cleanValueForCsv));
         });
         filename = "danh_sach_tac_gia_ngoai.csv";
 
     } else if (document.getElementById('page-admin-departments')) {
-        csvContent += "ten_bo_mon,mo_ta,truong_bo_mon\n";
+        headers = ["ten_bo_mon", "mo_ta", "truong_bo_mon"];
         const list = currentEntitiesData['bo-mon'] || [];
         list.forEach(bm => {
-            csvContent += `"${bm.ten_bo_mon || ''}","${(bm.mo_ta || '').replace(/"/g, '""')}","${bm.truong_bo_mon || ''}"\n`;
+            rows.push([
+                bm.ten_bo_mon || '',
+                bm.mo_ta || '',
+                bm.truong_bo_mon || ''
+            ].map(cleanValueForCsv));
         });
         filename = "danh_sach_bo_mon.csv";
     }
 
-    const encodedUri = encodeURI(csvContent);
+    let csvContent = "\ufeff"; // UTF-8 BOM
+    csvContent += headers.join(",") + "\n";
+    rows.forEach(r => {
+        csvContent += r.join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

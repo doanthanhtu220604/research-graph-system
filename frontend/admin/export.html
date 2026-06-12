@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin_fix.css">
+    <!-- Thư viện SheetJS để xuất Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* ── Export Page Specific Styles ── */
         .export-grid {
@@ -182,6 +184,75 @@
             font-size: 13px;
             color: var(--text-secondary);
         }
+
+        .export-btn-csv {
+            flex: 1;
+            margin-top: 0 !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-secondary) !important;
+        }
+        .export-btn-csv:hover {
+            border-color: var(--accent-blue) !important;
+            color: var(--text-primary) !important;
+            background: rgba(59, 130, 246, 0.05) !important;
+        }
+
+        .format-option-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .format-option-card:hover {
+            border-color: var(--accent-blue) !important;
+            background: rgba(59, 130, 246, 0.04) !important;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .format-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .excel-icon {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+        }
+        .excel-old-icon {
+            background: rgba(4, 120, 87, 0.1) !important;
+            color: #047857 !important;
+        }
+        .csv-icon {
+            background: rgba(59, 130, 246, 0.1) !important;
+            color: var(--accent-blue) !important;
+        }
+        .format-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+        }
+        .format-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .format-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -231,9 +302,9 @@
 
         <section class="page active" style="display:block;padding:28px;">
             <div style="margin-bottom: 24px; background: rgba(59,130,246,.04); border: 1px solid rgba(59,130,246,.15); border-radius: 12px; padding: 16px 20px;">
-                <p style="font-size: 14px; font-weight: 500; color: var(--text-primary);">
+                <p style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin: 0;">
                     <i class="fas fa-info-circle" style="color:var(--accent-blue); margin-right: 6px;"></i>
-                    Hệ thống cho phép xuất dữ liệu hiện tại ra file định dạng CSV tương thích trực tiếp với cấu trúc Import.
+                    Chọn loại dữ liệu cần xuất ở dưới. Hệ thống hỗ trợ định dạng Excel (.xlsx, .xls) và CSV tương thích trực tiếp để Import.
                 </p>
             </div>
 
@@ -264,8 +335,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="export-btn btn-gv" onclick="exportData('giang-vien', this)">
-                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    <button class="export-btn btn-gv" onclick="openExportFormatModal('giang-vien', this)">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
                     </button>
                 </div>
 
@@ -302,8 +373,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="export-btn btn-ct" onclick="exportData('cong-trinh', this)">
-                        <i class="fas fa-file-export"></i> Xuất file CSV
+                    <button class="export-btn btn-ct" onclick="openExportFormatModal('cong-trinh', this)">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
                     </button>
                 </div>
 
@@ -340,8 +411,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="export-btn btn-dt" onclick="exportData('de-tai', this)">
-                        <i class="fas fa-file-export"></i> Xuất file CSV
+                    <button class="export-btn btn-dt" onclick="openExportFormatModal('de-tai', this)">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
                     </button>
                 </div>
 
@@ -368,8 +439,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="export-btn btn-bm" onclick="exportData('bo-mon', this)">
-                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    <button class="export-btn btn-bm" onclick="openExportFormatModal('bo-mon', this)">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
                     </button>
                 </div>
 
@@ -398,8 +469,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="export-btn btn-tgn" onclick="exportData('tac-gia-ngoai', this)">
-                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    <button class="export-btn btn-tgn" onclick="openExportFormatModal('tac-gia-ngoai', this)">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
                     </button>
                 </div>
 
@@ -424,8 +495,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="export-btn btn-lv" onclick="exportData('linh-vuc', this)">
-                        <i class="fas fa-file-export"></i> Xuất toàn bộ CSV
+                    <button class="export-btn btn-lv" onclick="openExportFormatModal('linh-vuc', this)">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
                     </button>
                 </div>
             </div>
@@ -444,6 +515,48 @@
             </div>
             <div style="margin-top: 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 12px;">
                 <button class="btn" style="background: var(--accent-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="closeColumnModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHỌN ĐỊNH DẠNG XUẤT -->
+    <div id="exportFormatModal" style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+        <div style="background-color: var(--bg-card); margin: auto; padding: 24px; border: 1px solid var(--border-color); width: 90%; max-width: 500px; border-radius: 16px; box-shadow: var(--shadow-glow); position: relative; animation: modalFadeIn 0.25s ease; display: flex; flex-direction: column; gap: 16px;">
+            <span onclick="closeExportFormatModal()" style="position: absolute; right: 20px; top: 16px; font-size: 24px; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: color 0.2s;">&times;</span>
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <i class="fas fa-file-download" style="color: var(--accent-blue);"></i> <span id="exportFormatModalTitle">Xuất dữ liệu</span>
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 10px 0;">Vui lòng chọn định dạng tệp tin bạn muốn xuất và tải về:</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- XLSX option -->
+                <div class="format-option-card" onclick="triggerExport('xlsx')">
+                    <div class="format-icon excel-icon"><i class="fas fa-file-excel"></i></div>
+                    <div class="format-info">
+                        <div class="format-name">Microsoft Excel (.xlsx)</div>
+                        <div class="format-desc">Định dạng chuẩn mới, hiển thị tối ưu cột rộng, dễ đọc, khuyên dùng.</div>
+                    </div>
+                </div>
+                <!-- XLS option -->
+                <div class="format-option-card" onclick="triggerExport('xls')">
+                    <div class="format-icon excel-old-icon"><i class="fas fa-file-excel" style="opacity: 0.8;"></i></div>
+                    <div class="format-info">
+                        <div class="format-name">Microsoft Excel 97-2003 (.xls)</div>
+                        <div class="format-desc">Tương thích với các phần mềm và phiên bản Office cũ hơn.</div>
+                    </div>
+                </div>
+                <!-- CSV option -->
+                <div class="format-option-card" onclick="triggerExport('csv')">
+                    <div class="format-icon csv-icon"><i class="fas fa-file-csv"></i></div>
+                    <div class="format-info">
+                        <div class="format-name">Comma-Separated Values (.csv)</div>
+                        <div class="format-desc">Tệp văn bản thuần phân tách bằng dấu phẩy, dùng truyền dữ liệu.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                <button class="export-btn" style="background: var(--bg-hover); color: var(--text-primary); width: auto; padding: 10px 20px; border: 1px solid var(--border-color); margin-top: 0;" onclick="closeExportFormatModal()">Hủy bỏ</button>
             </div>
         </div>
     </div>
@@ -625,11 +738,87 @@
             }
         }
 
-        // Fetch data from backend and export to CSV
-        async function exportData(dataType, btn) {
+        const columnsListMap = {
+            'giang-vien': ["ho_va_ten", "ma_gv", "hoc_vi", "chuc_danh", "chuc_vu", "email", "dien_thoai", "chuyen_nganh", "trang_thai_cong_tac", "bo_mon", "linh_vuc_nghien_cuu"],
+            'cong-trinh': ["ten_cong_trinh", "nam_xuat_ban", "tom_tat", "trang_thai", "link", "tac_gia_giang_vien", "tac_gia_ngoai"],
+            'de-tai': ["ten_de_tai", "cap_de_tai", "nam", "tom_tat", "trang_thai", "link", "chu_nhiem", "thanh_vien", "tac_gia_ngoai"],
+            'linh-vuc': ["ten_linh_vuc"],
+            'tac-gia-ngoai': ["ho_va_ten", "don_vi_cong_tac", "hoc_vi", "chuc_danh", "chuc_vu", "email"],
+            'bo-mon': ["ten_bo_mon", "mo_ta", "truong_bo_mon"]
+        };
+
+        function getRowData(dataType, item) {
+            if (dataType === 'giang-vien') {
+                const linhVuc = Array.isArray(item.linh_vuc) ? item.linh_vuc.join('|') : (item.linh_vuc || '');
+                return {
+                    ho_va_ten: item.ho_va_ten || '',
+                    ma_gv: item.ma_gv || '',
+                    hoc_vi: item.hoc_vi || '',
+                    chuc_danh: item.chuc_danh || '',
+                    chuc_vu: item.chuc_vu || '',
+                    email: item.email || '',
+                    dien_thoai: item.dien_thoai || '',
+                    chuyen_nganh: item.chuyen_nganh || '',
+                    trang_thai_cong_tac: item.trang_thai_cong_tac || '',
+                    bo_mon: item.bo_mon || '',
+                    linh_vuc_nghien_cuu: linhVuc
+                };
+            } else if (dataType === 'cong-trinh') {
+                const tacGiaGV = Array.isArray(item.tac_gia) ? item.tac_gia.join('|') : (item.tac_gia || '');
+                const tacGiaNgoai = Array.isArray(item.tac_gia_ngoai) ? item.tac_gia_ngoai.join('|') : (item.tac_gia_ngoai || '');
+                return {
+                    ten_cong_trinh: item.ten_cong_trinh || '',
+                    nam_xuat_ban: item.nam_xuat_ban || '',
+                    tom_tat: item.tom_tat || '',
+                    trang_thai: item.trang_thai || '',
+                    link: item.link || '',
+                    tac_gia_giang_vien: tacGiaGV,
+                    tac_gia_ngoai: tacGiaNgoai
+                };
+            } else if (dataType === 'de-tai') {
+                const chuNhiem = Array.isArray(item.chu_nhiem) ? item.chu_nhiem.join('|') : (item.chu_nhiem || '');
+                const thanhVien = Array.isArray(item.thanh_vien) ? item.thanh_vien.join('|') : (item.thanh_vien || '');
+                const tacGiaNgoai = Array.isArray(item.tac_gia_ngoai) ? item.tac_gia_ngoai.join('|') : (item.tac_gia_ngoai || '');
+                return {
+                    ten_de_tai: item.ten_de_tai || '',
+                    cap_de_tai: item.cap_de_tai || '',
+                    nam: item.nam || item.nam_bat_dau || '',
+                    tom_tat: item.tom_tat || '',
+                    trang_thai: item.trang_thai || '',
+                    link: item.link || '',
+                    chu_nhiem: chuNhiem,
+                    thanh_vien: thanhVien,
+                    tac_gia_ngoai: tacGiaNgoai
+                };
+            } else if (dataType === 'linh-vuc') {
+                return {
+                    ten_linh_vuc: item.ten_linh_vuc || ''
+                };
+            } else if (dataType === 'tac-gia-ngoai') {
+                return {
+                    ho_va_ten: item.ho_va_ten || '',
+                    don_vi_cong_tac: item.don_vi_cong_tac || '',
+                    hoc_vi: item.hoc_vi || '',
+                    chuc_danh: item.chuc_danh || '',
+                    chuc_vu: item.chuc_vu || '',
+                    email: item.email || ''
+                };
+            } else if (dataType === 'bo-mon') {
+                return {
+                    ten_bo_mon: item.ten_bo_mon || '',
+                    mo_ta: item.mo_ta || '',
+                    truong_bo_mon: item.truong_bo_mon || ''
+                };
+            }
+            return {};
+        }
+
+        // Fetch data from backend and export to XLSX, XLS, or CSV
+        async function exportData(dataType, format, btn) {
             const originalContent = btn.innerHTML;
+            const originalBackground = btn.style.background;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
 
             const endpoints = {
                 'giang-vien': '/api/giang-vien',
@@ -650,12 +839,12 @@
 
             const suffix = selectedYear !== 'all' ? `_nam_${selectedYear}` : '';
             const filenames = {
-                'giang-vien': 'danh_sach_giang_vien.csv',
-                'cong-trinh': `danh_sach_cong_trinh${suffix}.csv`,
-                'de-tai': `danh_sach_de_tai${suffix}.csv`,
-                'linh-vuc': 'danh_sach_linh_vuc.csv',
-                'tac-gia-ngoai': 'danh_sach_tac_gia_ngoai.csv',
-                'bo-mon': 'danh_sach_bo_mon.csv'
+                'giang-vien': `danh_sach_giang_vien.${format}`,
+                'cong-trinh': `danh_sach_cong_trinh${suffix}.${format}`,
+                'de-tai': `danh_sach_de_tai${suffix}.${format}`,
+                'linh-vuc': `danh_sach_linh_vuc.${format}`,
+                'tac-gia-ngoai': `danh_sach_tac_gia_ngoai.${format}`,
+                'bo-mon': `danh_sach_bo_mon.${format}`
             };
 
             try {
@@ -687,61 +876,98 @@
                     return;
                 }
 
-                let csvContent = "data:text/csv;charset=utf-8,\ufeff";
+                const columns = columnsListMap[dataType];
 
-                if (dataType === 'giang-vien') {
-                    csvContent += "ho_va_ten,ma_gv,hoc_vi,chuc_danh,chuc_vu,email,dien_thoai,chuyen_nganh,trang_thai_cong_tac,bo_mon,linh_vuc_nghien_cuu\n";
-                    list.forEach(gv => {
-                        const linhVuc = Array.isArray(gv.linh_vuc) ? gv.linh_vuc.join('|') : (gv.linh_vuc || '');
-                        csvContent += `"${gv.ho_va_ten || ''}","${gv.ma_gv || ''}","${gv.hoc_vi || ''}","${gv.chuc_danh || ''}","${gv.chuc_vu || ''}","${gv.email || ''}","${gv.dien_thoai || ''}","${gv.chuyen_nganh || ''}","${gv.trang_thai_cong_tac || ''}","${gv.bo_mon || ''}","${linhVuc}"\n`;
+                if (format === 'xlsx' || format === 'xls') {
+                    if (typeof XLSX === 'undefined') {
+                        alert('Thư viện Excel (SheetJS) chưa được tải đầy đủ. Vui lòng thử lại sau giây lát.');
+                        btn.innerHTML = originalContent;
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    const wsData = [];
+                    // Header row
+                    wsData.push(columns);
+                    
+                    // Row contents
+                    list.forEach(item => {
+                        const rowObj = getRowData(dataType, item);
+                        const row = columns.map(col => {
+                            const val = rowObj[col];
+                            if (val === null || val === undefined) return '';
+                            // Clean newlines to make Excel look clean and tabular
+                            return String(val).replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+                        });
+                        wsData.push(row);
                     });
-                } else if (dataType === 'cong-trinh') {
-                    csvContent += "ten_cong_trinh,nam_xuat_ban,tom_tat,trang_thai,link,tac_gia_giang_vien,tac_gia_ngoai\n";
-                    list.forEach(ct => {
-                        const tacGiaGV = Array.isArray(ct.tac_gia) ? ct.tac_gia.join('|') : (ct.tac_gia || '');
-                        const tacGiaNgoai = Array.isArray(ct.tac_gia_ngoai) ? ct.tac_gia_ngoai.join('|') : (ct.tac_gia_ngoai || '');
-                        csvContent += `"${(ct.ten_cong_trinh || '').replace(/"/g, '""')}","${ct.nam_xuat_ban || ''}","${(ct.tom_tat || '').replace(/"/g, '""')}","${ct.trang_thai || ''}","${ct.link || ''}","${tacGiaGV}","${tacGiaNgoai}"\n`;
+
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                    // Auto-fit column widths
+                    const colWidths = columns.map(col => {
+                        if (col === 'tom_tat' || col === 'mo_ta') {
+                            return { wch: 50 }; // Fixed good width for long descriptions
+                        }
+                        let maxLen = col.length;
+                        wsData.slice(1).forEach(row => {
+                            const valIdx = columns.indexOf(col);
+                            const val = row[valIdx];
+                            if (val) {
+                                maxLen = Math.max(maxLen, String(val).length);
+                            }
+                        });
+                        return { wch: Math.min(Math.max(maxLen + 4, 12), 40) };
                     });
-                } else if (dataType === 'de-tai') {
-                    csvContent += "ten_de_tai,cap_de_tai,nam,tom_tat,trang_thai,link,chu_nhiem,thanh_vien,tac_gia_ngoai\n";
-                    list.forEach(dt => {
-                        const chuNhiem = Array.isArray(dt.chu_nhiem) ? dt.chu_nhiem.join('|') : (dt.chu_nhiem || '');
-                        const thanhVien = Array.isArray(dt.thanh_vien) ? dt.thanh_vien.join('|') : (dt.thanh_vien || '');
-                        const tacGiaNgoai = Array.isArray(dt.tac_gia_ngoai) ? dt.tac_gia_ngoai.join('|') : (dt.tac_gia_ngoai || '');
-                        csvContent += `"${(dt.ten_de_tai || '').replace(/"/g, '""')}","${dt.cap_de_tai || ''}","${dt.nam || dt.nam_bat_dau || ''}","${(dt.tom_tat || '').replace(/"/g, '""')}","${dt.trang_thai || ''}","${dt.link || ''}","${chuNhiem}","${thanhVien}","${tacGiaNgoai}"\n`;
+                    ws['!cols'] = colWidths;
+
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Data");
+                    XLSX.writeFile(wb, filenames[dataType]);
+
+                } else {
+                    // CSV format using safe escaping and Blob downloading to prevent truncation at '#'
+                    const cleanValueForCsv = (val) => {
+                        if (val === null || val === undefined) return '';
+                        let str = String(val);
+                        // Clean newlines to prevent row breakdown and keep it neat
+                        str = str.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+                        // Escape double quotes
+                        return `"${str.replace(/"/g, '""')}"`;
+                    };
+
+                    let csvContent = "\ufeff"; // UTF-8 BOM
+                    csvContent += columns.join(",") + "\n";
+                    
+                    list.forEach(item => {
+                        const rowObj = getRowData(dataType, item);
+                        const rowValues = columns.map(col => {
+                            return cleanValueForCsv(rowObj[col]);
+                        });
+                        csvContent += rowValues.join(",") + "\n";
                     });
-                } else if (dataType === 'linh-vuc') {
-                    csvContent += "ten_linh_vuc\n";
-                    list.forEach(lv => {
-                        csvContent += `"${(lv.ten_linh_vuc || '').replace(/"/g, '""')}"\n`;
-                    });
-                } else if (dataType === 'tac-gia-ngoai') {
-                    csvContent += "ho_va_ten,don_vi_cong_tac,hoc_vi,chuc_danh,chuc_vu,email\n";
-                    list.forEach(tgn => {
-                        csvContent += `"${tgn.ho_va_ten || ''}","${tgn.don_vi_cong_tac || ''}","${tgn.hoc_vi || ''}","${tgn.chuc_danh || ''}","${tgn.chuc_vu || ''}","${tgn.email || ''}"\n`;
-                    });
-                } else if (dataType === 'bo-mon') {
-                    csvContent += "ten_bo_mon,mo_ta,truong_bo_mon\n";
-                    list.forEach(bm => {
-                        csvContent += `"${bm.ten_bo_mon || ''}","${(bm.mo_ta || '').replace(/"/g, '""')}","${bm.truong_bo_mon || ''}"\n`;
-                    });
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", filenames[dataType]);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
                 }
-
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", filenames[dataType]);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
                 
                 // Show success temporary feedback
-                btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất thành công!';
+                btn.innerHTML = '<i class="fas fa-check"></i> Xong!';
                 btn.style.background = '#10b981';
+                btn.style.color = '#ffffff';
                 setTimeout(() => {
                     btn.innerHTML = originalContent;
                     btn.disabled = false;
-                    btn.style.background = '';
+                    btn.style.background = originalBackground;
+                    btn.style.color = '';
                 }, 2000);
 
             } catch(e) {
@@ -749,6 +975,37 @@
                 alert("Đã xảy ra lỗi trong quá trình xuất dữ liệu: " + e.message);
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
+            }
+        }
+
+        let currentExportDataType = null;
+        let currentExportButton = null;
+
+        function openExportFormatModal(dataType, btn) {
+            currentExportDataType = dataType;
+            currentExportButton = btn;
+            
+            const titles = {
+                'giang-vien': 'Giảng viên',
+                'cong-trinh': 'Công trình Nghiên cứu',
+                'de-tai': 'Đề tài Nghiên cứu',
+                'linh-vuc': 'Lĩnh vực Nghiên cứu',
+                'tac-gia-ngoai': 'Tác giả Ngoài',
+                'bo-mon': 'Bộ môn'
+            };
+            
+            document.getElementById('exportFormatModalTitle').textContent = `Xuất dữ liệu: ${titles[dataType] || ''}`;
+            document.getElementById('exportFormatModal').style.display = 'flex';
+        }
+
+        function closeExportFormatModal() {
+            document.getElementById('exportFormatModal').style.display = 'none';
+        }
+
+        async function triggerExport(format) {
+            closeExportFormatModal();
+            if (currentExportDataType && currentExportButton) {
+                await exportData(currentExportDataType, format, currentExportButton);
             }
         }
 

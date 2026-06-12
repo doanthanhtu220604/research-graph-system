@@ -132,6 +132,24 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
             else:
                 updated += 1
 
+            # Trạng thái chuyển công tác -> Chuyển thành Tác giả ngoài
+            if props.get("trang_thai_cong_tac") == "Chuyển công tác" and gv_id:
+                new_id = f"tgn_{gv_id}"
+                conn.write("""
+                    MATCH (g:GiangVien {id: $id})
+                    OPTIONAL MATCH (g)-[r:THUOC_BO_MON]->()
+                    DELETE r
+                    WITH g
+                    REMOVE g:GiangVien
+                    SET g:TacGiaNgoai
+                    SET g.id = $new_id,
+                        g.don_vi_cong_tac = 'GIẢNG VIÊN ĐÃ CHUYỂN ĐI CỦA TRƯỜNG ĐẠI HỌC NHA TRANG',
+                        g.trang_thai = 'Đã duyệt',
+                        g.is_deleted = false
+                    REMOVE g.password, g.trang_thai_cong_tac, g.chuc_vu, g.ma_gv, g.dien_thoai
+                """, {"id": gv_id, "new_id": new_id})
+                continue
+
             # Xử lý Bộ môn
             bo_mon = safe_str(row.get("bo_mon"))
             if bo_mon:

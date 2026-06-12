@@ -74,6 +74,24 @@ def create_giang_vien():
         """, props)
         gv_id = result[0]["id"] if result else None
 
+        # Trạng thái chuyển công tác -> Chuyển thành Tác giả ngoài
+        if props["trang_thai_cong_tac"] == "Chuyển công tác" and gv_id:
+            new_id = f"tgn_{gv_id}"
+            conn.write("""
+                MATCH (g:GiangVien {id: $id})
+                OPTIONAL MATCH (g)-[r:THUOC_BO_MON]->()
+                DELETE r
+                WITH g
+                REMOVE g:GiangVien
+                SET g:TacGiaNgoai
+                SET g.id = $new_id,
+                    g.don_vi_cong_tac = 'GIẢNG VIÊN ĐÃ CHUYỂN ĐI CỦA TRƯỜNG ĐẠI HỌC NHA TRANG',
+                    g.trang_thai = 'Đã duyệt',
+                    g.is_deleted = false
+                REMOVE g.password, g.trang_thai_cong_tac, g.chuc_vu, g.ma_gv, g.dien_thoai
+            """, {"id": gv_id, "new_id": new_id})
+            return jsonify({"status": "ok", "message": "Giảng viên chuyển công tác đã được thêm làm Tác giả ngoài.", "id": new_id})
+
         # Thiết lập quan hệ Bộ môn (nếu có)
         if data.get("bo_mon"):
             conn.write("""
@@ -163,6 +181,24 @@ def update_giang_vien(id):
                 gv.trang_thai_cong_tac = $trang_thai_cong_tac,
                 gv.anh_dai_dien = $anh_dai_dien
         """, props)
+
+        # Trạng thái chuyển công tác -> Chuyển thành Tác giả ngoài
+        if props["trang_thai_cong_tac"] == "Chuyển công tác":
+            new_id = f"tgn_{id}"
+            conn.write("""
+                MATCH (g:GiangVien {id: $id})
+                OPTIONAL MATCH (g)-[r:THUOC_BO_MON]->()
+                DELETE r
+                WITH g
+                REMOVE g:GiangVien
+                SET g:TacGiaNgoai
+                SET g.id = $new_id,
+                    g.don_vi_cong_tac = 'GIẢNG VIÊN ĐÃ CHUYỂN ĐI CỦA TRƯỜNG ĐẠI HỌC NHA TRANG',
+                    g.trang_thai = 'Đã duyệt',
+                    g.is_deleted = false
+                REMOVE g.password, g.trang_thai_cong_tac, g.chuc_vu, g.ma_gv, g.dien_thoai
+            """, {"id": id, "new_id": new_id})
+            return jsonify({"status": "ok", "message": "Giảng viên đã chuyển công tác thành công sang Tác giả ngoài của khoa."})
 
         if "bo_mon" in data:
             # Xóa quan hệ bộ môn cũ
