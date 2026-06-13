@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin_fix.css">
 </head>
 <body>
     <nav class="sidebar" id="sidebar">
@@ -145,15 +146,23 @@
                         </select>
                     </div>
                     <div class="table-responsive">
-                        <table class="data-table" id="adminProjectsTable">
+                        <table class="data-table" id="adminProjectsTable" style="min-width:800px;">
+                            <colgroup>
+                                <col style="width:7%">
+                                <col style="width:42%">
+                                <col style="width:12%">
+                                <col style="width:10%">
+                                <col style="width:13%">
+                                <col style="width:16%">
+                            </colgroup>
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Tên đề tài</th>
-                                    <th>Cấp đề tài</th>
-                                    <th>Năm thực hiện</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
+                                    <th class="col-id">ID</th>
+                                    <th class="col-name">Tên đề tài</th>
+                                    <th class="col-level">Cấp đề tài</th>
+                                    <th class="col-year">Năm thực hiện</th>
+                                    <th class="col-status">Trạng thái</th>
+                                    <th class="col-actions">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="adminProjectsBody">

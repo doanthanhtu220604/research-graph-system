@@ -40,11 +40,11 @@ function renderPublicationsTable(dataList) {
 
         return `
         <tr>
-            <td>${ct.id || 'N/A'}</td>
-            <td><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
-            <td>${ct.nam_xuat_ban || ''}</td>
-            <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
-            <td>
+            <td class="col-id">${ct.id || 'N/A'}</td>
+            <td class="col-name"><strong>${ct.ten_cong_trinh || 'N/A'}</strong></td>
+            <td class="col-year">${ct.nam_xuat_ban || ''}</td>
+            <td class="col-status"><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
+            <td class="col-actions">
                 ${trangThai === 'Chờ duyệt'    ? `
                     <button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication('${ct.id}')"><i class="fas fa-check"></i></button>
                     <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Từ chối duyệt công trình" onclick="rejectEntity('cong-trinh', '${ct.id}')"><i class="fas fa-ban"></i></button>

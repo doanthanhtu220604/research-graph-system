@@ -29,9 +29,9 @@ function renderLecturersTable(dataList) {
 
     tbody.innerHTML = dataList.map((gv) => `
         <tr>
-            <td>${gv.id || 'N/A'}</td>
-            <td>${gv.ma_gv || 'N/A'}</td>
-            <td>
+            <td class="col-id">${gv.id || 'N/A'}</td>
+            <td class="col-code">${gv.ma_gv || 'N/A'}</td>
+            <td class="col-name">
                 ${gv.anh_dai_dien
                     ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
                     : `<i class="fas fa-user-circle" style="font-size:32px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
@@ -42,16 +42,16 @@ function renderLecturersTable(dataList) {
                     : ''
                 }
             </td>
-            <td>${gv.hoc_vi || ''}</td>
-            <td>${gv.bo_mon || ''}</td>
-            <td>
-                ${gv.trang_thai_cong_tac === 'Đang công tác'  ? '<span class="badge" style="background:#10b981;color:white;">Đang công tác</span>' :
-                  gv.trang_thai_cong_tac === 'Nghỉ hưu'       ? '<span class="badge badge-gray">Nghỉ hưu</span>' :
-                  gv.trang_thai_cong_tac === 'Chuyển công tác' ? '<span class="badge" style="background:#f59e0b;color:white;">Chuyển công tác</span>' :
-                  gv.trang_thai_cong_tac === 'Nghiên cứu sinh' ? '<span class="badge badge-blue">Nghiên cứu sinh</span>' :
-                  '<span class="badge" style="background:#10b981;color:white;">Đang công tác</span>'}
+            <td class="col-degree">${gv.hoc_vi || ''}</td>
+            <td class="col-department">${gv.bo_mon || ''}</td>
+            <td class="col-status">
+                ${gv.trang_thai_cong_tac === 'Đang công tác'  ? '<span class="badge" style="background:#10b981;color:white;white-space:nowrap;">Đang công tác</span>' :
+                  gv.trang_thai_cong_tac === 'Nghỉ hưu'       ? '<span class="badge badge-gray" style="white-space:nowrap;">Nghỉ hưu</span>' :
+                  gv.trang_thai_cong_tac === 'Chuyển công tác' ? '<span class="badge" style="background:#f59e0b;color:white;white-space:nowrap;">Chuyển công tác</span>' :
+                  gv.trang_thai_cong_tac === 'Nghiên cứu sinh' ? '<span class="badge badge-blue" style="white-space:nowrap;">Nghiên cứu sinh</span>' :
+                  '<span class="badge" style="background:#10b981;color:white;white-space:nowrap;">Đang công tác</span>'}
             </td>
-            <td>
+            <td class="col-actions">
                 <button class="btn btn-sm" style="background:#f39c12;color:#fff;border-color:#f39c12;" title="Xem chi tiết" onclick="viewLecturerStats('${gv.id}')"><i class="fas fa-eye"></i></button>
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('giang-vien', '${gv.id}', null)"><i class="fas fa-edit"></i></button>
                 ${gv.profile_edit_status === 'Chờ duyệt' ? `

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin_fix.css">
 </head>
 <body>
     <nav class="sidebar" id="sidebar">
@@ -138,14 +139,21 @@
 
                     </div>
                     <div class="table-responsive">
-                        <table class="data-table" id="adminPublicationsTable">
+                        <table class="data-table" id="adminPublicationsTable" style="min-width:700px;">
+                            <colgroup>
+                                <col style="width:7%">
+                                <col style="width:50%">
+                                <col style="width:9%">
+                                <col style="width:16%">
+                                <col style="width:18%">
+                            </colgroup>
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Tên công trình</th>
-                                    <th>Năm XB</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
+                                    <th class="col-id">ID</th>
+                                    <th class="col-name">Tên công trình</th>
+                                    <th class="col-year">Năm XB</th>
+                                    <th class="col-status">Trạng thái</th>
+                                    <th class="col-actions">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="adminPublicationsBody">

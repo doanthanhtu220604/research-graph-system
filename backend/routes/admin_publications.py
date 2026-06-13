@@ -21,7 +21,7 @@ def create_cong_trinh():
         if not ten_cong_trinh:
             return jsonify({"status": "error", "message": "Tên công trình không được để trống"}), 400
 
-        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split())
+        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split()).upper()
         data["ten_cong_trinh_vi"] = ten_cong_trinh_vi
 
         slug = generate_slug(ten_cong_trinh)
@@ -55,7 +55,7 @@ def create_cong_trinh():
         result = conn.write("""
             CREATE (ct:CongTrinhNghienCuu {
                 ten_cong_trinh: toUpper($ten_cong_trinh),
-                ten_cong_trinh_vi: $ten_cong_trinh_vi,
+                ten_cong_trinh_vi: toUpper($ten_cong_trinh_vi),
                 slug: $slug,
                 slug_vi: $slug_vi,
                 nam_xuat_ban: $nam_xuat_ban,
@@ -110,7 +110,7 @@ def update_cong_trinh(id):
         ten_cong_trinh = " ".join(ten_cong_trinh.split())
         slug = generate_slug(ten_cong_trinh)
 
-        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split())
+        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split()).upper()
         slug_vi = generate_slug(ten_cong_trinh_vi) if ten_cong_trinh_vi else None
 
         # Kiểm tra trùng tên tiếng Việt khi cập nhật (loại trừ chính nó)
@@ -138,7 +138,7 @@ def update_cong_trinh(id):
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.ten_cong_trinh = toUpper($ten_cong_trinh),
-                ct.ten_cong_trinh_vi = $ten_cong_trinh_vi,
+                ct.ten_cong_trinh_vi = toUpper($ten_cong_trinh_vi),
                 ct.slug = $slug,
                 ct.slug_vi = $slug_vi,
                 ct.nam_xuat_ban = $nam_xuat_ban,

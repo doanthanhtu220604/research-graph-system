@@ -238,7 +238,7 @@ def add_my_publication():
         if not ten_cong_trinh:
             return jsonify({'status': 'error', 'message': 'Tên công trình không được để trống'}), 400
 
-        ten_cong_trinh_vi = " ".join(data.get('ten_cong_trinh_vi', '').split())
+        ten_cong_trinh_vi = " ".join(data.get('ten_cong_trinh_vi', '').split()).upper()
 
         slug = generate_slug(ten_cong_trinh)
         exists_en = conn.query_single("""
@@ -274,7 +274,7 @@ def add_my_publication():
         
         CREATE (ct:CongTrinhNghienCuu {
             ten_cong_trinh: toUpper($ten_ct),
-            ten_cong_trinh_vi: $ten_ct_vi,
+            ten_cong_trinh_vi: toUpper($ten_ct_vi),
             slug: $slug,
             slug_vi: $slug_vi,
             nam_xuat_ban: toInteger($nam_xb),
@@ -373,7 +373,7 @@ def update_my_publication(ct_id):
             data['ten_cong_trinh'] = ten_ct
             slug = generate_slug(ten_ct)
 
-            ten_ct_vi = " ".join(data.get('ten_cong_trinh_vi', '').split())
+            ten_ct_vi = " ".join(data.get('ten_cong_trinh_vi', '').split()).upper()
             slug_vi_upd = generate_slug(ten_ct_vi) if ten_ct_vi else None
 
             # Kiểm tra trùng tên tiếng Việt khi cập nhật (loại trừ chính nó)
@@ -393,7 +393,7 @@ def update_my_publication(ct_id):
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
             SET ct.old_status = CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END,
                 ct.ten_cong_trinh = toUpper($ten_ct),
-                ct.ten_cong_trinh_vi = $ten_ct_vi,
+                ct.ten_cong_trinh_vi = toUpper($ten_ct_vi),
                 ct.slug = $slug,
                 ct.slug_vi = $slug_vi,
                 ct.nam_xuat_ban = toInteger($nam_xb),

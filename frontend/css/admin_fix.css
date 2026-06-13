@@ -230,6 +230,56 @@ body:has(.sidebar) .card {
 
 .table-responsive table { margin-bottom: 0; }
 
+/* ── Cố định layout bảng theo % — không co giãn theo nội dung ── */
+.data-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* Cột trạng thái: cố định, không xuống dòng */
+.data-table th.col-status,
+.data-table td.col-status {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Cột hành động: cố định, không xuống dòng, căn phải sát lề */
+.data-table th.col-actions,
+.data-table td.col-actions {
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: right;
+    padding-right: 12px;
+}
+
+/* Cột ID, Mã GV, Năm: không xuống dòng */
+.data-table th.col-id,
+.data-table td.col-id,
+.data-table th.col-code,
+.data-table td.col-code,
+.data-table th.col-year,
+.data-table td.col-year {
+    white-space: nowrap;
+}
+
+/* Cột học vị: không xuống dòng */
+.data-table th.col-degree,
+.data-table td.col-degree {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Cột tên & bộ môn: cho phép xuống dòng, hiển thị đầy đủ */
+.data-table th.col-name,
+.data-table td.col-name,
+.data-table th.col-department,
+.data-table td.col-department,
+.data-table th.col-level,
+.data-table td.col-level {
+    word-break: break-word;
+    white-space: normal;
+}
+
 .table-responsive thead {
     position: sticky;
     top: 0;

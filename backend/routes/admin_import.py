@@ -195,7 +195,7 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
             continue
 
         ten = " ".join(ten.split()).upper()
-        ten_vi = " ".join(safe_str(row.get("ten_cong_trinh_vi")).split())  # tên tiếng Việt (không upper)
+        ten_vi = " ".join(safe_str(row.get("ten_cong_trinh_vi")).split()).upper()
         nam_xuat_ban_str = safe_str(row.get("nam_xuat_ban"))
         nam_xuat_ban = int(nam_xuat_ban_str) if nam_xuat_ban_str.isdigit() else None
 

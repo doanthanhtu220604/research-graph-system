@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin_fix.css">
 </head>
 <body>
     <nav class="sidebar" id="sidebar">
@@ -146,20 +147,29 @@
                         </select>
                     </div>
                     <div class="table-responsive">
-                        <table class="data-table" id="adminLecturersTable">
+                        <table class="data-table" id="adminLecturersTable" style="min-width:900px;">
+                            <colgroup>
+                                <col style="width:7%">
+                                <col style="width:8%">
+                                <col style="width:26%">
+                                <col style="width:9%">
+                                <col style="width:21%">
+                                <col style="width:13%">
+                                <col style="width:16%">
+                            </colgroup>
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Mã GV</th>
-                                    <th>Họ và tên</th>
-                                    <th>Học vị</th>
-                                    <th>Bộ môn</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
+                                    <th class="col-id">ID</th>
+                                    <th class="col-code">Mã GV</th>
+                                    <th class="col-name">Họ và tên</th>
+                                    <th class="col-degree">Học vị</th>
+                                    <th class="col-department">Bộ môn</th>
+                                    <th class="col-status">Trạng thái</th>
+                                    <th class="col-actions">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="adminLecturersBody">
-                                <tr><td colspan="6" class="loading-cell">Đang tải...</td></tr>
+                                <tr><td colspan="7" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>

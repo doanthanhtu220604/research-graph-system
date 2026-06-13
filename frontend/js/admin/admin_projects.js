@@ -44,12 +44,12 @@ function renderProjectsTable(dataList) {
 
         return `
         <tr>
-            <td>${dt.id || 'N/A'}</td>
-            <td><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
-            <td>${dt.cap_de_tai || ''}</td>
-            <td>${namThucHien}</td>
-            <td><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight: 600; white-space: nowrap;">${trangThai}</span></td>
-            <td>
+            <td class="col-id">${dt.id || 'N/A'}</td>
+            <td class="col-name"><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
+            <td class="col-level">${dt.cap_de_tai || ''}</td>
+            <td class="col-year">${namThucHien}</td>
+            <td class="col-status"><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight: 600; white-space: nowrap;">${trangThai}</span></td>
+            <td class="col-actions">
                 ${trangThai === 'Chờ duyệt'   ? `
                     <button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt đề tài" onclick="approveProject('${dt.id}')"><i class="fas fa-check"></i></button>
                     <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Từ chối duyệt đề tài" onclick="rejectEntity('de-tai', '${dt.id}')"><i class="fas fa-ban"></i></button>
