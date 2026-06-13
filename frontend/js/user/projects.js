@@ -139,6 +139,10 @@ async function showProjectDetail(dtId) {
             const dt = dataDetail.data;
             document.getElementById('detailTitle').textContent = dt.ten_de_tai || 'Đề tài nghiên cứu';
             document.getElementById('detailSubtitle').textContent = dt.cap_de_tai ? `Cấp ${dt.cap_de_tai}` : 'Đề tài';
+            const viElProj = document.getElementById('detailTitleVi');
+            if (viElProj) { viElProj.textContent = ''; viElProj.style.display = 'none'; }
+            const btnProj = document.getElementById('langToggleBtn');
+            if (btnProj) btnProj.style.display = 'none';
 
             const iconEl = document.getElementById('detailIcon');
             iconEl.innerHTML = '<i class="fas fa-flask" style="color: #f59e0b;"></i>';
@@ -271,6 +275,10 @@ async function showGenericEntityDetail(nodeId, label, name) {
 
             document.getElementById('detailTitle').textContent = name || typeName;
             document.getElementById('detailSubtitle').textContent = typeName;
+            const viElGen = document.getElementById('detailTitleVi');
+            if (viElGen) { viElGen.textContent = ''; viElGen.style.display = 'none'; }
+            const btnGen = document.getElementById('langToggleBtn');
+            if (btnGen) btnGen.style.display = 'none';
 
             const iconEl = document.getElementById('detailIcon');
             iconEl.innerHTML = `<i class="fas ${icon}" style="color: ${color};"></i>`;

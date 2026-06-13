@@ -3,6 +3,38 @@
    ============================================================ */
 
 let _allPublications = [];
+// Lưu tên EN/VI của công trình đang xem để toggle
+let _currentDetailTitleEN = '';
+let _currentDetailTitleVI = '';
+let _titleLang = 'en'; // trạng thái hiện tại: 'en' hoặc 'vi'
+
+/** Hoán đổi tiêu đề lớn giữa tiếng Anh và tiếng Việt */
+function toggleTitleLanguage() {
+    if (!_currentDetailTitleVI) return;
+
+    const titleEl = document.getElementById('detailTitle');
+    const btn     = document.getElementById('langToggleBtn');
+    if (!titleEl || !btn) return;
+
+    if (_titleLang === 'en') {
+        // Chuyển sang tiếng Việt
+        titleEl.textContent  = _currentDetailTitleVI;
+        btn.textContent      = '🌐 EN';
+        btn.style.background = 'rgba(16,185,129,0.1)';
+        btn.style.border     = '1px solid rgba(16,185,129,0.35)';
+        btn.style.color      = '#10b981';
+        _titleLang = 'vi';
+    } else {
+        // Chuyển về tiếng Anh
+        titleEl.textContent  = _currentDetailTitleEN;
+        btn.textContent      = '🌐 VI';
+        btn.style.background = 'rgba(79,142,247,0.1)';
+        btn.style.border     = '1px solid rgba(79,142,247,0.35)';
+        btn.style.color      = 'var(--accent-blue)';
+        _titleLang = 'en';
+    }
+}
+
 
 async function loadPublications() {
     try {
@@ -87,7 +119,32 @@ async function showPublicationDetail(ctId) {
 
         if (dataDetail.status === 'ok' && dataGraph.status === 'ok') {
             const ct = dataDetail.data;
-            document.getElementById('detailTitle').textContent = ct.ten_cong_trinh || 'Công trình nghiên cứu';
+
+            // Lưu cả hai tên để toggle, reset về EN
+            _currentDetailTitleEN = ct.ten_cong_trinh || 'Công trình nghiên cứu';
+            _currentDetailTitleVI = ct.ten_cong_trinh_vi || '';
+            _titleLang = 'en';
+
+            document.getElementById('detailTitle').textContent = _currentDetailTitleEN;
+
+            // Tên tiếng Việt: luôn ẩn (không hiện chữ nhỏ phía dưới)
+            const viEl = document.getElementById('detailTitleVi');
+            if (viEl) { viEl.textContent = ''; viEl.style.display = 'none'; }
+
+            // Nút toggle: chỉ hiện khi có tên tiếng Việt
+            const btn = document.getElementById('langToggleBtn');
+            if (btn) {
+                if (_currentDetailTitleVI) {
+                    btn.style.display    = 'inline-flex';
+                    btn.textContent      = '🌐 VI';
+                    btn.style.background = 'rgba(79,142,247,0.1)';
+                    btn.style.border     = '1px solid rgba(79,142,247,0.35)';
+                    btn.style.color      = 'var(--accent-blue)';
+                } else {
+                    btn.style.display = 'none';
+                }
+            }
+
             document.getElementById('detailSubtitle').textContent = 'Công trình';
 
             const iconEl = document.getElementById('detailIcon');

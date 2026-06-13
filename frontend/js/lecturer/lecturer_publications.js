@@ -111,19 +111,12 @@ function filterPublications() {
 
         if (row.cells.length < 4) return;
 
-        const name = row.cells[1].textContent.toLowerCase();
-
-        const year = row.cells[2].textContent;
-
-
+        const nameEn = row.cells[1].textContent.toLowerCase();
+        // cell[1] chứa cả tên Anh và Việt (textContent sẽ gộp cả hai)
 
         let visible = true;
-
-        if (nameVal && !name.includes(nameVal)) visible = false;
-
-        if (yearVal && !year.includes(yearVal)) visible = false;
-
-
+        if (nameVal && !nameEn.includes(nameVal)) visible = false;
+        if (yearVal && !row.cells[2].textContent.includes(yearVal)) visible = false;
 
         row.style.display = visible ? '' : 'none';
 

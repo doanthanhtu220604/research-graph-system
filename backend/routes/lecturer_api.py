@@ -238,14 +238,28 @@ def add_my_publication():
         if not ten_cong_trinh:
             return jsonify({'status': 'error', 'message': 'Tên công trình không được để trống'}), 400
 
+        ten_cong_trinh_vi = " ".join(data.get('ten_cong_trinh_vi', '').split())
+
         slug = generate_slug(ten_cong_trinh)
-        exists = conn.query_single("""
+        exists_en = conn.query_single("""
             MATCH (ct:CongTrinhNghienCuu)
             WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
             RETURN ct.id AS id
         """, {"slug": slug})
-        if exists:
-            return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên này đã tồn tại trong hệ thống'}), 400
+        if exists_en:
+            return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống'}), 400
+
+        # Kiểm tra trùng tên tiếng Việt (nếu có)
+        slug_vi = None
+        if ten_cong_trinh_vi:
+            slug_vi = generate_slug(ten_cong_trinh_vi)
+            exists_vi = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE ct.slug_vi = $slug_vi AND coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"slug_vi": slug_vi})
+            if exists_vi:
+                return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống'}), 400
 
         query = """
         // 1. Tìm người tạo dựa trên gv_id
@@ -260,7 +274,9 @@ def add_my_publication():
         
         CREATE (ct:CongTrinhNghienCuu {
             ten_cong_trinh: toUpper($ten_ct),
+            ten_cong_trinh_vi: $ten_ct_vi,
             slug: $slug,
+            slug_vi: $slug_vi,
             nam_xuat_ban: toInteger($nam_xb),
             noi_xuat_ban: toUpper($noi_xb),
             tom_tat: $tom_tat,
@@ -285,7 +301,9 @@ def add_my_publication():
             'gv_id': gv_id,
             'thanh_vien_ids': thanh_vien_ids,
             'ten_ct': data.get('ten_cong_trinh', ''),
+            'ten_ct_vi': ten_cong_trinh_vi,
             'slug': slug,
+            'slug_vi': slug_vi,
             'nam_xb': data.get('nam_xuat_ban'),
             'noi_xb': data.get('noi_xuat_ban'),
             'tom_tat': data.get('tom_tat', ''),
@@ -354,11 +372,20 @@ def update_my_publication(ct_id):
             ten_ct = " ".join(ten_ct.split())
             data['ten_cong_trinh'] = ten_ct
             slug = generate_slug(ten_ct)
-            # Nếu đang ở trạng thái 'Từ chối', cho phép giảng viên nộp lại bằng cách đặt lại thành 'Chờ duyệt'
-            status_res = conn.query_single(
-                "MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $ct_id RETURN ct.trang_thai AS status",
-                {'ct_id': ct_id}
-            )
+
+            ten_ct_vi = " ".join(data.get('ten_cong_trinh_vi', '').split())
+            slug_vi_upd = generate_slug(ten_ct_vi) if ten_ct_vi else None
+
+            # Kiểm tra trùng tên tiếng Việt khi cập nhật (loại trừ chính nó)
+            if slug_vi_upd:
+                exists_vi_upd = conn.query_single("""
+                    MATCH (ct:CongTrinhNghienCuu)
+                    WHERE ct.slug_vi = $slug_vi AND ct.id <> $ct_id AND coalesce(ct.is_deleted, false) = false
+                    RETURN ct.id AS id
+                """, {"slug_vi": slug_vi_upd, "ct_id": ct_id})
+                if exists_vi_upd:
+                    return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống'}), 400
+
             # Khi giảng viên sửa thông tin, luôn chuyển về trạng thái 'Chờ duyệt' để Admin phê duyệt lại
             new_status = "'Chờ duyệt'"
 
@@ -366,7 +393,9 @@ def update_my_publication(ct_id):
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
             SET ct.old_status = CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END,
                 ct.ten_cong_trinh = toUpper($ten_ct),
+                ct.ten_cong_trinh_vi = $ten_ct_vi,
                 ct.slug = $slug,
+                ct.slug_vi = $slug_vi,
                 ct.nam_xuat_ban = toInteger($nam_xb),
                 ct.noi_xuat_ban = toUpper($noi_xb),
                 ct.tom_tat = $tom_tat,
@@ -377,7 +406,9 @@ def update_my_publication(ct_id):
             conn.write(query, parameters={
                 'ct_id': ct_id,
                 'ten_ct': data.get('ten_cong_trinh', ''),
+                'ten_ct_vi': ten_ct_vi,
                 'slug': slug,
+                'slug_vi': slug_vi_upd,
                 'nam_xb': data.get('nam_xuat_ban'),
                 'noi_xb': data.get('noi_xuat_ban'),
                 'tom_tat': data.get('tom_tat', ''),

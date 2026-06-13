@@ -21,24 +21,43 @@ def create_cong_trinh():
         if not ten_cong_trinh:
             return jsonify({"status": "error", "message": "Tên công trình không được để trống"}), 400
 
+        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split())
+        data["ten_cong_trinh_vi"] = ten_cong_trinh_vi
+
         slug = generate_slug(ten_cong_trinh)
-        exists = conn.query_single("""
+        exists_en = conn.query_single("""
             MATCH (ct:CongTrinhNghienCuu)
             WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
             RETURN ct.id AS id
         """, {"slug": slug})
-        if exists:
-            return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên này đã tồn tại trong hệ thống"}), 400
+        if exists_en:
+            return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống"}), 400
+
+        # Kiểm tra trùng tên tiếng Việt (nếu có)
+        if ten_cong_trinh_vi:
+            slug_vi = generate_slug(ten_cong_trinh_vi)
+            exists_vi = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE ct.slug_vi = $slug_vi AND coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"slug_vi": slug_vi})
+            if exists_vi:
+                return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống"}), 400
+            data["slug_vi"] = slug_vi
+        else:
+            data["slug_vi"] = None
 
         # Ensure all expected fields exist in data so that Cypher parameters match cleanly
-        for field in ["ten_cong_trinh", "nam_xuat_ban", "noi_xuat_ban", "tom_tat", "trang_thai", "link"]:
+        for field in ["ten_cong_trinh", "ten_cong_trinh_vi", "slug_vi", "nam_xuat_ban", "noi_xuat_ban", "tom_tat", "trang_thai", "link"]:
             if field not in data:
                 data[field] = None
 
         result = conn.write("""
             CREATE (ct:CongTrinhNghienCuu {
                 ten_cong_trinh: toUpper($ten_cong_trinh),
+                ten_cong_trinh_vi: $ten_cong_trinh_vi,
                 slug: $slug,
+                slug_vi: $slug_vi,
                 nam_xuat_ban: $nam_xuat_ban,
                 noi_xuat_ban: toUpper($noi_xuat_ban),
                 tom_tat: $tom_tat,
@@ -90,10 +109,26 @@ def update_cong_trinh(id):
         ten_cong_trinh = data.get("ten_cong_trinh", "")
         ten_cong_trinh = " ".join(ten_cong_trinh.split())
         slug = generate_slug(ten_cong_trinh)
+
+        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split())
+        slug_vi = generate_slug(ten_cong_trinh_vi) if ten_cong_trinh_vi else None
+
+        # Kiểm tra trùng tên tiếng Việt khi cập nhật (loại trừ chính nó)
+        if slug_vi:
+            exists_vi = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE ct.slug_vi = $slug_vi AND ct.id <> $id AND coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"slug_vi": slug_vi, "id": id})
+            if exists_vi:
+                return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống"}), 400
+
         params = {
             "id": id,
             "ten_cong_trinh": ten_cong_trinh,
+            "ten_cong_trinh_vi": ten_cong_trinh_vi,
             "slug": slug,
+            "slug_vi": slug_vi,
             "nam_xuat_ban": data.get("nam_xuat_ban"),
             "noi_xuat_ban": data.get("noi_xuat_ban"),
             "tom_tat": data.get("tom_tat"),
@@ -103,7 +138,9 @@ def update_cong_trinh(id):
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
             SET ct.ten_cong_trinh = toUpper($ten_cong_trinh),
+                ct.ten_cong_trinh_vi = $ten_cong_trinh_vi,
                 ct.slug = $slug,
+                ct.slug_vi = $slug_vi,
                 ct.nam_xuat_ban = $nam_xuat_ban,
                 ct.noi_xuat_ban = toUpper($noi_xuat_ban),
                 ct.tom_tat = $tom_tat,

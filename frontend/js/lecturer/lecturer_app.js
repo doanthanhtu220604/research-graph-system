@@ -2051,12 +2051,13 @@ async function viewPublicationDetail(ctId) {
 
         <div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
 
-            <p style="margin-bottom:8px;font-size:16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b>
+            <p style="margin-bottom:${ct.ten_cong_trinh_vi ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b>
 
                 <span style="background:${stBg};color:${stColor};border:1px solid ${stColor};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;margin-left:8px;">${trangThai}</span>
 
             </p>
 
+            ${ct.ten_cong_trinh_vi ? `<p style="margin-bottom:8px;font-size:13px;color:var(--text-muted);font-style:italic;font-weight:400;">${ct.ten_cong_trinh_vi}</p>` : ''}
             <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
             <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'N/A'}</p>
 

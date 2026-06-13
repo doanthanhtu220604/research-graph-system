@@ -37,7 +37,8 @@ const ENTITY_CONFIG = {
         apiUrl: `${API_BASE}/cong-trinh`,
         adminApiUrl: `${ADMIN_API_BASE}/cong-trinh`,
         fields: [
-            { name: 'ten_cong_trinh', label: 'Tên công trình', type: 'text', required: true },
+            { name: 'ten_cong_trinh', label: 'Tên công trình (tiếng Anh)', type: 'text', required: true },
+            { name: 'ten_cong_trinh_vi', label: 'Tên công trình (tiếng Việt)', type: 'text', required: false },
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
             { name: 'noi_xuat_ban', label: 'Nơi xuất bản', type: 'text' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },

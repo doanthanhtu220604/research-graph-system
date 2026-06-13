@@ -195,12 +195,18 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
             continue
 
         ten = " ".join(ten.split()).upper()
+        ten_vi = " ".join(safe_str(row.get("ten_cong_trinh_vi")).split())  # tên tiếng Việt (không upper)
         nam_xuat_ban_str = safe_str(row.get("nam_xuat_ban"))
         nam_xuat_ban = int(nam_xuat_ban_str) if nam_xuat_ban_str.isdigit() else None
 
+        slug = generate_slug(ten)
+        slug_vi = generate_slug(ten_vi) if ten_vi else None
+
         props = {
             "ten_cong_trinh": ten,
-            "slug":           generate_slug(ten),
+            "ten_cong_trinh_vi": ten_vi if ten_vi else None,
+            "slug":           slug,
+            "slug_vi":        slug_vi,
             "nam_xuat_ban":   nam_xuat_ban,
             "noi_xuat_ban":   safe_str(row.get("noi_xuat_ban")).upper() if safe_str(row.get("noi_xuat_ban")) else None,
             "tom_tat":        safe_str(row.get("tom_tat")),
@@ -209,19 +215,31 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
         }
 
         try:
-            result = conn.write("""
-                MERGE (ct:CongTrinhNghienCuu {ten_cong_trinh: $ten_cong_trinh})
-                ON CREATE SET
-                    ct.id = 'ct_' + toString(id(ct)),
-                    ct.slug = $slug,
-                    ct.created_at = timestamp(),
-                    ct += $props
-                ON MATCH SET ct += $props
+            # Kiểm tra trùng theo slug tiếng Anh hoặc slug tiếng Việt
+            existing = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE (ct.slug = $slug AND coalesce(ct.is_deleted, false) = false)
+                   OR ($slug_vi IS NOT NULL AND ct.slug_vi = $slug_vi AND coalesce(ct.is_deleted, false) = false)
                 RETURN ct.id AS ct_id
-            """, {"ten_cong_trinh": ten, "slug": props["slug"], "props": props})
+            """, {"slug": slug, "slug_vi": slug_vi})
 
-            ct_id = result[0]["ct_id"]
-            created += 1   # MERGE nên tính là đã xử lý
+            if existing:
+                ct_id = existing["ct_id"]
+                conn.write("""
+                    MATCH (ct:CongTrinhNghienCuu {id: $ct_id})
+                    SET ct += $props
+                """, {"ct_id": ct_id, "props": props})
+            else:
+                result = conn.write("""
+                    CREATE (ct:CongTrinhNghienCuu)
+                    SET ct.id = 'ct_' + toString(id(ct)),
+                        ct.created_at = timestamp(),
+                        ct += $props
+                    RETURN ct.id AS ct_id
+                """, {"props": props})
+                ct_id = result[0]["ct_id"]
+
+            created += 1
 
             # Tác giả là Giảng viên
             tac_gia_gv = parse_list_field(row.get("tac_gia_giang_vien"))
@@ -485,7 +503,8 @@ def download_template(data_type: str):
             "bo_mon", "linh_vuc_nghien_cuu"
         ],
         "cong-trinh": [
-            "ten_cong_trinh", "nam_xuat_ban", "tom_tat", "trang_thai", "link",
+            "ten_cong_trinh", "ten_cong_trinh_vi", "nam_xuat_ban", "noi_xuat_ban",
+            "tom_tat", "trang_thai", "link",
             "tac_gia_giang_vien", "tac_gia_ngoai"
         ],
         "de-tai": [

@@ -69,8 +69,9 @@ function filterPublications() {
     const yearFilter  = document.getElementById('filterPubYear')?.value || '';
 
     const filtered = list.filter(ct => {
-        const title      = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
-        const matchTitle = title.includes(titleFilter);
+        const titleEn  = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
+        const titleVi  = (ct.ten_cong_trinh_vi || '').normalize('NFC').toLowerCase();
+        const matchTitle = titleEn.includes(titleFilter) || titleVi.includes(titleFilter);
         const matchYear  = yearFilter === '' || (ct.nam_xuat_ban == yearFilter);
         return matchTitle && matchYear;
     });

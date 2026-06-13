@@ -151,6 +151,10 @@ async function showLecturerDetail(gvId) {
 
             document.getElementById('detailTitle').textContent = gv.ho_va_ten || 'Giảng viên';
             document.getElementById('detailSubtitle').textContent = gv.chuc_danh ? `${gv.chuc_danh} - ${gv.hoc_vi || ''}` : (gv.hoc_vi || 'Giảng viên');
+            const viElLec = document.getElementById('detailTitleVi');
+            if (viElLec) { viElLec.textContent = ''; viElLec.style.display = 'none'; }
+            const btnLec = document.getElementById('langToggleBtn');
+            if (btnLec) btnLec.style.display = 'none';
 
             const iconEl = document.getElementById('detailIcon');
             if (gv.anh_dai_dien) {

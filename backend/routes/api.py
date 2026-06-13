@@ -372,6 +372,7 @@ def search():
                 authors_str = " ".join(r.get("related_authors") or [])
                 search_text = " ".join([
                     str(item.get("ten_cong_trinh") or ""),
+                    str(item.get("ten_cong_trinh_vi") or ""),
                     str(item.get("nam_xuat_ban") or ""),
                     str(item.get("noi_xuat_ban") or ""),
                     authors_str

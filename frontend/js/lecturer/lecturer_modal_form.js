@@ -14,7 +14,9 @@ const ENTITY_CONFIG = {
 
         fields: [
 
-            { name: 'ten_cong_trinh', label: 'Tên công trình', type: 'text', required: true },
+            { name: 'ten_cong_trinh', label: 'Tên công trình (tiếng Anh)', type: 'text', required: true },
+
+            { name: 'ten_cong_trinh_vi', label: 'Tên công trình (tiếng Việt)', type: 'text', required: false },
 
             { name: 'nam_xuat_ban', label: 'Năm xuất bản', type: 'number' },
             { name: 'noi_xuat_ban', label: 'Nơi xuất bản', type: 'text' },
