@@ -336,7 +336,7 @@ def search():
 
     try:
         conn = get_neo4j_connection()
-        # Lấy tất cả các node phù hợp kèm theo các mối quan hệ tác giả/thành viên và lĩnh vực nghiên cứu liên quan
+        # Lấy tất cả các node phù hợp kèm theo các mối quan hệ tác giả/thành viên
         query = f"""
             MATCH (n{label_filter})
             WHERE coalesce(n.is_deleted, false) = false
@@ -346,18 +346,10 @@ def search():
             }})
             OPTIONAL MATCH (tg)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(n)
             WHERE NOT (tg:TacGiaNgoai) OR coalesce(tg.trang_thai, 'Đã duyệt') = 'Đã duyệt'
-            OPTIONAL MATCH (tg)-[:NGHIEN_CUU]->(lv1:LinhVucNghienCuu)
-            WHERE coalesce(lv1.is_deleted, false) = false
-            
             OPTIONAL MATCH (tv)-[:CHU_NHIEM|THAM_GIA]->(n)
-            OPTIONAL MATCH (tv)-[:NGHIEN_CUU]->(lv2:LinhVucNghienCuu)
-            WHERE coalesce(lv2.is_deleted, false) = false
-            
             RETURN n, labels(n) AS labels,
                    collect(DISTINCT tg.ho_va_ten) AS related_authors,
-                   collect(DISTINCT tv.ho_va_ten) AS related_members,
-                   collect(DISTINCT lv1.ten_linh_vuc) AS fields_tg,
-                   collect(DISTINCT lv2.ten_linh_vuc) AS fields_tv
+                   collect(DISTINCT tv.ho_va_ten) AS related_members
         """
         
         results = conn.query(query)
@@ -378,25 +370,21 @@ def search():
                 ])
             elif "CongTrinhNghienCuu" in labels:
                 authors_str = " ".join(r.get("related_authors") or [])
-                fields_str = " ".join(list(set((r.get("fields_tg") or []) + (r.get("fields_tv") or []))))
                 search_text = " ".join([
                     str(item.get("ten_cong_trinh") or ""),
                     str(item.get("ten_cong_trinh_vi") or ""),
                     str(item.get("nam_xuat_ban") or ""),
                     str(item.get("noi_xuat_ban") or ""),
-                    authors_str,
-                    fields_str
+                    authors_str
                 ])
             elif "DeTaiNghienCuu" in labels:
                 members_str = " ".join(r.get("related_members") or [])
-                fields_str = " ".join(list(set((r.get("fields_tg") or []) + (r.get("fields_tv") or []))))
                 search_text = " ".join([
                     str(item.get("ten_de_tai") or ""),
                     str(item.get("nam_bat_dau") or ""),
                     str(item.get("nam_ket_thuc") or ""),
                     str(item.get("cap_de_tai") or ""),
-                    members_str,
-                    fields_str
+                    members_str
                 ])
             elif "BoMon" in labels:
                 search_text = item.get("ten_bo_mon") or ""
@@ -824,9 +812,10 @@ def get_stats_trends():
             except:
                 return 0
 
-        # Hàm kiểm tra trùng khớp từ khóa
+
+        # Hàm kiểm tra trùng khớp từ khóa (bản cũ cho trang thống kê)
         import re
-        def check_match(title, summary, field_name):
+        def check_match_stats(title, summary, field_name):
             text = f"{title or ''} {summary or ''}"
             text_norm = remove_accents(text.lower())
             field_norm = remove_accents(field_name.lower())
@@ -834,27 +823,16 @@ def get_stats_trends():
             if field_norm in text_norm:
                 return True
                 
-            mappings = {
+            mappings_old = {
                 "machine learning": ["hoc may", "machine learning", "ml", "classification", "deep learning", "neural network", "svm", "knn", "random forest"],
                 "data science": ["khoa hoc du lieu", "data science", "analytics", "prediction", "du bao", "statistical"],
                 "business intelligence": ["tri tue kinh doanh", "business intelligence", "dashboard", "kho du lieu", "data warehouse", "bi "],
                 "data mining": ["khai pha du lieu", "data mining", "clustering", "association rule", "apriori", "phan cum"],
                 "big data": ["du lieu lon", "big data", "hadoop", "spark", "mapreduce", "nosql", "cloud computing"],
-                "system analysis and design": ["thiet ke he thong", "system analysis", "uml", "use case", "diagram", "analysing", "software design"],
-                "phan cum du lieu khong gian dia ly": ["geospatial", "spatial data", "gis", "location-based", "network space", "phan cum", "dia ly", "khong gian"],
-                "fanet": ["fanet", "flying ad hoc network", "uav"],
-                "iot routing and security": ["iot", "routing", "security", "internet of things", "dinh tuyen", "bao mat"],
-                "xml and semantic web": ["xml", "semantic web", "ontology", "rdf", "owl", "web ngu nghia"],
-                "natural language processing": ["nlp", "natural language processing", "xu ly ngon ngu tu nhien", "text mining", "translation"],
-                "graph neural networks": ["graph neural network", "gnn", "do thi", "graph network"],
-                "database": ["database", "sql", "nosql", "mongodb", "mysql", "oracle", "neo4j", "co so du lieu"],
-                "web": ["web development", "website", "html", "css", "javascript", "react", "vue", "angular", "node.js", "django", "flask", "phat trien web"],
-                "mobile": ["mobile", "di dong", "android", "ios", "flutter", "react native", "lap trinh di dong"],
-                "network security": ["network security", "an ninh mang", "an toan thong tin", "cryptography", "encryption", "cybersecurity"],
-                "network computer": ["network", "computer network", "mang may tinh"]
+                "system analysis and design": ["thiet ke he thong", "system analysis", "uml", "use case", "diagram", "analysing", "software design"]
             }
             
-            for key, terms in mappings.items():
+            for key, terms in mappings_old.items():
                 if key in field_norm:
                     for term in terms:
                         if term in text_norm:
@@ -880,13 +858,24 @@ def get_stats_trends():
             if not fields_of_gv:
                 continue
                 
+            matched_any = False
             for field in fields_of_gv:
                 if field in field_papers:
-                    if check_match(title, summary, field):
+                    if check_match_stats(title, summary, field):
                         field_papers[field]["total"].add(ct_id)
                         if nam and to_int(nam) >= 2023:
                             field_papers[field]["recent"].add(ct_id)
                         field_papers[field]["lecturers"].add(gv)
+                        matched_any = True
+            
+            # Fallback: Nếu không khớp từ khóa đặc trưng nào, gán tạm vào lĩnh vực đầu tiên của giảng viên
+            if not matched_any and fields_of_gv:
+                first_field = fields_of_gv[0]
+                if first_field in field_papers:
+                    field_papers[first_field]["total"].add(ct_id)
+                    if nam and to_int(nam) >= 2023:
+                        field_papers[first_field]["recent"].add(ct_id)
+                    field_papers[first_field]["lecturers"].add(gv)
 
         trends = []
         for field, stats in field_papers.items():
