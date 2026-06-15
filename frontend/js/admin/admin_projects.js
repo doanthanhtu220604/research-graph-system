@@ -44,8 +44,8 @@ function renderProjectsTable(dataList) {
 
         return `
         <tr>
-            <td class="col-id">${dt.id || 'N/A'}</td>
-            <td class="col-name"><strong>${dt.ten_de_tai || 'N/A'}</strong></td>
+            <td class="col-id">${dt.id || 'Chưa rõ'}</td>
+            <td class="col-name"><strong>${dt.ten_de_tai || 'Chưa rõ'}</strong></td>
             <td class="col-level">${dt.cap_de_tai || ''}</td>
             <td class="col-year">${namThucHien}</td>
             <td class="col-status"><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight: 600; white-space: nowrap;">${trangThai}</span></td>

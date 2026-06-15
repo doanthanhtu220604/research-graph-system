@@ -47,12 +47,12 @@ async function viewLecturerStats(gvId) {
         document.getElementById('adminStatsModalTitle').textContent = `Thông tin Chi tiết: ${gv.ho_va_ten}`;
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:5px;"><b>Học vị:</b> ${gv.hoc_vi || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${gv.chuc_danh || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chức vụ:</b> ${gv.chuc_vu || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Bộ môn:</b> ${gv.bo_mon || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chuyên ngành:</b> ${gv.chuyen_nganh || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Email:</b> ${gv.email || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Học vị:</b> ${gv.hoc_vi || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${gv.chuc_danh || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Chức vụ:</b> ${gv.chuc_vu || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Bộ môn:</b> ${gv.bo_mon || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Chuyên ngành:</b> ${gv.chuyen_nganh || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Email:</b> ${gv.email || 'Chưa rõ'}</p>
             <p style="margin-bottom:0;"><b>Lĩnh vực:</b> ${(gv.linh_vuc?.length) ? gv.linh_vuc.map(lv => `<span style="display:inline-block;padding:2px 10px;background:rgba(26,188,156,0.12);color:#1ABC9C;border-radius:12px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${lv}</span>`).join('') : '<span style="color:var(--text-muted);">Chưa có</span>'}</p>
         </div>`;
 
@@ -60,7 +60,7 @@ async function viewLecturerStats(gvId) {
         if (gv.cong_trinh?.length) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">';
             gv.cong_trinh.forEach(ct => {
-                const ten = ct.ten_cong_trinh || ct.cong_trinh?.ten_cong_trinh || 'N/A';
+                const ten = ct.ten_cong_trinh || ct.cong_trinh?.ten_cong_trinh || 'Chưa rõ';
                 const nam = ct.nam_xuat_ban   || ct.cong_trinh?.nam_xuat_ban   || '?';
                 const vt  = ct.vai_tro || ct.cong_trinh?.vai_tro || '';
                 const vaiTroLabel = vt === 'TAC_GIA_CHINH' ? 'Tác giả chính' : (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') ? 'Đồng tác giả' : 'Tác giả';
@@ -73,7 +73,7 @@ async function viewLecturerStats(gvId) {
         if (gv.de_tai?.length) {
             html += '<ul style="margin-left:20px;margin-bottom:15px;margin-top:10px;line-height:1.6;">';
             gv.de_tai.forEach(dt => {
-                const ten = dt.ten_de_tai || dt.de_tai?.ten_de_tai || 'N/A';
+                const ten = dt.ten_de_tai || dt.de_tai?.ten_de_tai || 'Chưa rõ';
                 html += `<li onclick="navigateToManage('de-tai','${ten.replace(/'/g,"\\'")}') " style="cursor:pointer;" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='inherit'"><b>${ten}</b> <span style="color:var(--text-muted);font-size:12px;">(Vai trò: <b>${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</b>)</span></li>`;
             });
             html += '</ul>';
@@ -96,11 +96,11 @@ async function viewPublicationStats(ctId) {
         document.getElementById('adminStatsModalTitle').textContent = 'Chi tiết Công trình';
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:${ct.ten_cong_trinh_vi ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b></p>
+            <p style="margin-bottom:${ct.ten_cong_trinh_vi ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || 'Chưa rõ'}</b></p>
             ${ct.ten_cong_trinh_vi ? `<p style="margin-bottom:8px;font-size:13px;color:var(--text-muted);font-style:italic;font-weight:400;">${ct.ten_cong_trinh_vi}</p>` : ''}
-            <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>` : 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>` : 'Chưa rõ'}</p>
             <p style="margin-bottom:5px;"><b>Tóm tắt:</b> ${ct.tom_tat || 'Đang cập nhật...'}</p>
         </div>`;
 
@@ -144,13 +144,13 @@ async function viewProjectStats(dtId) {
 
         const displayTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc)
             ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}`
-            : (dt.nam_bat_dau || dt.nam || 'N/A');
+            : (dt.nam_bat_dau || dt.nam || 'Chưa rõ');
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:8px;font-size:16px;"><b>${dt.ten_de_tai || 'N/A'}</b></p>
-            <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
+            <p style="margin-bottom:8px;font-size:16px;"><b>${dt.ten_de_tai || 'Chưa rõ'}</b></p>
+            <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'Chưa rõ'}</p>
             <p style="margin-bottom:5px;"><b>Thời gian:</b> ${displayTime}</p>
-            <p style="margin-bottom:5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>` : 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Link:</b> ${dt.link ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>` : 'Chưa rõ'}</p>
             <p style="margin-bottom:5px;"><b>Tóm tắt:</b> ${dt.tom_tat || 'Đang cập nhật...'}</p>
         </div>`;
 
@@ -190,11 +190,11 @@ async function viewExternalAuthorDetail(tgnId) {
         document.getElementById('adminStatsModalTitle').textContent = `Chi tiết Tác giả ngoài: ${info.ho_va_ten}`;
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:5px;"><b>Họ và tên:</b> ${info.ho_va_ten || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Đơn vị:</b> ${info.don_vi_cong_tac || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Học vị:</b> ${info.hoc_vi || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${info.chuc_danh || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Email:</b> ${info.email || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Họ và tên:</b> ${info.ho_va_ten || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Đơn vị:</b> ${info.don_vi_cong_tac || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Học vị:</b> ${info.hoc_vi || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Chức danh:</b> ${info.chuc_danh || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Email:</b> ${info.email || 'Chưa rõ'}</p>
         </div>`;
 
         html += `<h4 style="margin-top:20px;color:var(--accent-blue);padding-bottom:5px;border-bottom:1px solid var(--border-color);"><i class="fas fa-file-alt"></i> Công trình (${publications.length})</h4>`;
@@ -231,7 +231,7 @@ async function viewResearchFieldDetail(lvId) {
         document.getElementById('adminStatsModalTitle').textContent = `Lĩnh vực: ${info.ten_linh_vuc}`;
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:0;"><b>Tên Lĩnh vực:</b> ${info.ten_linh_vuc || 'N/A'} (ID: ${info.id || 'N/A'})</p>
+            <p style="margin-bottom:0;"><b>Tên Lĩnh vực:</b> ${info.ten_linh_vuc || 'Chưa rõ'} (ID: ${info.id || 'Chưa rõ'})</p>
         </div>`;
 
         // 1. Giảng viên

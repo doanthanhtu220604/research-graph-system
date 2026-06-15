@@ -63,7 +63,7 @@ function renderLecturerPage(page) {
     }
 
     container.innerHTML = listToRender.map(gv => {
-        const name = String(gv.ho_va_ten || 'N/A').replace(/</g, '&lt;');
+        const name = String(gv.ho_va_ten || 'Chưa rõ').replace(/</g, '&lt;');
         const avatarHtml = gv.anh_dai_dien
             ? `<img src="${String(gv.anh_dai_dien).replace(/"/g, '')}" alt="${name}">`
             : `<span class="avatar-initials">${getInitials(gv.ho_va_ten)}</span>`;
@@ -167,17 +167,17 @@ async function showLecturerDetail(gvId) {
 
             const linhVucHtml = (gv.linh_vuc && gv.linh_vuc.length > 0)
                 ? gv.linh_vuc.map(lv => `<span style="display:inline-block;padding:3px 10px;background:rgba(26,188,156,0.12);color:#1ABC9C;border-radius:12px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${lv}</span>`).join('')
-                : '<b style="color:var(--text-muted);">N/A</b>';
+                : '<b style="color:var(--text-muted);">Chưa rõ</b>';
 
             document.getElementById('detailFieldsGrid').innerHTML = `
-                <div><span style="color:var(--text-muted);font-size:12px;">Học vị</span><br><b>${gv.hoc_vi || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Chức danh</span><br><b>${gv.chuc_danh || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Chức vụ</span><br><b>${gv.chuc_vu || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Chuyên ngành</span><br><b>${gv.chuyen_nganh || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Bộ môn</span><br><b>${gv.bo_mon || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Học vị</span><br><b>${gv.hoc_vi || 'Chưa rõ'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Chức danh</span><br><b>${gv.chuc_danh || 'Chưa rõ'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Chức vụ</span><br><b>${gv.chuc_vu || 'Chưa rõ'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Chuyên ngành</span><br><b>${gv.chuyen_nganh || 'Chưa rõ'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Bộ môn</span><br><b>${gv.bo_mon || 'Chưa rõ'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Trạng thái</span><br><b>${gv.trang_thai_cong_tac || 'Đang công tác'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Email</span><br><b>${gv.email || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Điện thoại</span><br><b>${gv.dien_thoai || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Email</span><br><b>${gv.email || 'Chưa rõ'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Điện thoại</span><br><b>${gv.dien_thoai || 'Chưa rõ'}</b></div>
                 <div style="grid-column: 1 / -1;"><span style="color:var(--text-muted);font-size:12px;">Lĩnh vực nghiên cứu</span><br>${linhVucHtml}</div>
             `;
 
@@ -194,7 +194,7 @@ async function showLecturerDetail(gvId) {
                             else if (vt === 'CONG_SU' || vt === 'LA_TAC_GIA_CUA') roleLabel = ' <span style="color:#10b981; font-size:11px; font-weight:600;">(Đồng tác giả)</span>';
                             return `
                                 <div style="padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 8px; border-radius: 6px; border-left: 3px solid var(--accent-blue); cursor: pointer;" onclick="showPublicationDetail('${ct.id}')">
-                                    <strong>${ct.ten_cong_trinh || 'N/A'}</strong>
+                                    <strong>${ct.ten_cong_trinh || 'Chưa rõ'}</strong>
                                     ${ct.nam_xuat_ban ? `<span style="color: var(--text-muted); font-size: 12px;"> (${ct.nam_xuat_ban})</span>` : ''}
                                     <div style="margin-top:4px;">${roleLabel}</div>
                                 </div>
@@ -210,7 +210,7 @@ async function showLecturerDetail(gvId) {
                         <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-orange);"><i class="fas fa-flask"></i> Đề tài nghiên cứu (${gv.de_tai.length})</h3>
                         ${gv.de_tai.map(dt => {
                             const item = dt.ten_de_tai ? dt : (dt.de_tai || dt);
-                            const tenDeTai = item.ten_de_tai || 'N/A';
+                            const tenDeTai = item.ten_de_tai || 'Chưa rõ';
                             const capDeTai = item.cap_de_tai || 'Chưa xác định';
                             const dtId = item.id;
                             return `

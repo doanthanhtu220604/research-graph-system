@@ -84,7 +84,7 @@
                 </div>
 
                 <!-- Bản đồ tri thức ở dưới -->
-                <div class="card graph-card-explore" style="background:var(--bg-card); overflow:hidden;">
+                <div class="card graph-card-explore" style="background:var(--bg-card); overflow:hidden; max-width: 92%; margin: 0 auto;">
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid rgba(0,0,0,0.06);">
                         <h3 style="margin:0; font-size:16px; font-weight:700; display:flex; align-items:center; gap:10px; color:var(--text-primary);">
                             <i class="fas fa-project-diagram" style="color:#6366f1;"></i> Bản đồ kết nối tri thức
@@ -93,8 +93,10 @@
                             <i class="fas fa-compress-arrows-alt"></i>
                         </button>
                     </div>
+                    <!-- Lọc thực thể trực tiếp trên đồ thị -->
+                    <div class="graph-filters-container" id="exploreGraphFilters" style="padding:12px 24px; background:#f8fafc; border-bottom:1px solid rgba(0,0,0,0.06); display:flex; flex-wrap:wrap; gap:16px; align-items:center;"></div>
                     <div class="explore-graph-wrapper" style="padding:0; position:relative;">
-                        <div id="explore-graph" style="height: 600px; background:#f8fafc;"></div>
+                        <div id="explore-graph" style="height: 580px; background:#f8fafc;"></div>
                         <div id="exploreGraphLegend" style="position:absolute; bottom:16px; left:16px; display:flex; flex-wrap:wrap; gap:12px; background:rgba(255,255,255,0.85); padding:8px 12px; border-radius:8px; font-size:11px; backdrop-filter:blur(4px); border:1px solid rgba(0,0,0,0.06); z-index: 5;"></div>
                     </div>
                 </div>

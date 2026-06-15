@@ -1,13 +1,13 @@
-# Tài liệu Hướng dẫn Kiểm thử và Luồng Hoạt động Toàn diện Hệ thống Bản đồ Tri thức Nghiên cứu Khoa học (NTU)
+# Hướng dẫn Kiểm thử và Danh mục Chức năng Hệ thống Bản đồ Tri thức Nghiên cứu Khoa học (NTU)
 
-Tài liệu này được biên soạn chi tiết nhằm phục vụ công tác kiểm thử hệ thống và hỗ trợ chuẩn bị bảo vệ đồ án tốt nghiệp. Nội dung bao gồm kiến trúc dữ liệu, luồng hoạt động (Data Flow/Workflows) chi tiết từ Frontend qua API Flask xuống Cơ sở dữ liệu đồ thị Neo4j, cùng các kịch bản kiểm thử (Test Cases) đặc biệt cho từng chức năng.
+Tài liệu này cung cấp toàn bộ danh mục chức năng của hệ thống phân chia theo 3 nhóm người dùng (**Khách vãng lai / Sinh viên**, **Giảng viên**, **Quản trị viên**), mô tả các luồng dữ liệu chính và hướng dẫn kiểm thử chi tiết từng chức năng để phục vụ quá trình nghiệm thu, kiểm thử và chuẩn bị bảo vệ đồ án tốt nghiệp.
 
 ---
 
 ## KIẾN TRÚC HỆ THỐNG VÀ ĐỒ THỊ DỮ LIỆU (NEO4J SCHEMA)
 
 Hệ thống hoạt động theo mô hình Client-Server với API RESTful:
-* **Frontend:** Single/Multi-Page App sử dụng HTML5, CSS3 (Vanilla), Javascript ES6 và thư viện trực quan hóa đồ thị **Vis.js**.
+* **Frontend:** Trang web tương tác sử dụng HTML5, CSS3 (Vanilla), Javascript ES6 và thư viện trực quan hóa đồ thị **Vis.js**.
 * **Backend:** **Flask (Python)** xử lý logic, phân quyền người dùng, tích hợp API ngôn ngữ lớn (Gemini AI) và kết nối với Neo4j thông qua thư viện `neo4j-python-driver`.
 * **Database:** **Neo4j** (Cơ sở dữ liệu đồ thị) lưu trữ các thực thể dưới dạng các Node và liên kết giữa chúng dưới dạng các Relationship.
 
@@ -23,6 +23,7 @@ graph TD
     GV -->|THAM_GIA| DT
     
     TGN[TacGiaNgoai] -->|DONG_TAC_GIA| CT
+    TGN -->|CONG_SU| CT
     TGN -->|DONG_TAC_GIA| DT
     
     BM -->|THUOC_KHOA| KH[Khoa]
@@ -105,7 +106,7 @@ graph TD
 ---
 
 ### 3. Luồng Nhập dữ liệu hàng loạt từ Excel & Chuyển đổi trạng thái Giảng viên
-*Giải quyết bài toán đồng bộ hóa dữ liệu khoa học thực tế khi giảng viên chuyển công tác.*
+*Giải quyết bài toán đồng bộ dữ liệu khoa học thực tế và chuẩn hóa trạng thái.*
 
 #### A. Sơ đồ xử lý (Process Flow)
 ```mermaid
@@ -123,20 +124,16 @@ graph TD
 
 #### B. Giải thích chi tiết các bước
 1. **Bước 1 (Tải và Đọc):** Admin upload tệp Excel chứa danh sách công trình/đề tài/giảng viên. Backend dùng thư viện Python (`pandas` / `openpyxl`) để đọc tệp dữ liệu.
-2. **Bước 2 (Kiểm thử dòng hợp lệ):** Backend duyệt qua từng dòng dữ liệu trong bảng. Nếu một dòng bị thiếu thông tin bắt buộc (ví dụ không có Mã giảng viên), hệ thống sẽ ghi nhận dòng đó vào nhật ký lỗi để trả về cho Admin kiểm tra sau, tránh việc lỗi một dòng làm hủy bỏ toàn bộ quá trình tải dữ liệu của 99 dòng còn lại.
+2. **Bước 2 (Kiểm thử dòng hợp lệ):** Backend duyệt qua từng dòng dữ liệu trong bảng. Nếu một dòng bị thiếu thông tin bắt buộc (ví dụ không có Mã giảng viên), hệ thống sẽ ghi nhận dòng đó vào nhật ký lỗi để trả về cho Admin kiểm tra sau, tránh việc lỗi một dòng làm hủy bỏ toàn bộ quá trình tải dữ liệu của các dòng khác.
 3. **Bước 3 (Xử lý giảng viên chuyển công tác):** Nếu cột trạng thái công tác của giảng viên ghi nhận là "Chuyển công tác" hoặc "Nghỉ hưu":
    - Hệ thống chạy câu lệnh Cypher để thay đổi nhãn (label) của node đó từ `GiangVien` thành `TacGiaNgoai` (Tác giả ngoài).
-   - Xóa bỏ quan hệ `THUOC_BO_MON` nối node đó đến Bộ môn (vì họ không còn thuộc bộ môn nào của khoa nữa).
+   - Xóa bỏ quan hệ `THUOC_BO_MON` nối node đó đến Bộ môn.
    - Tuy nhiên, các công trình nghiên cứu cũ của họ trong quá khứ vẫn được giữ nguyên liên kết trên bản đồ tri thức để phục vụ mục đích thống kê lịch sử của khoa.
-
-> [!TIP]
-> **Câu hỏi thầy cô hay hỏi:** *"Nếu import trùng một giảng viên đã có sẵn trong cơ sở dữ liệu đồ thị thì hệ thống xử lý thế nào?"*
-> **Cách trả lời:** *"Dạ, hệ thống không dùng lệnh tạo mới thông thường (`CREATE`), mà sử dụng câu lệnh `MERGE` của Cypher dựa trên thuộc tính định danh duy nhất là Mã giảng viên (`ma_gv`). Nếu giảng viên đã tồn tại, hệ thống chỉ cập nhật thông tin thay đổi (`ON MATCH SET`), ngược lại mới tạo node mới (`ON CREATE SET`), đảm bảo không bao giờ xảy ra hiện tượng trùng lặp hoặc phân mảnh dữ liệu."*
 
 ---
 
 ### 4. Luồng Phân tích & Trực quan Mạng lưới Hợp tác Nghiên cứu (Co-authorship Network Flow)
-*Cung cấp cái nhìn toàn cảnh về các nhóm nghiên cứu, sự liên kết liên bộ môn, và vai trò của từng giảng viên trong mạng lưới học thuật.*
+*Cung cấp cái nhìn toàn cảnh về các nhóm nghiên cứu và vai trò của từng giảng viên trong mạng lưới học thuật.*
 
 #### A. Sơ đồ tuần tự (Sequence Diagram)
 ```mermaid
@@ -169,10 +166,6 @@ sequenceDiagram
    - **Độ dày Cạnh (Width):** Tỉ lệ thuận với số lượng công trình/đề tài chung, thể hiện mức độ khăng khít của mối quan hệ hợp tác.
    - **Màu sắc Node:** Định nghĩa theo Bộ môn (`BoMon`) để dễ dàng nhận biết các cụm nghiên cứu nội bộ bộ môn hay hợp tác liên ngành.
 4. **Bước 7 & 8 (Render):** Trả dữ liệu JSON chuẩn về cho Frontend để thư viện **Vis.js** vẽ mạng lưới liên kết thông minh, cho phép người dùng zoom, kéo thả và click vào từng node/edge để xem chi tiết.
-
-> [!TIP]
-> **Câu hỏi thầy cô hay hỏi:** *"Degree Centrality và Bridge Connector có ý nghĩa gì đối với công tác quản lý của Khoa?"*
-> **Cách trả lời:** *"Dạ thưa thầy/cô, các chỉ số này giúp ban lãnh đạo Khoa nhận diện được các nhân tố cốt lõi trong hoạt động nghiên cứu. Giảng viên có Degree Centrality cao là những người năng nổ, có khả năng dẫn dắt nhóm. Bridge Connector là những người thúc đẩy nghiên cứu liên ngành giữa các bộ môn khác nhau (ví dụ Công nghệ phần mềm hợp tác với Mạng máy tính). Điều này hỗ trợ việc thành lập các nhóm nghiên cứu mạnh một cách khoa học."*
 
 ---
 
@@ -265,133 +258,218 @@ graph TD
 
 ---
 
-## PHẦN II: LUỒNG HOẠT ĐỘNG & KIỂM THỬ CHO KHÁCH VÃNG LAI & SINH VIÊN
-
-### Chức năng 1.1: Trực quan hóa Bản đồ Tri thức (Knowledge Map)
-* **API Endpoint:** `GET /api/graph/all`
-* **Tệp backend xử lý:** `backend/routes/api.py`
-
-#### A. Luồng hoạt động (Data Flow)
-```mermaid
-sequenceDiagram
-    participant FE as Frontend (explore.html)
-    participant BE as Backend Flask (api.py)
-    participant DB as Neo4j Graph DB
-
-    FE->>BE: Gọi HTTP GET /api/graph/all
-    BE->>DB: Thực thi truy vấn MATCH (n) OPTIONAL MATCH (n)-[r]->(m) WHERE n.is_deleted = false
-    DB->>BE: Trả về tập hợp Nodes và Relationships
-    BE->>BE: Phân loại màu sắc, hình dáng Node theo Group (GiangVien, CongTrinh, DeTai...)
-    BE->>FE: Phản hồi JSON: {status: 'ok', nodes: [...], edges: [...], legend: {...}}
-    FE->>FE: Vis.js khởi tạo Dataset và kết xuất (Render) đồ thị tương tác lên canvas
-```
-
-#### B. Các trường hợp ngoại lệ & Kịch bản kiểm thử (Test Cases)
-1. **Lọc trạng thái xóa mềm (`is_deleted`):**
-   * *Ngoại lệ:* Có node hoặc quan hệ đã bị xóa mềm (`is_deleted: true`) vẫn xuất hiện trên bản đồ.
-   * *Cách kiểm thử:* Thực hiện xóa mềm một công trình trong trang Admin, tải lại trang Khám phá và xác nhận công trình đó không còn tồn tại trên đồ thị.
-2. **Đồ thị quá dày đặc (Dense Graph):**
-   * *Ngoại lệ:* Trình duyệt bị đơ/lag do số lượng node quá lớn (>1000 nodes).
-   * *Cách kiểm thử:* Bật chế độ tắt hiệu ứng vật lý tự động sau khi đồ thị ổn định (`stabilization: {iterations: 200}`) để tránh Vis.js liên tục tính toán lực đẩy Coulomb.
+## PHẦN II: DANH MỤC CHỨC NĂNG & KỊCH BẢN KIỂM THỬ THEO NHÓM NGỜI DÙNG
 
 ---
 
-### Chức năng 1.2: Tìm kiếm Tổng hợp (Global Search)
-* **API Endpoint:** `GET /api/search?q=<keyword>&type=<all|giang_vien|cong_trinh|de_tai>`
-* **Tệp backend xử lý:** `backend/routes/api.py`
+### NHÓM 1: KHÁCH VÃNG LAI & SINH VIÊN (GUEST / STUDENT)
 
-#### A. Luồng hoạt động (Data Flow)
-1. **Frontend:** Người dùng gõ từ khóa tìm kiếm (Ví dụ: "Nguyễn Thanh Tú") vào thanh tìm kiếm.
-2. **Backend:** Nhận tham số `q` (từ khóa) và `type` (bộ lọc phân loại).
-3. **Database (Cypher Query):**
-   ```cypher
-   MATCH (n)
-   WHERE (n:GiangVien OR n:CongTrinhNghienCuu OR n:DeTaiNghienCuu)
-     AND (n.ho_va_ten CONTAINS $q OR n.ten_cong_trinh CONTAINS $q OR n.ten_de_tai CONTAINS $q)
-     AND coalesce(n.is_deleted, false) = false
-   RETURN n LIMIT 10
-   ```
-4. **Phản hồi:** Trả về danh sách kết quả đã được chuẩn hóa kèm theo thông tin nhãn để hiển thị biểu tượng tương ứng.
+#### Chức năng 1.1: Trực quan hóa Bản đồ Tri thức (Knowledge Map Visualization)
+* **Mô tả:** Hiển thị mạng lưới kết nối trực quan giữa giảng viên, đề tài, bộ môn, khoa và lĩnh vực bằng Vis.js. Cho phép tìm kiếm nhanh, lọc theo phân loại thực thể, zoom, kéo thả và tương tác.
+* **API:** `GET /api/graph/all`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Truy cập trang chủ Khám phá (`explore.html`).
+  2. **Bước 2:** Click chọn bộ lọc phân loại thực thể phía dưới thanh tìm kiếm (ví dụ: Giảng viên, Công trình hoặc Đề tài).
+  3. **Bước 3:** Nhấp chuột vào một nút Giảng viên trên đồ thị Vis.js.
+  4. **Kết quả kỳ vọng:** 
+     - Đồ thị Vis.js hiển thị đầy đủ, mượt mà các nút và liên kết.
+     - Khi lọc phân loại thực thể hoặc tìm kiếm, danh sách kết quả phù hợp sẽ hiển thị ở bảng phía trên đồ thị.
+     - Khi nhấp vào nút Giảng viên, một panel chi tiết hoặc modal mở ra hiển thị thông tin chính xác của giảng viên đó.
+  5. **Xác thực CSDL:** Đảm bảo các node đã xóa mềm (`is_deleted = true`) không xuất hiện trên giao diện.
+     ```cypher
+     MATCH (n) WHERE coalesce(n.is_deleted, false) = true RETURN count(n) AS should_be_zero_on_ui
+     ```
 
-#### B. Các trường hợp ngoại lệ & Kịch bản kiểm thử (Test Cases)
-1. **Tìm kiếm tiếng Việt không dấu và chữ hoa/thường:**
-   * *Ngoại lệ:* Tìm kiếm "nguyen thanh tu" không ra kết quả của giảng viên "Nguyễn Thanh Tú".
-   * *Cách kiểm thử:* Gõ tìm kiếm không dấu, hệ thống phải thực hiện chuyển đổi chữ hoa/thường và không dấu (hoặc sử dụng hàm `toLower()` kết hợp regex trong Cypher) để hiển thị chính xác kết quả.
-2. **Nhập ký tự đặc biệt nguy hiểm (Cypher Injection):**
-   * *Ngoại lệ:* Người dùng cố tình nhập `' OR 1=1 OR n.id = '` để phá câu lệnh Cypher.
-   * *Cách kiểm thử:* Gõ các ký tự phá câu lệnh truy vấn. Đảm bảo driver Neo4j sử dụng tham số hóa truy vấn (parameterized queries) dạng `$q` chứ không cộng chuỗi trực tiếp.
+#### Chức năng 1.2: Tìm kiếm tổng hợp (Global Search)
+* **Mô tả:** Tìm kiếm nhanh giảng viên, đề tài, công trình bằng tiếng Việt có dấu, không dấu, chữ hoa, chữ thường.
+* **API:** `GET /api/search?q=<keyword>&type=<all|giang_vien|cong_trinh|de_tai>`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Nhập từ khóa tiếng Việt không dấu: `nguyen thanh tu` vào ô tìm kiếm.
+  2. **Bước 2:** Nhấn Tìm kiếm.
+  3. **Bước 3:** Nhập chuỗi ký tự đặc biệt nguy hiểm: `' OR 1=1 OR n.id = '` để kiểm tra bảo mật (Cypher Injection).
+  4. **Kết quả kỳ vọng:**
+     - Tìm kiếm "nguyen thanh tu" trả về kết quả chính xác của "Nguyễn Thanh Tú" (hệ thống xử lý chuẩn hóa không dấu tự động).
+     - Khi nhập chuỗi ký tự đặc biệt, hệ thống không báo lỗi 500 hoặc rò rỉ dữ liệu (backend dùng tham số hóa truy vấn an toàn).
 
----
+#### Chức năng 1.3: Chatbot AI hỏi đáp nghiên cứu (Graph-RAG Chatbot)
+* **Mô tả:** Người dùng trò chuyện tự nhiên với AI để hỏi về thông tin nghiên cứu trong khoa.
+* **API:** `POST /api/chat/ask`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Nhập câu hỏi: "Ai nghiên cứu về AI và Machine Learning?".
+  2. **Bước 2:** Bấm gửi.
+  3. **Bước 3:** Tắt kết nối internet của máy chủ (hoặc cấu hình sai API Key Gemini) và gửi lại câu hỏi.
+  4. **Kết quả kỳ vọng:**
+     - Ở bước 2: AI trả về câu trả lời tự nhiên chính xác và vẽ đồ thị con (Sub-graph) tương tác chứa các nút giảng viên nghiên cứu lĩnh vực đó.
+     - Ở bước 3: Hệ thống kích hoạt cơ chế Fallback thành công, không bị crash, hiển thị câu trả lời dưới dạng danh sách/bảng tĩnh được trích xuất từ Regex tìm kiếm thô.
 
-## PHẦN III: LUỒNG HOẠT ĐỘNG & KIỂM THỬ CHO GIẢNG VIÊN
+#### Chức năng 1.4: Trực quan mạng lưới hợp tác (Co-authorship Network)
+* **Mô tả:** Xem mạng lưới các giảng viên hợp tác viết bài báo hoặc làm đề tài khoa học chung, hỗ trợ lọc theo Bộ môn và số lượng hợp tác tối thiểu.
+* **API:** `GET /api/collaboration/graph`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Truy cập trang Mạng lưới hợp tác (`collaboration.html`).
+  2. **Bước 2:** Chọn bộ lọc Bộ môn (ví dụ: Công nghệ phần mềm) và/hoặc điều chỉnh thanh trượt "Số hợp tác tối thiểu" lên mức `2`, sau đó bấm nút "Cập nhật đồ thị".
+  3. **Kết quả kỳ vọng:**
+     - Khi chọn bộ lọc Bộ môn, đồ thị chỉ hiển thị các giảng viên thuộc Bộ môn được chọn và các mối quan hệ hợp tác của họ.
+     - Khi tăng số lượng hợp tác tối thiểu lên `2`, đồ thị chỉ hiển thị các liên kết giữa những giảng viên đã từng đứng chung tên trong từ 2 công trình/đề tài trở lên.
+     - Kích thước của node giảng viên thay đổi tỉ lệ thuận với chỉ số kết nối (Degree Centrality). Độ dày đường nối tỉ lệ thuận với số công trình chung.
 
-### Chức năng 2.2: Quy trình Thêm / Sửa / Xóa mềm Công trình và Đề tài
-* **API Endpoint:** 
-  * `POST /api/lecturer/publications` (Thêm mới)
-  * `PUT /api/lecturer/publications/<id>` (Chỉnh sửa)
-  * `DELETE /api/lecturer/publications/<id>` (Yêu cầu xóa)
-* **Tệp backend xử lý:** `backend/routes/lecturer_api.py`
-
-#### A. Luồng hoạt động (Data Flow)
-1. **Thêm mới:** Giảng viên điền thông tin công trình/đề tài -> Gửi yêu cầu -> Node mới được tạo với thuộc tính `trang_thai = 'Chờ duyệt'` và `is_deleted = false`. Chỉ xuất hiện trong màn hình cá nhân của giảng viên, ẩn hoàn toàn trên bản đồ tri thức công khai.
-2. **Chỉnh sửa:**
-   * Sửa một mục đang `'Chờ duyệt'`: Backend cập nhật trực tiếp dữ liệu và giữ nguyên trạng thái chờ duyệt.
-   * Sửa một mục đã `'Đã duyệt'`: Backend cập nhật dữ liệu đồng thời tự động reset trạng thái về lại `'Chờ duyệt'`. Mục này lập tiếp bị ẩn khỏi bản đồ tri thức công khai cho đến khi Admin duyệt lại.
-3. **Yêu cầu Xóa:**
-   * *Luồng xóa:*
-   ```mermaid
-   graph TD
-       Start[Bấm nút Xóa] --> CheckState{Trạng thái công trình?}
-       CheckState -->|Đang Chờ duyệt hoặc Bị từ chối| DeleteSoft[Xóa mềm trực tiếp: Set is_deleted = true]
-       CheckState -->|Đã duyệt / Hoàn thành| RequestDelete[Chuyển trạng thái sang 'Yêu cầu xóa' chờ Admin duyệt]
-       DeleteSoft --> End[Vào Thùng rác giảng viên]
-       RequestDelete --> End
-   ```
-
-#### B. Các trường hợp ngoại lệ & Kịch bản kiểm thử (Test Cases)
-1. **Mối quan hệ liên kết kép của tác giả:**
-   * *Ngoại lệ:* Khi thêm đề tài/bài báo, giảng viên gán nhầm bản thân vừa làm `CHU_NHIEM` vừa làm `THAM_GIA`.
-   * *Cách kiểm thử:* Backend phải kiểm tra logic trước khi tạo quan hệ. Nếu giảng viên đã có quan hệ `CHU_NHIEM` thì không tạo quan hệ `THAM_GIA` để tối ưu số lượng cạnh trong cơ sở dữ liệu đồ thị.
-2. **Trùng lặp tiêu đề bài báo (Unique Slug):**
-   * *Ngoại lệ:* Đăng ký bài báo trùng tiêu đề hoàn toàn.
-   * *Cách kiểm thử:* Backend sử dụng hàm tạo slug tự động. Nếu slug đã tồn tại, tự động nối thêm hậu tố số (VD: `-1`, `-2`) để tránh lỗi trùng định danh URL.
-
----
-
-### Chức năng 2.3: Thùng rác Cá nhân của Giảng viên (Lecturer Trash Bin)
-* **API Endpoint:** 
-  * `GET /api/lecturer/trash` (Xem danh sách thùng rác)
-  * `PUT /api/lecturer/trash/<type>/<id>/restore` (Khôi phục)
-  * `DELETE /api/lecturer/trash/<type>/<id>/permanent` (Xóa vĩnh viễn)
-
-#### A. Luồng hoạt động (Data Flow)
-1. **Xem thùng rác:** Truy vấn các node do giảng viên sở hữu có thuộc tính `is_deleted = true`.
-2. **Khôi phục:**
-   * Nếu trước khi xóa ở trạng thái `'Chờ duyệt'`: Set `is_deleted = false` và đưa về lại danh sách nháp của giảng viên.
-   * Nếu trước khi xóa ở trạng thái `'Đã duyệt'`: Chuyển trạng thái sang `'Yêu cầu khôi phục'` để gửi tới Admin phê duyệt, đảm bảo giảng viên không tự ý khôi phục dữ liệu chính thức mà không kiểm soát.
-3. **Xóa vĩnh viễn:** Thực thi câu lệnh Cypher:
-   ```cypher
-   MATCH (n {id: $id}) DETACH DELETE n
-   ```
-
-#### B. Các trường hợp ngoại lệ & Kịch bản kiểm thử (Test Cases)
-1. **Ảnh hưởng đến cộng tác viên khác:**
-   * *Ngoại lệ:* Giảng viên A bấm xóa vĩnh viễn đề tài nghiên cứu làm chung với giảng viên B trong thùng rác của giảng viên A.
-   * *Cách kiểm thử:* Cần kiểm tra xem giảng viên B có bị mất đề tài không. Vì đề tài là node chung trên đồ thị, hành động xóa vĩnh viễn (`DETACH DELETE`) sẽ xóa sạch node đó khỏi hệ thống. Hệ thống phải hiển thị cảnh báo cảnh báo giảng viên A: *"Đề tài này có sự tham gia của giảng viên khác. Xóa vĩnh viễn sẽ làm mất dữ liệu của họ."*
+#### Chức năng 1.5: Xem hồ sơ Giảng viên & Chỉ số học thuật thực tế
+* **Mô tả:** Xem chi tiết lý lịch khoa học của giảng viên, timeline nghiên cứu và citations badge.
+* **API:** `GET /api/lecturer/timeline` và `GET /api/academic/<name>`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Mở trang danh sách giảng viên, click chọn một giảng viên cụ thể.
+  2. **Bước 2:** Quan sát timeline và khu vực hiển thị Citation Badge.
+  3. **Kết quả kỳ vọng:**
+     - Các sự kiện đề tài, công trình của giảng viên được sắp xếp chuẩn xác theo thứ tự năm giảm dần.
+     - Hệ thống tải động chỉ số từ OpenAlex/Google Scholar (hiển thị hiệu ứng loading rồi hiện số Citations, H-Index thật).
 
 ---
 
-## PHẦN IV: LUỒNG HOẠT ĐỘNG & KIỂM THỬ CHO QUẢN TRỊ VIÊN (ADMIN)
+### NHÓM 2: GIẢNG VIÊN (LECTURER)
 
-### Chức năng 3.2: Phê duyệt hàng đợi yêu cầu (Pending Approval)
-* **Tệp backend xử lý:** `backend/routes/admin_lecturers.py`, `backend/routes/admin_trash.py`
+#### Chức năng 2.1: Quản lý đăng nhập và Đặt lại mật khẩu (Authentication & OTP Reset)
+* **Mô tả:** Giảng viên đăng nhập, đăng ký, đổi mật khẩu và khôi phục mật khẩu thông qua mã xác thực OTP gửi qua email.
+* **API:** `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/reset-password-request` (OTP)
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Đăng nhập với mật khẩu sai -> Hệ thống báo lỗi.
+  2. **Bước 2:** Nhấp "Quên mật khẩu", điền email đăng ký tài khoản.
+  3. **Bước 3:** Nhập sai mã OTP -> Hệ thống báo lỗi. Nhập đúng mã OTP và mật khẩu mới.
+  4. **Kết quả kỳ vọng:**
+     - Hệ thống xử lý thông báo rõ ràng cho từng bước lỗi.
+     - Sau khi khôi phục bằng OTP thành công, có thể đăng nhập bằng mật khẩu mới.
 
-#### A. Luồng hoạt động (Data Flow)
-1. Admin xem danh sách các yêu cầu đang chờ xử lý (Hồ sơ giảng viên, Công trình mới, Yêu cầu xóa, Yêu cầu khôi phục).
-2. **Duyệt cập nhật thông tin:** Backend copy các giá trị từ các trường tạm thời (ví dụ `pending_hoc_vi`) sang trường chính thức (`hoc_vi`), sau đó xóa sạch dữ liệu tạm thời để giải phóng bộ nhớ.
-3. **Từ chối cập nhật:** Backend chỉ cần xóa sạch dữ liệu trong các trường tạm thời (ví dụ set `pending_hoc_vi = null`) và giữ nguyên dữ liệu gốc hiện tại của giảng viên.
+#### Chức năng 2.2: Đề xuất cập nhật Hồ sơ cá nhân (Maker-Checker Profile)
+* **Mô tả:** Giảng viên chỉnh sửa hồ sơ. Thông tin được đưa vào hàng đợi chờ duyệt thay vì ghi đè trực tiếp.
+* **API:** `PUT /api/auth/profile` (Sử dụng các trường tạm `pending_...`)
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Đăng nhập tài khoản Giảng viên. Sửa học vị từ "Thạc sĩ" thành "Tiến sĩ" và bấm Lưu.
+  2. **Bước 2:** Sử dụng trình duyệt ẩn danh (Khách vãng lai) truy cập xem hồ sơ giảng viên này.
+  3. **Kết quả kỳ vọng:**
+     - Ở màn hình giảng viên: Thông tin hiển thị trạng thái "Đang chờ duyệt".
+     - Ở màn hình công khai: Học vị của giảng viên vẫn là "Thạc sĩ" (chưa thay đổi).
+  4. **Xác thực CSDL:**
+     ```cypher
+     MATCH (g:GiangVien {id: $gv_id}) 
+     RETURN g.hoc_vi AS current, g.pending_hoc_vi AS proposed, g.profile_edit_status AS status
+     // Kết quả kỳ vọng: current = "Thạc sĩ", proposed = "Tiến sĩ", status = "Chờ duyệt"
+     ```
 
-#### B. Các trường hợp ngoại lệ & Kịch bản kiểm thử (Test Cases)
-1. **Duyệt xóa công trình có tác giả ngoài:**
-   * *Ngoại lệ:* Khi Admin duyệt xóa một bài báo có liên kết với một Tác giả ngoài. Node Tác giả ngoài có bị mồ côi (không liên kết với bất kỳ bài viết nào khác) không?
-   * *Cách kiểm thử:* Thực hiện duyệt yêu cầu xóa bài báo. Hệ thống phải kiểm tra xem node `TacGiaNgoai` liên quan còn liên kết với bài báo nào khác không. Nếu không còn liên kết nào, hệ thống nên xóa mềm luôn node tác giả ngoài đó để giữ sạch tài nguyên đồ thị CSDL.
+#### Chức năng 2.3: Quản lý Công trình & Đề tài cá nhân
+* **Mô tả:** Thêm, sửa, yêu cầu xóa bài báo, đề tài. Hỗ trợ chọn đồng tác giả nội bộ và tác giả ngoài.
+* **API:** `POST / PUT / DELETE` trên `/api/lecturer/cong-trinh` và `/api/lecturer/de-tai`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Giảng viên thêm bài báo mới. Gán giảng viên B làm đồng tác giả (Cộng sự) và chọn 1 Tác giả ngoài.
+  2. **Bước 2:** Sửa một bài báo đã được duyệt chính thức -> Kiểm tra xem trạng thái có bị đổi về "Chờ duyệt" để kiểm duyệt lại hay không.
+  3. **Bước 3:** Bấm nút Xóa đối với 1 bài báo đã được duyệt -> Kiểm tra xem nó có bị xóa ngay không.
+  4. **Kết quả kỳ vọng:**
+     - Ở bước 1: Bài báo tạo mới thành công, ở trạng thái "Chờ duyệt", không hiện công khai.
+     - Ở bước 2: Bài báo sau khi sửa bị tự động đưa về trạng thái "Chờ duyệt" và ẩn khỏi bản đồ công khai.
+     - Ở bước 3: Hệ thống không xóa ngay mà chuyển trạng thái thành "Yêu cầu xóa", gửi yêu cầu phê duyệt tới Admin.
+
+#### Chức năng 2.4: Thùng rác cá nhân của Giảng viên (Lecturer Trash Bin)
+* **Mô tả:** Xem lại các mục đã xóa mềm, khôi phục hoặc xóa vĩnh viễn.
+* **API:** `/api/lecturer/trash` (GET, PUT restore, DELETE permanent)
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Bấm xóa mềm bài báo nháp (chưa duyệt) -> Kiểm tra Thùng rác cá nhân xem có xuất hiện không.
+  2. **Bước 2:** Khôi phục bài báo nháp vừa xóa -> Kiểm tra xem nó có quay lại danh sách nháp trực tiếp không.
+  3. **Bước 3:** Xóa một bài báo đã duyệt. Vào thùng rác bấm khôi phục -> Kiểm tra trạng thái.
+  4. **Kết quả kỳ vọng:**
+     - Bài báo nháp khôi phục thành công trực tiếp mà không cần Admin duyệt.
+     - Bài báo đã duyệt khi khôi phục từ thùng rác sẽ chuyển sang trạng thái "Yêu cầu khôi phục" chứ không tự ý xuất hiện lại trên bản đồ.
+
+---
+
+### NHÓM 3: QUẢN TRỊ VIÊN (ADMIN)
+
+#### Chức năng 3.1: Phê duyệt hàng đợi yêu cầu (Maker-Checker Queue)
+* **Mô tả:** Admin phê duyệt hồ sơ giảng viên, công trình/đề tài mới, yêu cầu xóa, yêu cầu khôi phục.
+* **API:** Tệp tin `backend/routes/admin_lecturers.py`, `backend/routes/admin_trash.py`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Truy cập trang duyệt yêu cầu của Admin.
+  2. **Bước 2:** Duyệt yêu cầu sửa đổi hồ sơ giảng viên (ví dụ nâng học vị lên "Tiến sĩ" ở Chức năng 2.2) -> Bấm "Duyệt".
+  3. **Bước 3:** Duyệt "Từ chối" một yêu cầu thêm công trình mới.
+  4. **Kết quả kỳ vọng:**
+     - Ở bước 2: Hồ sơ giảng viên cập nhật thuộc tính chính thức `hoc_vi = 'Tiến sĩ'`, thuộc tính `pending_hoc_vi` bị xóa bỏ (`null`), trạng thái đổi thành "Đã duyệt".
+     - Ở bước 3: Công trình bị từ chối chuyển trạng thái thành "Từ chối", giảng viên tạo nhận được thông báo để sửa đổi lại.
+  5. **Xác thực CSDL sau khi duyệt:**
+     ```cypher
+     MATCH (g:GiangVien {id: $gv_id}) 
+     RETURN g.hoc_vi AS hoc_vi, g.pending_hoc_vi AS pending
+     // Kết quả kỳ vọng: hoc_vi = "Tiến sĩ", pending = null
+     ```
+
+#### Chức năng 3.2: Nhập dữ liệu hàng loạt từ Excel (Bulk Import & Error Logging)
+* **Mô tả:** Admin tải file Excel để import đồng thời nhiều giảng viên, công trình, đề tài vào CSDL Neo4j.
+* **API:** `POST /api/admin/import`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Tạo file Excel mẫu, dòng số 1 và 2 hợp lệ, dòng số 3 bị lỗi (ví dụ: thiếu Mã giảng viên hoặc sai định dạng năm).
+  2. **Bước 2:** Tiến hành Upload file Excel này lên hệ thống.
+  3. **Kết quả kỳ vọng:**
+     - Hệ thống xử lý không bị lỗi toàn bộ tệp (Transaction rollback từng phần hoặc Skip error line).
+     - Hiển thị thông báo chi tiết: "Import thành công 2 dòng. Dòng số 3 bị lỗi: Thiếu mã giảng viên". Dữ liệu dòng 1 và 2 được lưu thành công vào Neo4j.
+
+#### Chức năng 3.3: Đồng bộ và Chuyển đổi trạng thái Giảng viên
+* **Mô tả:** Thay đổi trạng thái công tác của giảng viên. Nếu giảng viên nghỉ việc/chuyển đi, chuyển họ thành tác giả ngoài để giữ tính nhất quán lịch sử.
+* **API:** Tệp tin `backend/routes/admin_lecturers.py`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Tìm giảng viên A đang công tác, chuyển trạng thái thành "Chuyển công tác" hoặc "Nghỉ hưu".
+  2. **Bước 2:** Kiểm tra trên Neo4j và giao diện bản đồ tri thức.
+  3. **Kết quả kỳ vọng:**
+     - Nhãn của Node giảng viên A đổi từ `GiangVien` thành `TacGiaNgoai`.
+     - Mối quan hệ `THUOC_BO_MON` nối đến bộ môn cũ bị cắt bỏ hoàn toàn.
+     - Các mối quan hệ hợp tác công trình khoa học cũ vẫn giữ nguyên.
+
+#### Chức năng 3.4: Thùng rác hệ thống toàn cục & Dọn dẹp thực thể mồ côi (Global Trash Bin & Orphan Cleanup)
+* **Mô tả:** Admin quản lý thùng rác chung. Khi xóa vĩnh viễn một mục, hệ thống tự động dọn dẹp các tác giả ngoài mồ côi liên quan.
+* **API:** `/api/admin/trash/...`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Tạo một bài báo có liên kết với Tác giả ngoài B (Tác giả này chỉ tham gia duy nhất bài báo này).
+  2. **Bước 2:** Tiến hành xóa mềm bài báo -> Đăng nhập Admin vào thùng rác chọn Xóa vĩnh viễn bài báo này.
+  3. **Kết quả kỳ vọng:**
+     - Bài báo bị xóa vĩnh viễn khỏi CSDL đồ thị.
+     - Node Tác giả ngoài B tự động bị xóa theo (vì không còn liên kết với bất kỳ node nào khác - node mồ côi), đảm bảo CSDL sạch sẽ.
+  4. **Xác thực CSDL:**
+     ```cypher
+     MATCH (t:TacGiaNgoai {id: $tgn_id}) RETURN count(t)
+     // Kết quả kỳ vọng: 0 (Đã bị tự động xóa dọn dẹp)
+     ```
+
+#### Chức năng 3.5: Quản lý mối quan hệ tùy biến (Custom Relationships Management)
+* **Mô tả:** Admin thiết lập thủ công các mối quan hệ bổ sung trực tiếp trên đồ thị giữa các nút.
+* **API:** `POST /api/admin/relations`
+* **Kịch bản kiểm thử (Test Case):**
+  1. **Bước 1:** Chọn hai nút giảng viên bất kỳ (GV A và GV B).
+  2. **Bước 2:** Chọn loại quan hệ (ví dụ: `DONG_NGHIEP` hoặc `THAY_TRO`) và bấm Tạo.
+  3. **Kết quả kỳ vọng:**
+     - Hệ thống báo tạo quan hệ thành công.
+     - Trên bản đồ tri thức công khai xuất hiện đường liên kết trực quan giữa GV A và GV B kèm theo nhãn quan hệ đã chọn.
+
+---
+
+## PHẦN III: HƯỚNG DẪN CÁC PHƯƠNG PHÁP KIỂM THỬ HIỆU QUẢ (TESTING BEST PRACTICES)
+
+Để quá trình kiểm thử hệ thống đạt hiệu quả cao nhất và phục vụ tốt cho buổi bảo vệ đồ án tốt nghiệp, người kiểm thử nên áp dụng các phương pháp sau:
+
+### 1. Sử dụng Neo4j Browser để Đối chiếu Dữ liệu (Database Verification)
+* Không chỉ kiểm tra giao diện (UI), người kiểm thử nên mở song song công cụ quản trị **Neo4j Browser** (thường ở cổng `http://localhost:7474`) để xác thực trạng thái thực sự của dữ liệu.
+* **Mẹo bảo vệ:** Hãy chuẩn bị sẵn các câu lệnh Cypher cơ bản để truy vấn nhanh khi Hội đồng giáo viên yêu cầu xem trực tiếp cơ sở dữ liệu đồ thị dưới database.
+  - *Ví dụ kiểm tra các yêu cầu chưa duyệt:*
+    ```cypher
+    MATCH (n) WHERE n.trang_thai = 'Chờ duyệt' RETURN n
+    ```
+
+### 2. Kiểm thử Tải trọng Đồ thị (Graph Density Testing)
+* Thư viện Vis.js kết xuất đồ thị trên thẻ HTML5 Canvas. Khi số lượng node tăng lên quá nhiều (> 500 nodes), trình duyệt có thể bị giật lag do thuật toán vật lý tính toán vị trí nút liên tục.
+* **Cách xử lý hiệu quả:**
+  - Bật cấu hình `stabilization: { iterations: 150 }` trong tùy chọn Vis.js để đồ thị tự tính toán trước khi vẽ ra màn hình.
+  - Sử dụng tính năng phân cụm (Clustering) hoặc ẩn bớt các node đề tài/công trình, chỉ hiển thị node Giảng viên làm trung tâm, khi click vào giảng viên mới mở rộng (expand) các node liên quan.
+
+### 3. Kiểm thử Bảo mật Vai trò (Role-based Access Control - RBAC)
+* Kiểm tra việc phân quyền truy cập API bằng cách copy token hoặc Session của Giảng viên để cố tình gửi yêu cầu gọi các API Admin (ví dụ: `/api/admin/import` hoặc `/api/admin/trash/empty`).
+* **Kỳ vọng:** Backend phải chặn và trả về mã lỗi HTTP `403 Forbidden` kèm theo phản hồi JSON cấu trúc lỗi rõ ràng.
+
+### 4. Kiểm thử các tình huống Biên của Chatbot AI (Edge Cases & Fallbacks)
+* AI Gemini dịch Cypher đôi khi có thể sinh ra câu lệnh lỗi cú pháp nếu câu hỏi của người dùng quá mơ hồ hoặc chứa ký tự đặc biệt lạ.
+* **Cách kiểm thử hiệu quả:**
+  - Nhập câu hỏi không liên quan đến hệ thống: "Thời tiết Nha Trang hôm nay thế nào?" -> Đảm bảo AI trả lời lịch sự rằng câu hỏi nằm ngoài phạm vi học thuật của hệ thống.
+  - Nhập câu hỏi cực kỳ phức tạp để ép hệ thống dùng cơ chế Fallback (Rule-based) và kiểm tra giao diện bảng kết quả thay thế có hiển thị đúng chuẩn không.

@@ -6,7 +6,8 @@ class GeminiService:
     """Service to interact with Google Gemini API for advanced NLP."""
     
     def __init__(self):
-        self.api_key = os.getenv("GEMINI_API_KEY")
+        use_gemini = os.getenv("USE_GEMINI", "true").lower() in ("true", "1", "yes")
+        self.api_key = os.getenv("GEMINI_API_KEY") if use_gemini else None
         self.model: Optional[genai.GenerativeModel] = None
         if self.api_key:
             genai.configure(api_key=self.api_key)
@@ -15,6 +16,10 @@ class GeminiService:
 
     def is_available(self) -> bool:
         return self.model is not None
+
+    def should_rewrite(self) -> bool:
+        """Kiểm tra xem có cho phép viết lại câu trả lời bằng AI hay không."""
+        return os.getenv("REWRITE_WITH_GEMINI", "false").lower() in ("true", "1", "yes")
 
     def analyze_question(self, question: str) -> Optional[Dict[str, Any]]:
         """
@@ -72,7 +77,7 @@ class GeminiService:
         """
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.model.generate_content(prompt, request_options={"timeout": 3.0})
             # Extract JSON from response
             text = response.text.strip()
             if "```json" in text:
@@ -110,7 +115,7 @@ class GeminiService:
         """
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.model.generate_content(prompt, request_options={"timeout": 3.0})
             return response.text.strip()
         except Exception as e:
             print(f"[Gemini Generate Answer Error] {e}")
@@ -138,7 +143,7 @@ class GeminiService:
         """
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.model.generate_content(prompt, request_options={"timeout": 3.0})
             return response.text.strip()
         except Exception as e:
             print(f"[Gemini Translate Error] {e}")

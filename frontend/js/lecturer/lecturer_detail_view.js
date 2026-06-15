@@ -62,7 +62,7 @@ async function viewProjectDetail(dtId) {
 
             ? `<a href="${dt.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${dt.link}</a>`
 
-            : 'N/A';
+            : 'Chưa rõ';
 
 
 
@@ -106,17 +106,17 @@ async function viewProjectDetail(dtId) {
 
         <div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
 
-            <p style="margin-bottom:8px;font-size:16px;"><b>${dt.ten_de_tai || 'N/A'}</b>
+            <p style="margin-bottom:8px;font-size:16px;"><b>${dt.ten_de_tai || 'Chưa rõ'}</b>
 
                 <span style="background:${stBg};color:${stColor};border:1px solid ${stColor};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;margin-left:8px;">${trangThai}</span>
 
             </p>
 
-            <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Cấp đề tài:</b> ${dt.cap_de_tai || 'Chưa rõ'}</p>
 
-            <p style="margin-bottom:5px;"><b>Thời gian:</b> ${(dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` : (dt.nam_bat_dau || dt.nam || 'N/A')}</p>
+            <p style="margin-bottom:5px;"><b>Thời gian:</b> ${(dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc) ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}` : (dt.nam_bat_dau || dt.nam || 'Chưa rõ')}</p>
 
-            <p style="margin-bottom:5px;"><b>Người tạo:</b> ${dt.nguoi_tao || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Người tạo:</b> ${dt.nguoi_tao || 'Chưa rõ'}</p>
 
             <p style="margin-bottom:5px;"><b>Link:</b> ${linkHtml}</p>
 
@@ -212,7 +212,7 @@ async function viewPublicationDetail(ctId) {
 
             ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>`
 
-            : 'N/A';
+            : 'Chưa rõ';
 
 
 
@@ -262,15 +262,15 @@ async function viewPublicationDetail(ctId) {
 
         <div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
 
-            <p style="margin-bottom:${ct.ten_cong_trinh_vi ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || 'N/A'}</b>
+            <p style="margin-bottom:${ct.ten_cong_trinh_vi ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || 'Chưa rõ'}</b>
 
                 <span style="background:${stBg};color:${stColor};border:1px solid ${stColor};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;margin-left:8px;">${trangThai}</span>
 
             </p>
 
             ${ct.ten_cong_trinh_vi ? `<p style="margin-bottom:8px;font-size:13px;color:var(--text-muted);font-style:italic;font-weight:400;">${ct.ten_cong_trinh_vi}</p>` : ''}
-            <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'N/A'}</p>
-            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'N/A'}</p>
+            <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'Chưa rõ'}</p>
+            <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'Chưa rõ'}</p>
 
             <p style="margin-bottom:5px;"><b>Người tạo:</b> ${ct.nguoi_tao || 'Hệ thống / Admin'}</p>
 

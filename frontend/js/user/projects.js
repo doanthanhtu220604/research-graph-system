@@ -38,12 +38,12 @@ function renderProjectRows(list) {
         return;
     }
     container.innerHTML = list.map(dt => {
-        const title = String(dt.ten_de_tai || 'N/A').replace(/</g, '&lt;');
+        const title = String(dt.ten_de_tai || 'Chưa rõ').replace(/</g, '&lt;');
         const startYear = dt.nam_bat_dau || dt.nam_thuc_hien;
         const endYear = dt.nam_ket_thuc;
         const years = (startYear && endYear && startYear !== endYear) 
             ? `${startYear} – ${endYear}` 
-            : (startYear || 'N/A');
+            : (startYear || 'Chưa rõ');
         return `
             <div class="data-row" onclick="showProjectDetail('${dt.id}')">
                 <div class="data-row-icon row-icon-orange"><i class="fas fa-flask"></i></div>
@@ -150,9 +150,9 @@ async function showProjectDetail(dtId) {
 
             const displayTime = (dt.nam_bat_dau && dt.nam_ket_thuc && dt.nam_bat_dau !== dt.nam_ket_thuc)
                 ? `${dt.nam_bat_dau} - ${dt.nam_ket_thuc}`
-                : (dt.nam_bat_dau || dt.nam || 'N/A');
+                : (dt.nam_bat_dau || dt.nam || 'Chưa rõ');
             let fieldsHtml = `
-                <div><span style="color:var(--text-muted);font-size:12px;">Cấp đề tài</span><br><b>${dt.cap_de_tai || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Cấp đề tài</span><br><b>${dt.cap_de_tai || 'Chưa rõ'}</b></div>
                 <div><span style="color:var(--text-muted);font-size:12px;">Thời gian thực hiện</span><br><b>${displayTime}</b></div>
             `;
             if (dt.link) {
@@ -202,7 +202,7 @@ async function showProjectDetail(dtId) {
                                         <i class="fas fa-user-tie" style="color:${iconColor}; font-size:13px;"></i>
                                     </div>
                                     <div>
-                                        <strong style="color:${nameColor};">${tv.ten || 'N/A'}</strong>
+                                        <strong style="color:${nameColor};">${tv.ten || 'Chưa rõ'}</strong>
                                         ${roleSubtitle ? `<div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">${roleSubtitle}</div>` : ''}
                                     </div>
                                 </div>
@@ -223,7 +223,7 @@ async function showProjectDetail(dtId) {
                                         <i class="fas fa-user" style="color:#8b5cf6; font-size:13px;"></i>
                                     </div>
                                     <div>
-                                        <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'N/A'}</div>
+                                        <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'Chưa rõ'}</div>
                                         ${tg.don_vi ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-building" style="margin-right:3px;"></i>${tg.don_vi}</div>` : ''}
                                     </div>
                                 </div>

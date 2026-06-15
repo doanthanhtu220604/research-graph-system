@@ -73,7 +73,7 @@ function renderPublicationRows(list) {
         return;
     }
     container.innerHTML = list.map(ct => {
-        const title = String(ct.ten_cong_trinh || 'N/A').replace(/</g, '&lt;');
+        const title = String(ct.ten_cong_trinh || 'Chưa rõ').replace(/</g, '&lt;');
         const authors = (ct.tac_gia || []).map(tg => typeof tg === 'object' ? tg.ten : tg).join(', ');
         return `
             <div class="data-row" onclick="showPublicationDetail('${ct.id}')">
@@ -152,8 +152,8 @@ async function showPublicationDetail(ctId) {
             iconEl.style.background = 'rgba(16, 185, 129, 0.1)';
 
             let fieldsHtml = `
-                <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'N/A'}</b></div>
-                <div><span style="color:var(--text-muted);font-size:12px;">Nơi xuất bản</span><br><b>${ct.noi_xuat_ban || 'N/A'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Năm xuất bản</span><br><b>${ct.nam_xuat_ban || 'Chưa rõ'}</b></div>
+                <div><span style="color:var(--text-muted);font-size:12px;">Nơi xuất bản</span><br><b>${ct.noi_xuat_ban || 'Chưa rõ'}</b></div>
             `;
             if (ct.link) {
                 fieldsHtml += `<div><span style="color:var(--text-muted);font-size:12px;">Liên kết</span><br><a href="${ct.link}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="display:inline-block; margin-top:5px; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:4px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem bài viết</a></div>`;
@@ -200,7 +200,7 @@ async function showPublicationDetail(ctId) {
                                         textColor = '#10b981';
                                     }
                                 }
-                                return `<span style="padding:6px 14px; background:${roleColor}; color:${textColor}; border-radius:20px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fas fa-user-tie" style="font-size:11px;"></i>${tg.ten || 'N/A'}${roleText}</span>`;
+                                return `<span style="padding:6px 14px; background:${roleColor}; color:${textColor}; border-radius:20px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fas fa-user-tie" style="font-size:11px;"></i>${tg.ten || 'Chưa rõ'}${roleText}</span>`;
                             }).join('')}
                         </div>
                     </div>
@@ -225,7 +225,7 @@ async function showPublicationDetail(ctId) {
                                             <i class="fas fa-user" style="color:#8b5cf6; font-size:13px;"></i>
                                         </div>
                                         <div>
-                                            <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'N/A'}${roleText}</div>
+                                            <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${tg.ten || 'Chưa rõ'}${roleText}</div>
                                             ${tg.don_vi ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="fas fa-building" style="margin-right:3px;"></i>${tg.don_vi}</div>` : ''}
                                         </div>
                                     </div>

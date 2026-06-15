@@ -501,7 +501,7 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
             count = len(results)
             titles = []
             for r in results[:5]:
-                line = f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})"
+                line = f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'Chưa rõ'})"
                 if r.get("tap_chi"): line += f"\n    📰 {r['tap_chi']}"
                 titles.append(line)
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
@@ -542,7 +542,7 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
         LIMIT 5
     """)
     if results:
-        parts = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})" for r in results]
+        parts = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'Chưa rõ'})" for r in results]
         return "5 công trình nghiên cứu mới nhất:\n" + "\n".join(f"- {p}" for p in parts)
 
     return "Không tìm thấy công trình nào. Hãy thử cung cấp tên tác giả hoặc năm xuất bản."
@@ -726,7 +726,7 @@ def handle_search_by_field(question: str, include_pubs: bool = True, entities: O
         
         parts.append(header + "\n".join(f"- {n}" for n in names))
     if pubs:
-        pub_list = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'N/A'})" for r in pubs]
+        pub_list = [f"**[{r['ten']}](javascript:showPublicationDetail('{r['id']}'))** ({r['nam'] or 'Chưa rõ'})" for r in pubs]
         parts.append(f"\n📄 **Công trình liên quan:**\n" + "\n".join(f"- {p}" for p in pub_list))
 
     if parts:
@@ -1247,7 +1247,7 @@ def ask():
 
         # 3. Sử dụng Gemini để viết lại câu trả lời tự nhiên
         answer = raw_answer
-        if gemini_service.is_available():
+        if gemini_service.is_available() and gemini_service.should_rewrite():
             natural_answer = gemini_service.generate_natural_answer(question, raw_answer)
             if natural_answer:
                 answer = natural_answer

@@ -65,7 +65,7 @@ async function loadProjects() {
 
                     <td><span style="background: var(--bg-hover); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
 
-                    <td>${dt.cap_de_tai || 'N/A'}</td>
+                    <td>${dt.cap_de_tai || 'Chưa rõ'}</td>
 
                     <td style="text-align: center;"><span class="status-badge ${statusClass}">${dt.trang_thai || 'Đang thực hiện'}</span></td>
 

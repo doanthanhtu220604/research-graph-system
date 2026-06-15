@@ -40,6 +40,18 @@ async function openAdminModal(type, id = null, index = null) {
             <div id="upload_status_${f.name}" style="margin-top: 5px; font-size: 13px;"></div>
             `;
 
+        } else if (f.type === 'url' && f.name === 'anh_dai_dien') {
+            inputHtml = `
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="url" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''} style="flex: 1; min-width: 200px;" placeholder="Nhập link ảnh hoặc upload từ thiết bị">
+                <input type="file" id="upload_img_${f.name}" accept="image/*" style="display: none;" onchange="uploadImageForAvatar(this, 'field_${f.name}')">
+                <button type="button" class="btn" style="background: #3b82f6; color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;" onclick="document.getElementById('upload_img_${f.name}').click()">
+                    <i class="fas fa-image"></i> Chọn ảnh
+                </button>
+            </div>
+            <div id="upload_status_${f.name}" style="margin-top: 5px; font-size: 13px;"></div>
+            `;
+
         } else {
             inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>`;
         }

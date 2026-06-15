@@ -223,7 +223,7 @@ function renderGraph(containerId, nodes, edges, callback) {
     const filename = filenameMap[containerId] || ('do_thi_' + containerId);
     injectDownloadButton(container, network, filename);
 
-    if (callback) callback(network);
+    if (callback) callback(network, visNodes, visEdges);
 }
 
 function resetGraphView() {

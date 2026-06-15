@@ -22,12 +22,12 @@ async function openRelationModal(type, entityId, entityName = null) {
 
     if (!entityName && currentEntitiesData[type]) {
         const item = currentEntitiesData[type].find(x => x.id === entityId);
-        if (item) entityName = item.ten_cong_trinh || item.ten_de_tai || item.ho_va_ten || 'N/A';
+        if (item) entityName = item.ten_cong_trinh || item.ten_de_tai || item.ho_va_ten || 'Chưa rõ';
     }
 
     document.getElementById('relEntityType').value = type;
     document.getElementById('relEntityId').value   = entityId;
-    document.getElementById('adminRelationModalTitle').textContent = `Liên kết: ${entityName || 'N/A'}`;
+    document.getElementById('adminRelationModalTitle').textContent = `Liên kết: ${entityName || 'Chưa rõ'}`;
     document.getElementById('adminRelationModalOverlay').classList.add('active');
     document.getElementById('relFormBody').innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách nhân sự...</p>';
 
@@ -107,7 +107,7 @@ function buildTgnRow(tgn, checked, inputName, role, switchLabel, switchFn) {
     return `<div class="role-item-row" id="${rowId}">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-primary);font-size:13px;margin:0;">
             <input type="checkbox" name="${inputName}" value="${tgn.id}" ${checked ? 'checked' : ''} onchange="${syncFn}('${tgn.id}', '${role}')">
-            <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'N/A'})</small></span>
+            <span>${tgn.ho_va_ten} <small style="color:var(--text-muted)">(${tgn.don_vi_cong_tac || 'Chưa rõ'})</small></span>
         </label>
         ${checked ? `<button type="button" class="btn-role-switch" onclick="${switchFn}('${tgn.id}', '${role}')"><i class="fas fa-exchange-alt"></i> ${switchLabel}</button>` : ''}
     </div>`;

@@ -3,6 +3,10 @@
    ============================================================ */
 
 let currentSearchType = 'all';
+let originalExploreNodes = [];
+let originalExploreEdges = [];
+let exploreVisNodes = null;
+let exploreVisEdges = null;
 
 const searchSuggestionPool = [
     { type: 'giang_vien', text: 'Giảng viên', icon: 'fa-user-tie', queries: ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Trưởng khoa', 'Tiến sĩ', 'Phó Giáo sư', 'Khoa CNTT'] },
@@ -70,11 +74,17 @@ async function loadKnowledgeGraphForExplore() {
         const data = await res.json();
 
         if (data.status === 'ok') {
-            renderGraph('explore-graph', data.nodes, data.edges, (network) => {
+            originalExploreNodes = data.nodes;
+            originalExploreEdges = data.edges;
+
+            renderGraph('explore-graph', data.nodes, data.edges, (network, visNodes, visEdges) => {
                 exploreGraph = network;
+                exploreVisNodes = visNodes;
+                exploreVisEdges = visEdges;
             });
             if (data.legend) {
                 renderLegend(data.legend, 'exploreGraphLegend');
+                renderExploreGraphFilters(data.legend);
             }
         }
     } catch (err) {
@@ -167,7 +177,7 @@ const _labelNames = {
 function _resolveItemName(item) {
     return item.ho_va_ten || item.ten_cong_trinh || item.ten_de_tai
         || item.ten_bo_mon || item.ten_khoa || item.ten_linh_vuc
-        || item.ten_nhom || 'N/A';
+        || item.ten_nhom || 'Chưa rõ';
 }
 
 function _resolveClickAction(label, item, name) {
@@ -251,4 +261,82 @@ async function performLiveSearch(query) {
 function hideSuggestions() {
     const suggestionsEl = document.getElementById('exploreSuggestions');
     if (suggestionsEl) suggestionsEl.style.display = 'none';
+}
+
+function renderExploreGraphFilters(legendConfig) {
+    const container = document.getElementById('exploreGraphFilters');
+    if (!container) return;
+
+    const labels = {
+        'GiangVien': 'Giảng viên',
+        'CongTrinhNghienCuu': 'Công trình',
+        'DeTaiNghienCuu': 'Đề tài',
+        'BoMon': 'Bộ môn',
+        'Khoa': 'Khoa',
+        'LinhVucNghienCuu': 'Lĩnh vực',
+        'NhomNghienCuu': 'Nhóm NC',
+    };
+
+    let html = `<span style="font-size:12px; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-right:8px;"><i class="fas fa-filter" style="color:var(--accent-blue);"></i> Lọc đồ thị:</span>`;
+
+    Object.entries(legendConfig).forEach(([key, cfg]) => {
+        const label = labels[key] || key;
+        html += `
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer; color:var(--text-primary); user-select:none; font-weight:600;">
+                <input type="checkbox" value="${key}" checked onchange="filterExploreGraph()" style="cursor:pointer; accent-color:${cfg.color}; width:15px; height:15px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${cfg.color};"></span>
+                ${label}
+            </label>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function filterExploreGraph() {
+    if (!exploreGraph || !exploreVisNodes || !exploreVisEdges) return;
+
+    // 1. Lấy danh sách các nhãn node đang được check
+    const checkedCheckboxes = document.querySelectorAll('#exploreGraphFilters input[type="checkbox"]:checked');
+    const activeTypes = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+    // 2. Lọc danh sách nodes
+    const filteredNodes = originalExploreNodes.filter(node => activeTypes.includes(node.group));
+    const filteredNodeIds = new Set(filteredNodes.map(node => node.id));
+
+    // 3. Lọc danh sách edges (chỉ giữ quan hệ nối 2 node đang được hiển thị)
+    const filteredEdges = originalExploreEdges.filter(edge => 
+        filteredNodeIds.has(edge.from) && filteredNodeIds.has(edge.to)
+    );
+
+    // 4. Cập nhật vào Vis.js DataSet
+    exploreVisNodes.clear();
+    exploreVisNodes.add(filteredNodes.map(n => ({
+        id: n.id,
+        label: truncateLabel(n.label, 20),
+        title: buildTooltip(n),
+        color: {
+            background: n.color,
+            border: n.color,
+            highlight: { background: n.color, border: '#ffffff' },
+            hover: { background: n.color, border: '#ffffff' }
+        },
+        shape: n.shape || 'dot',
+        size: n.size || 15,
+        font: { color: '#333333', size: 11, face: 'Inter' },
+        borderWidth: 2,
+        shadow: { enabled: true, color: n.color + '40', size: 10 },
+    })));
+
+    exploreVisEdges.clear();
+    exploreVisEdges.add(filteredEdges.map(e => ({
+        from: e.from,
+        to: e.to,
+        label: formatRelLabel(e.label),
+        arrows: { to: { enabled: true, scaleFactor: 0.7 } },
+        color: { color: 'rgba(0,0,0,0.2)', highlight: '#4F8EF7', hover: '#4F8EF7' },
+        font: { color: '#636980', size: 9, face: 'Inter', strokeWidth: 0 },
+        smooth: { type: 'continuous', roundness: 0.3 },
+        width: 1.2,
+    })));
 }

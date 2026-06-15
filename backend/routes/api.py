@@ -414,13 +414,23 @@ def search():
             
             normalized_search_text = remove_accents(search_text)
             
+            # 1. Khớp thông thường (giữ khoảng trắng)
             if q_normalized in normalized_search_text:
                 item["_labels"] = labels
                 data.append(item)
+            else:
+                # 2. Khớp dính liền (loại bỏ toàn bộ khoảng trắng)
+                q_spaceless = "".join(q_normalized.split())
+                # Chỉ kích hoạt khi từ khóa viết liền từ 3 ký tự trở lên để tránh khớp sai các từ cực ngắn
+                if len(q_spaceless) >= 3:
+                    search_text_spaceless = "".join(normalized_search_text.split())
+                    if q_spaceless in search_text_spaceless:
+                        item["_labels"] = labels
+                        data.append(item)
                 
-                # Giới hạn 30 kết quả
-                if len(data) >= 30:
-                    break
+            # Giới hạn 30 kết quả
+            if len(data) >= 30:
+                break
 
         return jsonify({"status": "ok", "data": data, "query": q, "type": search_type})
 

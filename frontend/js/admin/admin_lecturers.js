@@ -29,14 +29,14 @@ function renderLecturersTable(dataList) {
 
     tbody.innerHTML = dataList.map((gv) => `
         <tr>
-            <td class="col-id">${gv.id || 'N/A'}</td>
-            <td class="col-code">${gv.ma_gv || 'N/A'}</td>
+            <td class="col-id">${gv.id || 'Chưa rõ'}</td>
+            <td class="col-code">${gv.ma_gv || 'Chưa rõ'}</td>
             <td class="col-name">
                 ${gv.anh_dai_dien
                     ? `<img src="${gv.anh_dai_dien}" alt="${gv.ho_va_ten}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">`
                     : `<i class="fas fa-user-circle" style="font-size:32px;color:var(--text-muted);vertical-align:middle;margin-right:8px;"></i>`
                 }
-                <strong>${gv.ho_va_ten || 'N/A'}</strong>
+                <strong>${gv.ho_va_ten || 'Chưa rõ'}</strong>
                 ${gv.profile_edit_status === 'Chờ duyệt'
                     ? `<span class="badge" style="background:#f59e0b;color:white;font-size:10px;margin-left:5px;" title="Có yêu cầu cập nhật thông tin cá nhân cần duyệt">Chờ duyệt hồ sơ</span>`
                     : ''
@@ -190,14 +190,14 @@ async function compareLecturerProfiles(id) {
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Họ và tên</td>
-                                    <td style="padding: 10px;">${d.ho_va_ten || 'N/A'}</td>
+                                    <td style="padding: 10px;">${d.ho_va_ten || 'Chưa rõ'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_ho_va_ten && d.pending_ho_va_ten !== d.ho_va_ten ? '600; color: #b45309;' : 'normal;'}">
                                         ${d.pending_ho_va_ten || '<em>Giữ nguyên</em>'}
                                     </td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                     <td style="padding: 10px; font-weight: 500;">Email</td>
-                                    <td style="padding: 10px;">${d.email || 'N/A'}</td>
+                                    <td style="padding: 10px;">${d.email || 'Chưa rõ'}</td>
                                     <td style="padding: 10px; background: #fffbeb; font-weight: ${d.pending_email && d.pending_email !== d.email ? '600; color: #b45309;' : 'normal;'}">
                                         ${d.pending_email || '<em>Giữ nguyên</em>'}
                                     </td>
