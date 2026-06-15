@@ -96,12 +96,12 @@ def login():
 
 
 # ============================================================
-# QUÊN MẬT KHẨU — Bước 1: Yêu cầu gửi link reset
+# QUÊN MẬT KHẨU — Bước 1: Yêu cầu gửi link reset kèm OTP
 # ============================================================
 
 @auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
-    """Nhận email, kiểm tra tồn tại và gửi link reset password."""
+    """Nhận email, kiểm tra tồn tại, tạo OTP và gửi link reset password."""
     try:
         data = request.get_json()
         email = (data.get('email', '') if data else '').strip().lower()
@@ -118,6 +118,21 @@ def forgot_password():
         # Dù tài khoản có tồn tại hay không, luôn trả về thông báo thành công
         # (tránh lộ thông tin người dùng - best practice bảo mật)
         if result and result.get('id'):
+            # Tạo mã OTP ngẫu nhiên gồm 6 chữ số
+            import random
+            otp = f"{random.randint(100000, 999999)}"
+            # Thời gian hết hạn là 15 phút sau (bằng thời gian sống của token)
+            otp_expiry = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+            
+            # Lưu mã OTP và hạn dùng vào CSDL Neo4j
+            conn.query(
+                """
+                MATCH (g:GiangVien) WHERE g.id = $id 
+                SET g.reset_otp = $otp, g.reset_otp_expiry = $expiry
+                """,
+                parameters={'id': result['id'], 'otp': otp, 'expiry': otp_expiry}
+            )
+            
             s = _get_serializer()
             token = s.dumps(result['id'])   # Mã hoá gv_id vào token
             
@@ -127,7 +142,8 @@ def forgot_password():
             sent = send_reset_password_email(
                 recipient_email=result['email'],
                 reset_link=reset_link,
-                user_name=result.get('ten')
+                user_name=result.get('ten'),
+                otp=otp
             )
             
             if not sent:
@@ -142,7 +158,7 @@ def forgot_password():
 
         return jsonify({
             'status': 'ok',
-            'message': 'Nếu email tồn tại trong hệ thống, chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu.'
+            'message': 'Nếu email tồn tại trong hệ thống, chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu cùng mã OTP.'
         })
 
     except Exception as e:
@@ -151,22 +167,87 @@ def forgot_password():
 
 
 # ============================================================
-# QUÊN MẬT KHẨU — Bước 2: Xác thực token và đặt mật khẩu mới
+# QUÊN MẬT KHẨU — Bước 1.5: Xác thực OTP trước khi đặt mật khẩu mới
 # ============================================================
 
-@auth_bp.route('/reset-password', methods=['POST'])
-def reset_password():
-    """Xác thực token và cập nhật mật khẩu mới."""
+@auth_bp.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    """Kiểm tra mã OTP nhập vào có khớp với mã được lưu trong CSDL và chưa hết hạn."""
     try:
         data = request.get_json()
         if not data:
             return jsonify({'status': 'error', 'message': 'Không có dữ liệu'}), 400
 
         token = data.get('token', '').strip()
+        otp = data.get('otp', '').strip()
+
+        if not token or not otp:
+            return jsonify({'status': 'error', 'message': 'Thiếu token hoặc mã OTP'}), 400
+
+        # Xác thực token trước
+        s = _get_serializer()
+        try:
+            gv_id = s.loads(token, max_age=900)
+        except SignatureExpired:
+            return jsonify({'status': 'error', 'message': 'Liên kết đã hết hạn (15 phút). Vui lòng thực hiện lại yêu cầu.'}), 400
+        except BadSignature:
+            return jsonify({'status': 'error', 'message': 'Liên kết không hợp lệ.'}), 400
+
+        # Lấy thông tin OTP trong CSDL
+        conn = get_neo4j_connection()
+        result = conn.query_single(
+            "MATCH (g:GiangVien) WHERE g.id = $id RETURN g.reset_otp AS reset_otp, g.reset_otp_expiry AS reset_otp_expiry",
+            parameters={'id': gv_id}
+        )
+
+        if not result:
+            return jsonify({'status': 'error', 'message': 'Không tìm thấy tài khoản.'}), 404
+
+        stored_otp = result.get('reset_otp')
+        stored_expiry = result.get('reset_otp_expiry')
+
+        if not stored_otp or stored_otp != otp:
+            return jsonify({'status': 'error', 'message': 'Mã OTP không chính xác.'}), 400
+
+        # Kiểm tra hạn dùng OTP
+        if stored_expiry:
+            try:
+                expiry_dt = datetime.fromisoformat(stored_expiry)
+                if expiry_dt.tzinfo is None:
+                    expiry_dt = expiry_dt.replace(tzinfo=timezone.utc)
+                if datetime.now(timezone.utc) > expiry_dt:
+                    return jsonify({'status': 'error', 'message': 'Mã OTP đã hết hạn.'}), 400
+            except Exception as e:
+                logger.error(f"Error parsing expiry datetime: {e}")
+                return jsonify({'status': 'error', 'message': 'Lỗi hệ thống khi xác thực mã OTP.'}), 500
+
+        return jsonify({'status': 'ok', 'message': 'Xác thực OTP thành công!'})
+
+    except Exception as e:
+        logger.error(f"Error in verify_otp: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+# ============================================================
+# QUÊN MẬT KHẨU — Bước 2: Xác thực token + OTP và đặt mật khẩu mới
+# ============================================================
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Xác thực token + OTP và cập nhật mật khẩu mới."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'error', 'message': 'Không có dữ liệu'}), 400
+
+        token = data.get('token', '').strip()
+        otp = data.get('otp', '').strip()
         new_password = data.get('new_password', '').strip()
 
         if not token:
             return jsonify({'status': 'error', 'message': 'Token không hợp lệ'}), 400
+        if not otp:
+            return jsonify({'status': 'error', 'message': 'Vui lòng cung cấp mã OTP'}), 400
         if not new_password or len(new_password) < 6:
             return jsonify({'status': 'error', 'message': 'Mật khẩu phải có ít nhất 6 ký tự'}), 400
 
@@ -179,18 +260,39 @@ def reset_password():
         except BadSignature:
             return jsonify({'status': 'error', 'message': 'Liên kết không hợp lệ hoặc đã bị thay đổi.'}), 400
 
-        # Cập nhật mật khẩu mới vào Neo4j
+        # Kiểm tra OTP trong Neo4j
         conn = get_neo4j_connection()
         result = conn.query_single(
-            "MATCH (g:GiangVien) WHERE g.id = $id RETURN g.id AS id",
+            "MATCH (g:GiangVien) WHERE g.id = $id RETURN g.id AS id, g.reset_otp AS reset_otp, g.reset_otp_expiry AS reset_otp_expiry",
             parameters={'id': gv_id}
         )
 
         if not result:
             return jsonify({'status': 'error', 'message': 'Tài khoản không tồn tại'}), 404
 
+        stored_otp = result.get('reset_otp')
+        stored_expiry = result.get('reset_otp_expiry')
+
+        if not stored_otp or stored_otp != otp:
+            return jsonify({'status': 'error', 'message': 'Mã OTP không chính xác'}), 400
+
+        if stored_expiry:
+            try:
+                expiry_dt = datetime.fromisoformat(stored_expiry)
+                if expiry_dt.tzinfo is None:
+                    expiry_dt = expiry_dt.replace(tzinfo=timezone.utc)
+                if datetime.now(timezone.utc) > expiry_dt:
+                    return jsonify({'status': 'error', 'message': 'Mã OTP đã hết hạn'}), 400
+            except Exception as e:
+                logger.error(f"Error parsing expiry datetime: {e}")
+                return jsonify({'status': 'error', 'message': 'Lỗi hệ thống khi xác thực mã OTP'}), 500
+
+        # Cập nhật mật khẩu mới vào Neo4j và xóa OTP
         conn.query(
-            "MATCH (g:GiangVien) WHERE g.id = $id SET g.password = $password",
+            """
+            MATCH (g:GiangVien) WHERE g.id = $id 
+            SET g.password = $password, g.reset_otp = null, g.reset_otp_expiry = null
+            """,
             parameters={'id': gv_id, 'password': new_password}
         )
 

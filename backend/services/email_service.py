@@ -9,7 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-def send_reset_password_email(recipient_email: str, reset_link: str, user_name: str | None = None) -> bool:
+def send_reset_password_email(recipient_email: str, reset_link: str, user_name: str | None = None, otp: str | None = None) -> bool:
     """
     Gửi email chứa link khôi phục mật khẩu.
     
@@ -17,6 +17,7 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
         recipient_email: Địa chỉ email người nhận
         reset_link: Đường link reset password có kèm token
         user_name: Tên người dùng (tùy chọn)
+        otp: Mã OTP xác thực (tùy chọn)
     
     Returns:
         True nếu gửi thành công, False nếu thất bại
@@ -32,6 +33,12 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
         return False
 
     greeting = f"Kính chào {user_name}," if user_name else "Kính chào,"
+
+    otp_text = ""
+    message_p = "Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn trên hệ thống <strong>NTUKnowledge</strong>."
+    if otp:
+        message_p += f" Dưới đây là mã OTP xác thực của bạn: <strong style='font-size: 16px; color: #3b82f6; font-family: monospace;'>{otp}</strong>"
+        otp_text = f"\nMã OTP xác thực của bạn: {otp}\n"
 
     html_body = f"""
 <!DOCTYPE html>
@@ -61,12 +68,14 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
         </div>
         <div class="body">
             <p>{greeting}</p>
-            <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn trên hệ thống <strong>NTUKnowledge</strong>. Nhấn vào nút bên dưới để tạo mật khẩu mới:</p>
+            <p>{message_p}</p>
+            
+            <p>Nhấp vào nút "Đặt lại mật khẩu" bên dưới và nhập mã OTP ở trên cùng mật khẩu mới để khôi phục quyền truy cập:</p>
             
             <a href="{reset_link}" class="btn-reset">🔐 Đặt lại mật khẩu</a>
             
             <div class="note">
-                ⏰ <strong>Lưu ý:</strong> Liên kết này chỉ có hiệu lực trong vòng <strong>15 phút</strong>. 
+                ⏰ <strong>Lưu ý:</strong> Liên kết và mã OTP này chỉ có hiệu lực trong vòng <strong>15 phút</strong>. 
                 Sau thời gian đó, bạn cần thực hiện lại yêu cầu.
             </div>
             
@@ -87,7 +96,7 @@ def send_reset_password_email(recipient_email: str, reset_link: str, user_name: 
 {greeting}
 
 Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản NTUKnowledge.
-
+{otp_text}
 Truy cập đường link sau để đặt lại mật khẩu (hết hạn sau 15 phút):
 {reset_link}
 

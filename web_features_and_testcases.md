@@ -135,6 +135,136 @@ graph TD
 
 ---
 
+### 4. Luồng Phân tích & Trực quan Mạng lưới Hợp tác Nghiên cứu (Co-authorship Network Flow)
+*Cung cấp cái nhìn toàn cảnh về các nhóm nghiên cứu, sự liên kết liên bộ môn, và vai trò của từng giảng viên trong mạng lưới học thuật.*
+
+#### A. Sơ đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    box LightBlue Client (Trình duyệt)
+    participant FE as frontend/user/collaboration.html
+    end
+    box LightYellow Server (Backend Flask)
+    participant BE as backend/routes/collaboration_api.py
+    end
+    box LightGreen Database (Đồ thị)
+    participant DB as Neo4j Graph DB
+    end
+
+    FE->>BE: 1. Yêu cầu dữ liệu mạng lưới (bo_mon, min_collab)
+    BE->>DB: 2. Lấy cặp giảng viên hợp tác qua Công trình & Đề tài
+    DB->>BE: 3. Trả về ds cặp kèm số lượng hợp tác chung
+    BE->>DB: 4. Truy vấn Degree Centrality & bộ môn của từng giảng viên
+    DB->>BE: 5. Trả về danh sách giảng viên kèm chỉ số kết nối
+    BE->>BE: 6. Tính toán kích thước Node (theo Degree) & Độ dày Edge (theo số lần hợp tác)
+    BE->>FE: 7. Phản hồi JSON: {nodes, edges, legend}
+    FE->>FE: 8. Vis.js render đồ thị mạng lưới tương tác (Interactive Network Graph)
+```
+
+#### B. Giải thích chi tiết các bước
+1. **Bước 1 & 2 (Truy vấn CSDL Đồ thị):** Khi người dùng xem trang Mạng lưới Hợp tác, Frontend gửi yêu cầu tới `/api/collaboration/graph`. Backend thực hiện hai truy vấn Cypher độc lập để tìm các cặp giảng viên cùng tham gia vào công trình (`CongTrinhNghienCuu`) hoặc đề tài (`DeTaiNghienCuu`) nghiên cứu.
+2. **Bước 3 & 4 (Tính toán Chỉ số Đồ thị):** Dữ liệu thô được gộp lại tại Backend để tính tổng số lần hợp tác chung của mỗi cặp. Đồng thời, Backend tính toán **Degree Centrality** (Bậc kết nối - số lượng cộng sự duy nhất của mỗi người) để xác định tầm ảnh hưởng của giảng viên đó trong mạng lưới.
+3. **Bước 5 & 6 (Chuẩn hóa tham số Trực quan):**
+   - **Kích thước Node (Size):** Tỉ lệ thuận với Bậc kết nối (Degree Centrality), giúp nổi bật những "ngôi sao kết nối" hoặc "cầu nối liên bộ môn" (Bridge Connectors).
+   - **Độ dày Cạnh (Width):** Tỉ lệ thuận với số lượng công trình/đề tài chung, thể hiện mức độ khăng khít của mối quan hệ hợp tác.
+   - **Màu sắc Node:** Định nghĩa theo Bộ môn (`BoMon`) để dễ dàng nhận biết các cụm nghiên cứu nội bộ bộ môn hay hợp tác liên ngành.
+4. **Bước 7 & 8 (Render):** Trả dữ liệu JSON chuẩn về cho Frontend để thư viện **Vis.js** vẽ mạng lưới liên kết thông minh, cho phép người dùng zoom, kéo thả và click vào từng node/edge để xem chi tiết.
+
+> [!TIP]
+> **Câu hỏi thầy cô hay hỏi:** *"Degree Centrality và Bridge Connector có ý nghĩa gì đối với công tác quản lý của Khoa?"*
+> **Cách trả lời:** *"Dạ thưa thầy/cô, các chỉ số này giúp ban lãnh đạo Khoa nhận diện được các nhân tố cốt lõi trong hoạt động nghiên cứu. Giảng viên có Degree Centrality cao là những người năng nổ, có khả năng dẫn dắt nhóm. Bridge Connector là những người thúc đẩy nghiên cứu liên ngành giữa các bộ môn khác nhau (ví dụ Công nghệ phần mềm hợp tác với Mạng máy tính). Điều này hỗ trợ việc thành lập các nhóm nghiên cứu mạnh một cách khoa học."*
+
+---
+
+### 5. Luồng Đồng bộ Chỉ số Học thuật Quốc tế (Academic Citations Sync - OpenAlex & Google Scholar)
+*Tự động lấy và đối sánh chỉ số khoa học thực tế (Citations, H-Index, i10-Index) từ các cơ sở dữ liệu thư mục toàn cầu.*
+
+#### A. Sơ đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    box LightBlue Client (Trình duyệt)
+    participant FE as profile.html / lecturers.html
+    end
+    box LightYellow Server (Backend Flask)
+    participant BE as backend/routes/academic_api.py
+    participant OA as OpenAlex API (Open Access)
+    participant GS as Google Scholar (scholarly scraper)
+    end
+
+    FE->>BE: 1. Yêu cầu chỉ số học thuật của giảng viên (Tên)
+    BE->>OA: 2. Gọi OpenAlex API tìm kiếm tác giả (Không dấu)
+    alt Tìm thấy tác giả khớp
+        OA->>BE: 3. Trả về thông tin tác giả & metrics
+    else Không thấy hoặc Lỗi (IP block/Timeout)
+        BE->>GS: 4. Fallback: Search Google Scholar (scholarly)
+        GS->>BE: 5. Trả về hồ sơ tác giả Google Scholar
+    end
+    BE->>BE: 6. Chấm điểm độ khớp tên và Institution (Nha Trang University)
+    BE->>FE: 7. Trả về JSON: {citedby, hindex, i10index, publications_count, profile_url, source}
+    FE->>FE: 8. Hiển thị huy hiệu (badges) chỉ số uy tín khoa học lên giao diện
+```
+
+#### B. Giải thích chi tiết các bước
+1. **Bước 1 & 2 (Truy vấn nguồn chính):** Khi hiển thị chi tiết giảng viên, hệ thống sẽ tự động gọi `/api/academic/<name>`. Nguồn dữ liệu chính là **OpenAlex API** - một hệ thống danh mục học thuật mở (Open Access), nhanh chóng, hỗ trợ API chính thức và không bị giới hạn IP/Rate-limit nghiêm ngặt.
+2. **Bước 3 (Thuật toán đối sánh thực thể):** Do trùng tên là hiện tượng rất phổ biến trên toàn cầu, backend cài đặt thuật toán chấm điểm độ tin cậy (Scoring Matcher):
+   - Khớp tên chính xác: +150 điểm.
+   - Cơ quan công tác cuối cùng (`last_known_institution`) hoặc lịch sử liên kết có chứa "Nha Trang University" hoặc "NTU": +200 điểm.
+   - Nếu tổng điểm >= 100, hệ thống tự tin chọn tác giả này làm thực thể đại diện cho giảng viên đang tìm kiếm.
+3. **Bước 4 & 5 (Cơ chế dự phòng Fallback):** Nếu OpenAlex không có dữ liệu hoặc gặp lỗi, hệ thống sẽ kích hoạt luồng phụ: cào dữ liệu từ **Google Scholar** thông qua thư viện `scholarly`. Truy vấn được tối ưu bằng cách ghép thêm tên trường (VD: "Nguyen Thanh Tu Nha Trang University") để tăng độ chính xác.
+4. **Bước 6 & 7:** Trích xuất các chỉ số quan trọng: **Số lượng trích dẫn (Citations)**, **H-Index**, **i10-Index**, **Link profile gốc** và trả về Frontend hiển thị dạng Badge chuyên nghiệp.
+
+> [!TIP]
+> **Câu hỏi thầy cô hay hỏi:** *"Tại sao em không lưu trực tiếp chỉ số trích dẫn (Citations, H-Index) vào Neo4j luôn mà phải gọi API ngoài thời gian thực?"*
+> **Cách trả lời:** *"Dạ, vì các chỉ số trích dẫn và ấn phẩm quốc tế thay đổi liên tục theo thời gian thực trên các nền tảng toàn cầu. Việc truy vấn Dynamic API giúp thông tin hiển thị luôn mới nhất và chính xác nhất mà không cần quản trị viên phải cập nhật thủ công hàng ngày. Điều này giúp hệ thống luôn đồng hành với dòng chảy tri thức thế giới mà không cần chi phí duy trì dữ liệu tĩnh."*
+
+---
+
+### 6. Luồng Quản lý Thùng rác Toàn cục & Khôi phục Phân quyền (Global Trash Bin & Two-Step Restoration Flow)
+*Ngăn ngừa mất mát dữ liệu do vô tình xóa và đảm bảo tính nhất quán của cơ sở dữ liệu đồ thị khi khôi phục các mối quan hệ.*
+
+#### A. Sơ đồ hoạt động (Activity Diagram)
+```mermaid
+graph TD
+    Start([Người dùng xóa Công trình/Đề tài]) --> CheckRole{Vai trò người dùng?}
+    CheckRole -->|Giảng viên| LectDelete{Trạng thái duyệt?}
+    LectDelete -->|Chưa duyệt/Từ chối| SoftDelete[Đánh dấu xóa mềm: is_deleted = true]
+    LectDelete -->|Đã duyệt chính thức| RequestDelete[Chuyển trạng thái sang 'Yêu cầu xóa']
+    CheckRole -->|Admin| AdminDelete[Đánh dấu xóa mềm ngay lập tức]
+    
+    SoftDelete --> Bin[Nằm trong Thùng rác]
+    RequestDelete --> AdminApprove{Admin duyệt yêu cầu xóa?}
+    AdminApprove -->|Đồng ý| SoftDelete
+    AdminApprove -->|Từ chối| ActiveState[Giữ nguyên trạng thái hoạt động]
+    
+    Bin --> Action{Hành động trong Thùng rác?}
+    Action -->|Khôi phục| CheckRestore{Trạng thái trước khi xóa?}
+    CheckRestore -->|Chưa duyệt/Nháp| DirectRestore[Khôi phục ngay: is_deleted = false]
+    CheckRestore -->|Đã duyệt chính thức| ReqRestore[Chuyển trạng thái 'Yêu cầu khôi phục' chờ Admin duyệt]
+    
+    Action -->|Xóa vĩnh viễn| PermDelete[DETACH DELETE khỏi Neo4j]
+    PermDelete --> OrphanCheck{Có tác giả ngoài mồ côi?}
+    OrphanCheck -->|Có và không còn liên kết khác| DelOrphan[Xóa sạch node tác giả ngoài mồ côi]
+    OrphanCheck -->|Không| End([Hoàn thành])
+    DelOrphan --> End
+    DirectRestore --> End
+    ReqRestore --> End
+```
+
+#### B. Giải thích chi tiết các bước
+1. **Bước 1 (Cơ chế Xóa mềm - Soft Delete):** Mọi hành động xóa thông thường trên hệ thống chỉ đặt thuộc tính `is_deleted = true` trên Node đó, chứ không dùng lệnh `DELETE` vật lý. Điều này giúp các liên kết đồ thị không bị gãy đột ngột và dữ liệu có thể khôi phục lại bất kỳ lúc nào.
+2. **Bước 2 (Khôi phục có phân quyền):**
+   - Đối với các mục nháp/chưa duyệt: Giảng viên có quyền tự bấm Khôi phục để đưa về lại danh sách quản lý cá nhân.
+   - Đối với các mục đã duyệt chính thức (dữ liệu công khai): Giảng viên chỉ được gửi "Yêu cầu khôi phục". Đề xuất này sẽ được chuyển vào hàng đợi phê duyệt của Admin nhằm đảm bảo tính toàn vẹn của dữ liệu chung.
+3. **Bước 3 (Xóa vĩnh viễn & Dọn dẹp Đồ thị):** Khi Admin bấm xóa vĩnh viễn trong thùng rác hệ thống:
+   - Sử dụng lệnh Cypher `DETACH DELETE` để cắt bỏ toàn bộ các quan hệ kết nối trước khi hủy node, tránh lỗi cô lập dữ liệu.
+   - Hệ thống tự động quét các node tác giả ngoài (`TacGiaNgoai`) liên quan. Nếu tác giả ngoài đó không còn liên kết với bất kỳ bài báo hay đề tài nào khác trong hệ thống (tác giả mồ côi), node tác giả ngoài đó cũng sẽ được xóa bỏ để giữ cho bộ nhớ CSDL đồ thị luôn tinh gọn, sạch sẽ.
+
+> [!TIP]
+> **Câu hỏi thầy cô hay hỏi:** *"Tại sao khi xóa vĩnh viễn lại phải dùng DETACH DELETE thay vì DELETE thông thường trong Neo4j?"*
+> **Cách trả lời:** *"Dạ thưa thầy/cô, trong Cơ sở dữ liệu đồ thị Neo4j, một Node không thể bị xóa nếu nó vẫn còn các mối quan hệ (Relationships/Edges) kết nối tới các Node khác. Nếu dùng lệnh `DELETE` thông thường, Neo4j sẽ trả về lỗi vi phạm ràng buộc và chặn hành động đó. Sử dụng `DETACH DELETE` sẽ hướng dẫn Neo4j tự động tìm và xóa tất cả các quan hệ hướng vào và hướng ra của Node đó trước, sau đó mới xóa bản thân Node, giúp thao tác diễn ra trơn tru mà không lỗi hệ thống."*
+
+---
+
 ## PHẦN II: LUỒNG HOẠT ĐỘNG & KIỂM THỬ CHO KHÁCH VÃNG LAI & SINH VIÊN
 
 ### Chức năng 1.1: Trực quan hóa Bản đồ Tri thức (Knowledge Map)
