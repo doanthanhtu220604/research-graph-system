@@ -14,7 +14,7 @@ const ENTITY_CONFIG = {
 
         fields: [
 
-            { name: 'ten_cong_trinh', label: 'Tên công trình (tiếng Anh)', type: 'text', required: true },
+            { name: 'ten_cong_trinh', label: 'Tên công trình (tiếng Anh)', type: 'text', required: false },
 
             { name: 'ten_cong_trinh_vi', label: 'Tên công trình (tiếng Việt)', type: 'text', required: false },
 
@@ -371,6 +371,15 @@ async function handleFormSubmit(e) {
     const id = document.getElementById('formEntityId').value;
 
     const config = ENTITY_CONFIG[type];
+
+    if (type === 'cong-trinh') {
+        const enVal = (document.getElementById('field_ten_cong_trinh')?.value || '').trim();
+        const viVal = (document.getElementById('field_ten_cong_trinh_vi')?.value || '').trim();
+        if (!enVal && !viVal) {
+            alert('Lỗi: Bạn phải nhập ít nhất tên tiếng Anh hoặc tên tiếng Việt của công trình.');
+            return;
+        }
+    }
 
     
 

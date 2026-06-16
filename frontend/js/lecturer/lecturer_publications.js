@@ -63,7 +63,7 @@ async function loadPublications() {
 
                     <td>${ct.id}</td>
 
-                    <td><strong style="color: var(--text-primary);">${ct.ten_cong_trinh}</strong>${isRejected ? ' <span style="color:#dc3545;font-size:11px;font-weight:600;"><i class="fas fa-times-circle"></i> Từ chối</span>' : ''}</td>
+                    <td><strong style="color: var(--text-primary);">${ct.ten_cong_trinh || ct.ten_cong_trinh_vi || 'N/A'}</strong>${isRejected ? ' <span style="color:#dc3545;font-size:11px;font-weight:600;"><i class="fas fa-times-circle"></i> Từ chối</span>' : ''}</td>
 
                     <td>${ct.nam_xuat_ban || ''}</td>
 

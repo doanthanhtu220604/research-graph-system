@@ -41,7 +41,7 @@ function renderPublicationsTable(dataList) {
         return `
         <tr>
             <td class="col-id">${ct.id || 'Chưa rõ'}</td>
-            <td class="col-name"><strong>${ct.ten_cong_trinh || 'Chưa rõ'}</strong></td>
+            <td class="col-name"><strong>${ct.ten_cong_trinh || ct.ten_cong_trinh_vi || 'Chưa rõ'}</strong></td>
             <td class="col-year">${ct.nam_xuat_ban || ''}</td>
             <td class="col-status"><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td class="col-actions">

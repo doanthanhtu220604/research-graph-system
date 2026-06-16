@@ -94,7 +94,7 @@ function renderPublicationPage(page) {
     }
 
     container.innerHTML = listToRender.map(ct => {
-        const title = String(ct.ten_cong_trinh || 'Chưa rõ').replace(/</g, '&lt;');
+        const title = String(ct.ten_cong_trinh || ct.ten_cong_trinh_vi || 'Chưa rõ').replace(/</g, '&lt;');
         const authors = (ct.tac_gia || []).map(tg => typeof tg === 'object' ? tg.ten : tg).join(', ');
         return `
             <div class="data-row" onclick="showPublicationDetail('${ct.id}')">
@@ -174,7 +174,7 @@ function filterUserPublications() {
     const year = document.getElementById('pubYearFilter')?.value || '';
 
     _filteredPublications = _allPublications.filter(ct => {
-        const title = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
+        const title = (ct.ten_cong_trinh || ct.ten_cong_trinh_vi || '').normalize('NFC').toLowerCase();
         const pubYear = (ct.nam_xuat_ban || '').toString().toLowerCase();
         const authors = (ct.tac_gia || []).map(a => typeof a === 'object' ? a.ten : a).join(' ').normalize('NFC').toLowerCase();
         const extAuthors = (ct.tac_gia_ngoai || []).map(a => typeof a === 'object' ? a.ten : a).join(' ').normalize('NFC').toLowerCase();
@@ -196,23 +196,28 @@ async function showPublicationDetail(ctId) {
         if (dataDetail.status === 'ok' && dataGraph.status === 'ok') {
             const ct = dataDetail.data;
 
-            // Lưu cả hai tên để toggle, reset về EN
-            _currentDetailTitleEN = ct.ten_cong_trinh || 'Công trình nghiên cứu';
+            // Lưu cả hai tên để toggle, reset về EN nếu có EN
+            _currentDetailTitleEN = ct.ten_cong_trinh || '';
             _currentDetailTitleVI = ct.ten_cong_trinh_vi || '';
-            _titleLang = 'en';
 
-            document.getElementById('detailTitle').textContent = _currentDetailTitleEN;
+            if (_currentDetailTitleEN) {
+                _titleLang = 'en';
+                document.getElementById('detailTitle').textContent = _currentDetailTitleEN;
+            } else {
+                _titleLang = 'vi';
+                document.getElementById('detailTitle').textContent = _currentDetailTitleVI || 'Công trình nghiên cứu';
+            }
 
             // Tên tiếng Việt: luôn ẩn (không hiện chữ nhỏ phía dưới)
             const viEl = document.getElementById('detailTitleVi');
             if (viEl) { viEl.textContent = ''; viEl.style.display = 'none'; }
 
-            // Nút toggle: chỉ hiện khi có tên tiếng Việt
+            // Nút toggle: chỉ hiện khi có CẢ HAI tên tiếng Anh và tiếng Việt
             const btn = document.getElementById('langToggleBtn');
             if (btn) {
-                if (_currentDetailTitleVI) {
+                if (_currentDetailTitleEN && _currentDetailTitleVI) {
                     btn.style.display    = 'inline-flex';
-                    btn.textContent      = '🌐 VI';
+                    btn.textContent      = _titleLang === 'en' ? '🌐 VI' : '🌐 EN';
                     btn.style.background = 'rgba(79,142,247,0.1)';
                     btn.style.border     = '1px solid rgba(79,142,247,0.35)';
                     btn.style.color      = 'var(--accent-blue)';

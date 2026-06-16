@@ -358,13 +358,15 @@ graph TD
 * **Mô tả:** Thêm, sửa, yêu cầu xóa bài báo, đề tài. Hỗ trợ chọn đồng tác giả nội bộ và tác giả ngoài.
 * **API:** `POST / PUT / DELETE` trên `/api/lecturer/cong-trinh` và `/api/lecturer/de-tai`
 * **Kịch bản kiểm thử (Test Case):**
-  1. **Bước 1:** Giảng viên thêm bài báo mới. Gán giảng viên B làm đồng tác giả (Cộng sự) và chọn 1 Tác giả ngoài.
-  2. **Bước 2:** Sửa một bài báo đã được duyệt chính thức -> Kiểm tra xem trạng thái có bị đổi về "Chờ duyệt" để kiểm duyệt lại hay không.
-  3. **Bước 3:** Bấm nút Xóa đối với 1 bài báo đã được duyệt -> Kiểm tra xem nó có bị xóa ngay không.
-  4. **Kết quả kỳ vọng:**
-     - Ở bước 1: Bài báo tạo mới thành công, ở trạng thái "Chờ duyệt", không hiện công khai.
-     - Ở bước 2: Bài báo sau khi sửa bị tự động đưa về trạng thái "Chờ duyệt" và ẩn khỏi bản đồ công khai.
-     - Ở bước 3: Hệ thống không xóa ngay mà chuyển trạng thái thành "Yêu cầu xóa", gửi yêu cầu phê duyệt tới Admin.
+  1. **Bước 1:** Giảng viên thêm bài báo mới. Gán giảng viên B làm đồng tác giả (Cộng sự) và chọn 1 Tác giả ngoài. Thử nghiệm nhập chỉ tên tiếng Anh hoặc chỉ tên tiếng Việt -> Hệ thống chấp nhận và cho phép thêm.
+  2. **Bước 2:** Thử nghiệm bỏ trống cả tên tiếng Anh và tên tiếng Việt khi thêm công trình -> Hệ thống phải báo lỗi và chặn lại.
+  3. **Bước 3:** Sửa một bài báo đã được duyệt chính thức -> Kiểm tra xem trạng thái có bị đổi về "Chờ duyệt" để kiểm duyệt lại hay không.
+  4. **Bước 4:** Bấm nút Xóa đối với 1 bài báo đã được duyệt -> Kiểm tra xem nó có bị xóa ngay không.
+  5. **Kết quả kỳ vọng:**
+     - Ở bước 1: Bài báo tạo mới thành công với chỉ 1 trong 2 tên (tiếng Anh hoặc tiếng Việt), ở trạng thái "Chờ duyệt", không hiện công khai.
+     - Ở bước 2: Hệ thống báo lỗi bắt buộc nhập ít nhất 1 trong 2 tên.
+     - Ở bước 3: Bài báo sau khi sửa bị tự động đưa về trạng thái "Chờ duyệt" và ẩn khỏi bản đồ công khai.
+     - Ở bước 4: Hệ thống không xóa ngay mà chuyển trạng thái thành "Yêu cầu xóa", gửi yêu cầu phê duyệt tới Admin.
 
 #### Chức năng 2.4: Thùng rác cá nhân của Giảng viên (Lecturer Trash Bin)
 * **Mô tả:** Xem lại các mục đã xóa mềm, khôi phục hoặc xóa vĩnh viễn.

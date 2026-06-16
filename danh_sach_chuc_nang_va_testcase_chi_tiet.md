@@ -464,6 +464,16 @@ graph TD
   ```
   *(Trường `is_deleted` chuyển thành `true` để ẩn khỏi các truy vấn thông thường).*
 
+##### Kịch bản 2.4.6: Bỏ trống cả tên tiếng Anh và tên tiếng Việt khi thêm công trình (Error)
+* **Mục tiêu:** Đảm bảo hệ thống bắt buộc nhập ít nhất 1 trong 2 ngôn ngữ (tiếng Anh hoặc tiếng Việt) cho tên công trình.
+* **Các bước thực hiện:**
+  1. Vào mục "Quản lý công trình", chọn "Thêm mới".
+  2. Để trống cả 2 trường "Tên công trình (tiếng Anh)" và "Tên công trình (tiếng Việt)".
+  3. Bấm "Thêm".
+* **Dữ liệu đầu vào:** Tên tiếng Anh = "", Tên tiếng Việt = "".
+* **Kết quả trên giao diện:** Hệ thống cảnh báo đỏ: "Lỗi: Bạn phải nhập ít nhất tên tiếng Anh hoặc tên tiếng Việt của công trình." và dừng tiến trình submit.
+* **Xác thực CSDL (Cypher Query):** API backend trả lời mã lỗi `400` và không có bản ghi mới nào được ghi xuống Neo4j.
+
 ---
 
 #### CHỨC NĂNG 2.5: GỢI Ý CỘNG SỰ TIỀM NĂNG THÔNG MINH

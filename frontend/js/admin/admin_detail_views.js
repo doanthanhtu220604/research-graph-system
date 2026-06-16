@@ -96,8 +96,8 @@ async function viewPublicationStats(ctId) {
         document.getElementById('adminStatsModalTitle').textContent = 'Chi tiết Công trình';
 
         let html = `<div style="margin-bottom:15px;background:rgba(0,0,0,0.02);padding:15px;border-radius:8px;">
-            <p style="margin-bottom:${ct.ten_cong_trinh_vi ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || 'Chưa rõ'}</b></p>
-            ${ct.ten_cong_trinh_vi ? `<p style="margin-bottom:8px;font-size:13px;color:var(--text-muted);font-style:italic;font-weight:400;">${ct.ten_cong_trinh_vi}</p>` : ''}
+            <p style="margin-bottom:${(ct.ten_cong_trinh && ct.ten_cong_trinh_vi) ? '4px' : '8px'};font-size:16px;"><b>${ct.ten_cong_trinh || ct.ten_cong_trinh_vi || 'Chưa rõ'}</b></p>
+            ${(ct.ten_cong_trinh && ct.ten_cong_trinh_vi) ? `<p style="margin-bottom:8px;font-size:13px;color:var(--text-muted);font-style:italic;font-weight:400;">${ct.ten_cong_trinh_vi}</p>` : ''}
             <p style="margin-bottom:5px;"><b>Năm xuất bản:</b> ${ct.nam_xuat_ban || 'Chưa rõ'}</p>
             <p style="margin-bottom:5px;"><b>Nơi xuất bản:</b> ${ct.noi_xuat_ban || 'Chưa rõ'}</p>
             <p style="margin-bottom:5px;"><b>Link:</b> ${ct.link ? `<a href="${ct.link}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue);">${ct.link}</a>` : 'Chưa rõ'}</p>

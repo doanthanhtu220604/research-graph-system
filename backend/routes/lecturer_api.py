@@ -233,21 +233,27 @@ def add_my_publication():
     try:
         conn = get_neo4j_connection()
         ten_cong_trinh = data.get('ten_cong_trinh', '')
-        ten_cong_trinh = " ".join(ten_cong_trinh.split())
+        if ten_cong_trinh:
+            ten_cong_trinh = " ".join(ten_cong_trinh.split())
         data['ten_cong_trinh'] = ten_cong_trinh
-        if not ten_cong_trinh:
-            return jsonify({'status': 'error', 'message': 'Tên công trình không được để trống'}), 400
 
-        ten_cong_trinh_vi = " ".join(data.get('ten_cong_trinh_vi', '').split()).upper()
+        ten_cong_trinh_vi = data.get('ten_cong_trinh_vi', '')
+        if ten_cong_trinh_vi:
+            ten_cong_trinh_vi = " ".join(ten_cong_trinh_vi.split()).upper()
+        data['ten_cong_trinh_vi'] = ten_cong_trinh_vi
 
-        slug = generate_slug(ten_cong_trinh)
-        exists_en = conn.query_single("""
-            MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
-            RETURN ct.id AS id
-        """, {"slug": slug})
-        if exists_en:
-            return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống'}), 400
+        if not ten_cong_trinh and not ten_cong_trinh_vi:
+            return jsonify({'status': 'error', 'message': 'Phải điền ít nhất Tên công trình (tiếng Anh) hoặc Tên công trình (tiếng Việt)'}), 400
+
+        slug = generate_slug(ten_cong_trinh) if ten_cong_trinh else None
+        if slug:
+            exists_en = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"slug": slug})
+            if exists_en:
+                return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống'}), 400
 
         # Kiểm tra trùng tên tiếng Việt (nếu có)
         slug_vi = None
@@ -369,11 +375,29 @@ def update_my_publication(ct_id):
         elif request.method == 'PUT':
             data = request.get_json()
             ten_ct = data.get('ten_cong_trinh', '')
-            ten_ct = " ".join(ten_ct.split())
+            if ten_ct:
+                ten_ct = " ".join(ten_ct.split())
             data['ten_cong_trinh'] = ten_ct
-            slug = generate_slug(ten_ct)
+            slug = generate_slug(ten_ct) if ten_ct else None
 
-            ten_ct_vi = " ".join(data.get('ten_cong_trinh_vi', '').split()).upper()
+            ten_ct_vi = data.get('ten_cong_trinh_vi', '')
+            if ten_ct_vi:
+                ten_ct_vi = " ".join(ten_ct_vi.split()).upper()
+            data['ten_cong_trinh_vi'] = ten_ct_vi
+
+            if not ten_ct and not ten_ct_vi:
+                return jsonify({'status': 'error', 'message': 'Phải điền ít nhất Tên công trình (tiếng Anh) hoặc Tên công trình (tiếng Việt)'}), 400
+
+            # Kiểm tra trùng tên tiếng Anh khi cập nhật (loại trừ chính nó)
+            if slug:
+                exists_en_upd = conn.query_single("""
+                    MATCH (ct:CongTrinhNghienCuu)
+                    WHERE ct.slug = $slug AND ct.id <> $ct_id AND coalesce(ct.is_deleted, false) = false
+                    RETURN ct.id AS id
+                """, {"slug": slug, "ct_id": ct_id})
+                if exists_en_upd:
+                    return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống'}), 400
+
             slug_vi_upd = generate_slug(ten_ct_vi) if ten_ct_vi else None
 
             # Kiểm tra trùng tên tiếng Việt khi cập nhật (loại trừ chính nó)
@@ -405,7 +429,7 @@ def update_my_publication(ct_id):
             """
             conn.write(query, parameters={
                 'ct_id': ct_id,
-                'ten_ct': data.get('ten_cong_trinh', ''),
+                'ten_ct': ten_ct,
                 'ten_ct_vi': ten_ct_vi,
                 'slug': slug,
                 'slug_vi': slug_vi_upd,

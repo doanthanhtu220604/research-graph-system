@@ -16,22 +16,27 @@ def create_cong_trinh():
     conn = get_neo4j_connection()
     try:
         ten_cong_trinh = data.get("ten_cong_trinh", "")
-        ten_cong_trinh = " ".join(ten_cong_trinh.split())
+        if ten_cong_trinh:
+            ten_cong_trinh = " ".join(ten_cong_trinh.split())
         data["ten_cong_trinh"] = ten_cong_trinh
-        if not ten_cong_trinh:
-            return jsonify({"status": "error", "message": "Tên công trình không được để trống"}), 400
 
-        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split()).upper()
+        ten_cong_trinh_vi = data.get("ten_cong_trinh_vi", "")
+        if ten_cong_trinh_vi:
+            ten_cong_trinh_vi = " ".join(ten_cong_trinh_vi.split()).upper()
         data["ten_cong_trinh_vi"] = ten_cong_trinh_vi
 
-        slug = generate_slug(ten_cong_trinh)
-        exists_en = conn.query_single("""
-            MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
-            RETURN ct.id AS id
-        """, {"slug": slug})
-        if exists_en:
-            return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống"}), 400
+        if not ten_cong_trinh and not ten_cong_trinh_vi:
+            return jsonify({"status": "error", "message": "Phải điền ít nhất Tên công trình (tiếng Anh) hoặc Tên công trình (tiếng Việt)"}), 400
+
+        slug = generate_slug(ten_cong_trinh) if ten_cong_trinh else None
+        if slug:
+            exists_en = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"slug": slug})
+            if exists_en:
+                return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống"}), 400
 
         # Kiểm tra trùng tên tiếng Việt (nếu có)
         if ten_cong_trinh_vi:
@@ -107,11 +112,27 @@ def update_cong_trinh(id):
     conn = get_neo4j_connection()
     try:
         ten_cong_trinh = data.get("ten_cong_trinh", "")
-        ten_cong_trinh = " ".join(ten_cong_trinh.split())
-        slug = generate_slug(ten_cong_trinh)
+        if ten_cong_trinh:
+            ten_cong_trinh = " ".join(ten_cong_trinh.split())
+        slug = generate_slug(ten_cong_trinh) if ten_cong_trinh else None
 
-        ten_cong_trinh_vi = " ".join(data.get("ten_cong_trinh_vi", "").split()).upper()
+        ten_cong_trinh_vi = data.get("ten_cong_trinh_vi", "")
+        if ten_cong_trinh_vi:
+            ten_cong_trinh_vi = " ".join(ten_cong_trinh_vi.split()).upper()
         slug_vi = generate_slug(ten_cong_trinh_vi) if ten_cong_trinh_vi else None
+
+        if not ten_cong_trinh and not ten_cong_trinh_vi:
+            return jsonify({"status": "error", "message": "Phải điền ít nhất Tên công trình (tiếng Anh) hoặc Tên công trình (tiếng Việt)"}), 400
+
+        # Kiểm tra trùng tên tiếng Anh khi cập nhật (loại trừ chính nó)
+        if slug:
+            exists_en = conn.query_single("""
+                MATCH (ct:CongTrinhNghienCuu)
+                WHERE ct.slug = $slug AND ct.id <> $id AND coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"slug": slug, "id": id})
+            if exists_en:
+                return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống"}), 400
 
         # Kiểm tra trùng tên tiếng Việt khi cập nhật (loại trừ chính nó)
         if slug_vi:
