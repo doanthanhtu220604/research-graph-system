@@ -1,0 +1,1052 @@
+[
+    {
+        "id": "ct_100",
+        "ten_cong_trinh": "FPGA APPLICATION IN CPU DESIGN ACCORDING TO MIPS ARCHITECTURE",
+        "ten_cong_trinh_vi": "ỨNG DỤNG FPGA TRONG THIẾT KẾ CPU THEO KIẾN TRÚC MIPS",
+        "slug": "fpga-application-in-cpu-design-according-to-mips-architecture",
+        "slug_vi": "ung-dung-fpga-trong-thiet-ke-cpu-theo-kien-truc-mips"
+    },
+    {
+        "id": "ct_101",
+        "ten_cong_trinh": "A SEMANTIC APPROACH FOR TRANSFORMING XML DATA INTO RDF ONTOLOGY",
+        "ten_cong_trinh_vi": "PHƯƠNG PHÁP TIẾP CẬN NGỮ NGHĨA ĐỂ CHUYỂN ĐỔI DỮ LIỆU XML THÀNH BẢN THỂ RDF",
+        "slug": "asemanticapproachfortransformingxmldataintordfontology",
+        "slug_vi": "phuong-phap-tiep-can-ngu-nghia-de-chuyen-doi-du-lieu-xml-thanh-ban-the-rdf"
+    },
+    {
+        "id": "ct_102",
+        "ten_cong_trinh": "IMPROVERECOGNITION PERFORMANCE OF LIMABEAM ALGORITHM USING MLLR ADAPTATION FOR ENVIRONMENT",
+        "ten_cong_trinh_vi": "CẢI THIỆN HIỆU SUẤT NHẬN THỨC CỦA THUẬT TOÁN LIMABEAM SỬ DỤNG THÍCH ỨNG MLLR CHO MÔI TRƯỜNG",
+        "slug": "improverecognitionperformanceoflimabeamalgorithmusingmllradaptationforenvironment",
+        "slug_vi": "cai-thien-hieu-suat-nhan-thuc-cua-thuat-toan-limabeam-su-dung-thich-ung-mllr-cho-moi-truong"
+    },
+    {
+        "id": "ct_103",
+        "ten_cong_trinh": "RECOGNITON PERFORMANCE IMPROVEMENT OF UNSUPERVISED LIMABEAM ALGORITHM USING POST FILTERING TECHNIQUE",
+        "ten_cong_trinh_vi": "CẢI THIỆN HIỆU SUẤT NHẬN DẠNG CỦA THUẬT TOÁN LIMABEAM KHÔNG GIÁM SÁT SỬ DỤNG KỸ THUẬT LỌC BÀI",
+        "slug": "recognitonperformanceimprovementofunsupervisedlimabeamalgorithmusingpostfilteringtechnique",
+        "slug_vi": "cai-thien-hieu-suat-nhan-dang-cua-thuat-toan-limabeam-khong-giam-sat-su-dung-ky-thuat-loc-bai"
+    },
+    {
+        "id": "ct_104",
+        "ten_cong_trinh": "ENTITY RATING METHODOLOGY BASED ON USER REVIEWS",
+        "ten_cong_trinh_vi": "PHƯƠNG PHÁP XẾP HẠNG THỰC THỂ DỰA TRÊN ĐÁNH GIÁ NGƯỜI DÙNG",
+        "slug": "entity-rating-methodology-based-on-user-reviews",
+        "slug_vi": "phuong-phap-xep-hang-thuc-the-dua-tren-danh-gia-nguoi-dung"
+    },
+    {
+        "id": "ct_105",
+        "ten_cong_trinh": "EVALUATING THE EFFECTIVENESS OF CAPTURING HUMAN FACE FEATURES THROUGH VIDEO USING ASM ALGORITHM FOR MOCAP TECHNIQUE",
+        "ten_cong_trinh_vi": "ĐÁNH GIÁ HIỆU QUẢ BẮT ĐẶC TRƯNG CỦA KHUÔN MẶT NGƯỜI QUA VIDEO SỬ DỤNG THUẬT TOÁN ASM PHỤC VỤ CHO KĨ THUẬT MOCAP",
+        "slug": "evaluating-the-effectiveness-of-capturing-human-face-features-through-video-using-asm-algorithm-for-mocap-technique",
+        "slug_vi": "danh-gia-hieu-qua-bat-dac-trung-cua-khuon-mat-nguoi-qua-video-su-dung-thuat-toan-asm-phuc-vu-cho-ki-thuat-mocap"
+    },
+    {
+        "id": "ct_106",
+        "ten_cong_trinh": "4-REGULAR GRAPH OF DIAMETER 2",
+        "ten_cong_trinh_vi": "4-ĐỒ HỌA ĐƯỜNG KÍNH 2",
+        "slug": "4regulargraphofdiameter2",
+        "slug_vi": "4-do-hoa-duong-kinh-2"
+    },
+    {
+        "id": "ct_107",
+        "ten_cong_trinh": "SOME EXTENSIONS OF POSITIVE AND NEGATIVE RULES FOR DISCOVERING BASIC INTERESTING RULES",
+        "ten_cong_trinh_vi": "MỘT SỐ MỞ RỘNG QUY TẮC TÍCH CỰC VÀ TIÊU CỰC ĐỂ KHÁM PHÁ NHỮNG QUY TẮC SỞ HỮU CƠ BẢN",
+        "slug": "someextensionsofpositiveandnegativerulesfordiscoveringbasicinterestingrules",
+        "slug_vi": "mot-so-mo-rong-quy-tac-tich-cuc-va-tieu-cuc-de-kham-pha-nhung-quy-tac-so-huu-co-ban"
+    },
+    {
+        "id": "ct_108",
+        "ten_cong_trinh": "AN IMPROVEMENT OF METHOD HANDLING MISSING VALUES IN INCOMPLETE INFORMATION SYSTEM",
+        "ten_cong_trinh_vi": "CẢI TIẾN PHƯƠNG PHÁP XỬ LÝ CÁC GIÁ TRỊ THIẾU TRONG HỆ THỐNG THÔNG TIN KHÔNG ĐẦY ĐỦ",
+        "slug": "animprovementofmethodhandlingmissingvaluesinincompleteinformationsystem",
+        "slug_vi": "cai-tien-phuong-phap-xu-ly-cac-gia-tri-thieu-trong-he-thong-thong-tin-khong-day-du"
+    },
+    {
+        "id": "ct_109",
+        "ten_cong_trinh": "SEMANTIC AND STRUCTURAL SIMILARITY BETWEEN XML SCHEMAS FOR INTEGRATION OF UBIQUITOUS HEALTHCARE DATA",
+        "ten_cong_trinh_vi": "SỰ TƯƠNG ĐỒNG GIỮA NGUYÊN NGHIỆP VÀ CẤU TRÚC GIỮA CÁC LƯỢC ĐỒNG XML ĐỂ TÍCH HỢP DỮ LIỆU CHĂM SÓC SỨC KHỎE UBIQUITOUS",
+        "slug": "semanticandstructuralsimilaritybetweenxmlschemasforintegrationofubiquitoushealthcaredata",
+        "slug_vi": "su-tuong-dong-giua-nguyen-nghiep-va-cau-truc-giua-cac-luoc-dong-xml-de-tich-hop-du-lieu-cham-soc-suc-khoe-ubiquitous"
+    },
+    {
+        "id": "ct_110",
+        "ten_cong_trinh": "BILEVEL OPTIMIZATION AS A REGULARIZATION APPROACH TO PSEUDOMONOTONE EQUILIBRIUM PROBLEMS",
+        "ten_cong_trinh_vi": "TỐI ƯU HÓA BILEVEL NHƯ MỘT PHƯƠNG PHÁP TIẾP CẬN QUY ĐỊNH ĐỐI VỚI CÁC VẤN ĐỀ CÂN BẰNG PSEUDOMONOTONE",
+        "slug": "bileveloptimizationasaregularizationapproachtopseudomonotoneequilibriumproblems",
+        "slug_vi": "toi-uu-hoa-bilevel-nhu-mot-phuong-phap-tiep-can-quy-dinh-doi-voi-cac-van-de-can-bang-pseudomonotone"
+    },
+    {
+        "id": "ct_111",
+        "ten_cong_trinh": "CONTEXT-AWARE IMAGE TAGGING WITH VISUAL INFORMATION INFERENCE",
+        "ten_cong_trinh_vi": "GẮN THẺ HÌNH ẢNH NHẬN THỨC BỐI CẢNH BẰNG SỰ SUY LUẬN THÔNG TIN HÌNH ẢNH",
+        "slug": "contextawareimagetaggingwithvisualinformationinference",
+        "slug_vi": "gan-the-hinh-anh-nhan-thuc-boi-canh-bang-su-suy-luan-thong-tin-hinh-anh"
+    },
+    {
+        "id": "ct_112",
+        "ten_cong_trinh": "ESTIMATION OF FEATURE ENHANCEMENT ON HANDWRITTING RECOGNITION BY COMBINATION BETWEEN DIAGONAL BASED AND DENSE DISTRIBUTION TECHNIQUES",
+        "ten_cong_trinh_vi": "ƯỚC TÍNH NÂNG CAO TÍNH NĂNG VỀ NHẬN DẠNG CHỮ TAY BẰNG CÁCH KẾT HỢP GIỮA KỸ THUẬT PHÂN PHỐI DỰA CHÉO VÀ MẬT ĐỘ",
+        "slug": "estimationoffeatureenhancementonhandwrittingrecognitionbycombinationbetweendiagonalbasedanddensedistributiontechniques",
+        "slug_vi": "uoc-tinh-nang-cao-tinh-nang-ve-nhan-dang-chu-tay-bang-cach-ket-hop-giua-ky-thuat-phan-phoi-dua-cheo-va-mat-do"
+    },
+    {
+        "id": "ct_113",
+        "ten_cong_trinh": "FUZZY ARGUMENTS FOR THE PARTNER SELECTION PHASE IN AUTOMATED NEGOTIATIONS",
+        "ten_cong_trinh_vi": "LẬP LUẬN MỜ CHO GIAI ĐOẠN LỰA CHỌN ĐỐI TÁC TRONG THƯƠNG LƯỢNG TỰ ĐỘNG",
+        "slug": "fuzzy-arguments-for-the-partner-selection-phase-in-automated-negotiations",
+        "slug_vi": "lap-luan-mo-cho-giai-doan-lua-chon-doi-tac-trong-thuong-luong-tu-dong"
+    },
+    {
+        "id": "ct_114",
+        "ten_cong_trinh": "WEBGIS FOR BIODIVERSITY CONSERVATION IN THE MEKONG DELTA",
+        "ten_cong_trinh_vi": "WEBGIS CHO BẢO TỒN ĐA DẠNG SINH HỌC ĐỒNG BẰNG SÔNG CỬU LONG",
+        "slug": "webgis-for-biodiversity-conservation-in-the-mekong-delta",
+        "slug_vi": "webgis-cho-bao-ton-da-dang-sinh-hoc-dong-bang-song-cuu-long"
+    },
+    {
+        "id": "ct_115",
+        "ten_cong_trinh": "ACTIVITY REPORT FOR THE FIRST 6 MONTHS OF THE YEAR AND OPERATION PLAN FOR 2014",
+        "ten_cong_trinh_vi": "BÁO CÁO HOẠT ĐỘNG 6 THÁNG ĐẦU NĂM VÀ KH HOẠT ĐỘNG NĂM 2014",
+        "slug": "activity-report-for-the-first-6-months-of-the-year-and-operation-plan-for-2014",
+        "slug_vi": "bao-cao-hoat-dong-6-thang-dau-nam-va-kh-hoat-dong-nam-2014"
+    },
+    {
+        "id": "ct_116",
+        "ten_cong_trinh": "NEW MEASURES FOR CONSTRUCTING DECISION TREE BASED ON ROUGH SETS AND APPLICATIONS",
+        "ten_cong_trinh_vi": "BIỆN PHÁP MỚI XÂY DỰNG CÂY QUYẾT ĐỊNH DỰA TRÊN BỘ TÔ VÀ ỨNG DỤNG",
+        "slug": "newmeasuresforconstructingdecisiontreebasedonroughsetsandapplications",
+        "slug_vi": "bien-phap-moi-xay-dung-cay-quyet-dinh-dua-tren-bo-to-va-ung-dung"
+    },
+    {
+        "id": "ct_117",
+        "ten_cong_trinh": "COMPUTING THE SIMILARITY BETWEEN DUPLICATE ELEMENTS IN XML SCHEMA",
+        "ten_cong_trinh_vi": "TÍNH TOÁN SỰ ĐƠN GIẢN GIỮA CÁC THÀNH PHẦN TRÙNG LẶP TRONG LƯỢC ĐỒ XML",
+        "slug": "computingthesimilaritybetweenduplicateelementsinxmlschema",
+        "slug_vi": "tinh-toan-su-don-gian-giua-cac-thanh-phan-trung-lap-trong-luoc-do-xml"
+    },
+    {
+        "id": "ct_118",
+        "ten_cong_trinh": "SOME APPLICATIONS OF ROUGH SET THEORY IN ECONOMICS AND FINANCE",
+        "ten_cong_trinh_vi": "MỘT SỐ ỨNG DỤNG LÝ THUYẾT TẬP THÔ TRONG KINH TẾ VÀ TÀI CHÍNH",
+        "slug": "some-applications-of-rough-set-theory-in-economics-and-finance",
+        "slug_vi": "mot-so-ung-dung-ly-thuyet-tap-tho-trong-kinh-te-va-tai-chinh"
+    },
+    {
+        "id": "ct_119",
+        "ten_cong_trinh": "PHYLOGENETIC RELATIONSHIPS OF SNAPPERS (LUTJANIDAE) BASED ON MITOCHODRIAL DNA SEQUENCES",
+        "ten_cong_trinh_vi": "MỐI QUAN HỆ PHỔ BIẾN CỦA SNAPPERS (LUTJANIDAE) DỰA TRÊN CÁC CHUỖI DNA MITOCHODRIAL",
+        "slug": "phylogeneticrelationshipsofsnapperslutjanidaebasedonmitochodrialdnasequences",
+        "slug_vi": "moi-quan-he-pho-bien-cua-snappers-lutjanidae-dua-tren-cac-chuoi-dna-mitochodrial"
+    },
+    {
+        "id": "ct_120",
+        "ten_cong_trinh": "WEBGIS FOR REEF FISHES BIODIVERSITY AT NHA TRANG AND CAM RANH BAYS IN KHANH HOA PROVINCE, VIETNAM",
+        "ten_cong_trinh_vi": "WEBGIS ĐA DẠNG SINH HỌC CÁ RẠN RẠN TẠI VỊNH NHA TRANG VÀ CAM RANH TỈNH KHÁNH HÒA, VIỆT NAM",
+        "slug": "webgisforreeffishesbiodiversityatnhatrangandcamranhbaysinkhanhhoaprovincevietnam",
+        "slug_vi": "webgis-da-dang-sinh-hoc-ca-ran-ran-tai-vinh-nha-trang-va-cam-ranh-tinh-khanh-hoa-viet-nam"
+    },
+    {
+        "id": "ct_121",
+        "ten_cong_trinh": "APPLYING PREZI SOFTWARE IN BUILDING LECTURE SLIDES/REPORTS",
+        "ten_cong_trinh_vi": "ỨNG DỤNG PHẦN MỀM PREZI TRONG XÂY DỰNG SLIDES BÀI GIẢNG/ BÁO CÁO",
+        "slug": "applying-prezi-software-in-building-lecture-slidesreports",
+        "slug_vi": "ung-dung-phan-mem-prezi-trong-xay-dung-slides-bai-giang-bao-cao"
+    },
+    {
+        "id": "ct_126",
+        "ten_cong_trinh": "MAN IN THE MIDLE (MITM) ATTACK IN SDN NETWORK AND SOLUTION",
+        "ten_cong_trinh_vi": "TẤN CÔNG MAN IN THE MIDLE (MITM) TRONG MẠNG SDN VÀ GIẢI PHÁP",
+        "slug": "man-in-the-midle-mitm-attack-in-sdn-network-and-solution",
+        "slug_vi": "tan-cong-man-in-the-midle-mitm-trong-mang-sdn-va-giai-phap"
+    },
+    {
+        "id": "ct_127",
+        "ten_cong_trinh": "THE ROLE OF HUMAN FACTORS IN CYBER SECURITY",
+        "ten_cong_trinh_vi": "VAI TRÒ CỦA YẾU TỐ CON NGƯỜI TRONG AN TOÀN MẠNG",
+        "slug": "the-role-of-human-factors-in-cyber-security",
+        "slug_vi": "vai-tro-cua-yeu-to-con-nguoi-trong-an-toan-mang"
+    },
+    {
+        "id": "ct_128",
+        "ten_cong_trinh": "AN EFFICIENT AND LOW-COST HIERARCHICAL FANET ARCHITECTURE USING THE ATTACHED MOBILITY MODEL TO CREATE THE CORE LAYER FOR CONNECTING UAVS AND GROUND CONTROL STATIONS",
+        "ten_cong_trinh_vi": "MỘT KIẾN TRÚC FANET HIỆU QUẢ VÀ CHI PHÍ THẤP SỬ DỤNG MÔ HÌNH DI ĐỘNG KÈM THEO ĐỂ TẠO LỚP CỐT LÕI KẾT NỐI UAV VÀ TRẠM ĐIỀU KHIỂN MẶT ĐẤT",
+        "slug": "anefficientandlowcosthierarchicalfanetarchitectureusingtheattachedmobilitymodeltocreatethecorelayerforconnectinguavsandgroundcontrolstations",
+        "slug_vi": "mot-kien-truc-fanet-hieu-qua-va-chi-phi-thap-su-dung-mo-hinh-di-dong-kem-theo-de-tao-lop-cot-loi-ket-noi-uav-va-tram-dieu-khien-mat-dat"
+    },
+    {
+        "id": "ct_129",
+        "ten_cong_trinh": "IMPROVING FANET APPLICATION PERFORMANCE IN SEARCH AND RESCUE: MOBILE MODEL PARAMETERS AND DEPLOYMENT STRATEGY",
+        "ten_cong_trinh_vi": "CẢI THIỆN HIỆU NĂNG FANET ỨNG DỤNG TRONG TÌM KIẾM CỨU NẠN: THAM SỐ MÔ HÌNH DI ĐỘNG VÀ CHIẾN LƯỢC TRIỂN KHAI",
+        "slug": "improving-fanet-application-performance-in-search-and-rescue-mobile-model-parameters-and-deployment-strategy",
+        "slug_vi": "cai-thien-hieu-nang-fanet-ung-dung-trong-tim-kiem-cuu-nan-tham-so-mo-hinh-di-dong-va-chien-luoc-trien-khai"
+    },
+    {
+        "id": "ct_130",
+        "ten_cong_trinh": "DENSITY PEAK CLUSTERING EVALUATION",
+        "ten_cong_trinh_vi": "ĐÁNH GIÁ CỤM MẬT ĐỘ ĐỈNH",
+        "slug": "densitypeakclusteringevaluation",
+        "slug_vi": "danh-gia-cum-mat-do-dinh"
+    },
+    {
+        "id": "ct_131",
+        "ten_cong_trinh": "VAQR: A REINFORCED LEARNING APPROACH IN FANET ROUTING",
+        "ten_cong_trinh_vi": "VAQR: MỘT TIẾP CẬN HỌC TĂNG CƯỜNG TRONG ĐỊNH TUYẾN FANET",
+        "slug": "vaqr-a-reinforced-learning-approach-in-fanet-routing",
+        "slug_vi": "vaqr-mot-tiep-can-hoc-tang-cuong-trong-dinh-tuyen-fanet"
+    },
+    {
+        "id": "ct_132",
+        "ten_cong_trinh": "A TRANSFER LEARNING EXPERIMENT IN THE PROBLEM OF BREAST ULTRASONIC IMAGE CLASSIFICATION",
+        "ten_cong_trinh_vi": "MỘT THỬ NGHIỆM HỌC CHUYỂN GIAO TRONG BÀI TOÁN PHÂN LỚP ẢNH SIÊU ÂM VÚ",
+        "slug": "a-transfer-learning-experiment-in-the-problem-of-breast-ultrasonic-image-classification",
+        "slug_vi": "mot-thu-nghiem-hoc-chuyen-giao-trong-bai-toan-phan-lop-anh-sieu-am-vu"
+    },
+    {
+        "id": "ct_133",
+        "ten_cong_trinh": "AGAINST RREQ PACKET FLOODING ATTACK ON AODV PROTOCOL OF MANET",
+        "ten_cong_trinh_vi": "CHỐNG TẤN CÔNG NGẬP LỤT GÓI RREQ TRÊN GIAO THỨC AODV CỦA MẠNG MANET",
+        "slug": "against-rreq-packet-flooding-attack-on-aodv-protocol-of-manet",
+        "slug_vi": "chong-tan-cong-ngap-lut-goi-rreq-tren-giao-thuc-aodv-cua-mang-manet"
+    },
+    {
+        "id": "ct_134",
+        "ten_cong_trinh": "A PROPOSAL TO IMPROVE THE AODV PROTOCOL AGAINST BLACK HOLE ATTACK ON MANET BASED ON RELIABILITY",
+        "ten_cong_trinh_vi": "MỘT ĐỀ XUẤT CẢI TIẾN GIAO THỨC AODV CHỐNG TẤN CÔNG LỖ ĐEN TRÊN MẠNG MANET DỰA TRÊN ĐỘ TIN CẬY",
+        "slug": "a-proposal-to-improve-the-aodv-protocol-against-black-hole-attack-on-manet-based-on-reliability",
+        "slug_vi": "mot-de-xuat-cai-tien-giao-thuc-aodv-chong-tan-cong-lo-den-tren-mang-manet-dua-tren-do-tin-cay"
+    },
+    {
+        "id": "ct_135",
+        "ten_cong_trinh": "MASTER THESIS: STUDY OF ECLAT COMMON SET MINING ALGORITHM AND VARIATIONS",
+        "ten_cong_trinh_vi": "LUẬN VĂN CAO HỌC: NGHIÊN CỨU THUẬT TOÁN KHAI PHÁ TẬP PHỔ BIẾN ECLAT VÀ CÁC BIẾN THỂ",
+        "slug": "master-thesis-study-of-eclat-common-set-mining-algorithm-and-variations",
+        "slug_vi": "luan-van-cao-hoc-nghien-cuu-thuat-toan-khai-pha-tap-pho-bien-eclat-va-cac-bien-the"
+    },
+    {
+        "id": "ct_136",
+        "ten_cong_trinh": "UNIVERSITY GRADUATION PROJECT: RESEARCH AND BUILDING A HUMAN FACE RECOGNITION SYSTEM BASED ON ADABOOTS",
+        "ten_cong_trinh_vi": "ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC: NGHIÊN CỨU VÀ XÂY DỰNG HỆ THỐNG NHẬN DẠNG MẶT NGƯỜI DỰA TRÊN ADABOOTS",
+        "slug": "university-graduation-project-research-and-building-a-human-face-recognition-system-based-on-adaboots",
+        "slug_vi": "do-an-tot-nghiep-dai-hoc-nghien-cuu-va-xay-dung-he-thong-nhan-dang-mat-nguoi-dua-tren-adaboots"
+    },
+    {
+        "id": "ct_137",
+        "ten_cong_trinh": "GPSR-RA: A CROSS-LAYER POSITION-BASED ROUTING PROTOCOL WITH DYNAMIC BITRATE ADAPTATION FOR FANETS",
+        "ten_cong_trinh_vi": "GPSR-RA: GIAO THỨC ĐỊNH TUYẾN DỰA TRÊN VỊ TRÍ ĐA LỚP VỚI ĐIỀU CHỈNH BITRATE ĐỘNG CHO FANET",
+        "slug": "gpsrraacrosslayerpositionbasedroutingprotocolwithdynamicbitrateadaptationforfanets",
+        "slug_vi": "gpsr-ra-giao-thuc-dinh-tuyen-dua-tren-vi-tri-da-lop-voi-dieu-chinh-bitrate-dong-cho-fanet"
+    },
+    {
+        "id": "ct_138",
+        "ten_cong_trinh": "GPSR-CB: A NOVEL ROUTING ALGORITHM FOR FANET USING CROSS-LAYER MODELS IN COMBINATION WITH MULTI-LEVEL BACKBONE UAV",
+        "ten_cong_trinh_vi": "GPSR-CB: THUẬT TOÁN ĐỊNH TUYẾN MỚI CHO FANET SỬ DỤNG MÔ HÌNH ĐA LỚP KẾT HỢP VỚI UAV BACKBONE ĐA CẤP",
+        "slug": "gpsrcbanovelroutingalgorithmforfanetusingcrosslayermodelsincombinationwithmultilevelbackboneuav",
+        "slug_vi": "gpsr-cb-thuat-toan-dinh-tuyen-moi-cho-fanet-su-dung-mo-hinh-da-lop-ket-hop-voi-uav-backbone-da-cap"
+    },
+    {
+        "id": "ct_139",
+        "ten_cong_trinh": "QLR-FANET: A Q-LEARNING AND RATE CONTROL-BASED ROUTING PROTOCOL FOR FLYING AD HOC NETWORK",
+        "ten_cong_trinh_vi": "QLR-FANET: GIAO THỨC ĐỊNH TUYẾN DỰA TRÊN Q-LEARNING VÀ KIỂM SOÁT TỶ LỆ CHO MẠNG BAY AD HOC",
+        "slug": "qlrfanetaqlearningandratecontrolbasedroutingprotocolforflyingadhocnetwork",
+        "slug_vi": "qlr-fanet-giao-thuc-dinh-tuyen-dua-tren-q-learning-va-kiem-soat-ty-le-cho-mang-bay-ad-hoc"
+    },
+    {
+        "id": "ct_140",
+        "ten_cong_trinh": "RLMR: AN APPROACH TO APPLYING REINFORCATION LEARNING TO ROUTING IN MOBILE ADVERTISING NETWORKS",
+        "ten_cong_trinh_vi": "RLMR: MỘT PHƯƠNG PHÁP ÁP DỤNG HỌC TĂNG CƯỜNG CHO ĐỊNH TUYẾN TRONG MẠNG TÙY BIẾN DI ĐỘNG",
+        "slug": "rlmr-an-approach-to-applying-reinforcation-learning-to-routing-in-mobile-advertising-networks",
+        "slug_vi": "rlmr-mot-phuong-phap-ap-dung-hoc-tang-cuong-cho-dinh-tuyen-trong-mang-tuy-bien-di-dong"
+    },
+    {
+        "id": "ct_141",
+        "ten_cong_trinh": "ADJUSTING VALIDITY TIME PARAMETERS IN OLSR PROTOCOL TO IMPROVE FANET PERFORMANCE",
+        "ten_cong_trinh_vi": "ĐIỀU CHỈNH THAM SỐ THỜI GIAN HIỆU LỰC TRONG GIAO THỨC OLSR NHẰM CẢI THIỆN HIỆU NĂNG FANET",
+        "slug": "adjusting-validity-time-parameters-in-olsr-protocol-to-improve-fanet-performance",
+        "slug_vi": "dieu-chinh-tham-so-thoi-gian-hieu-luc-trong-giao-thuc-olsr-nham-cai-thien-hieu-nang-fanet"
+    },
+    {
+        "id": "ct_142",
+        "ten_cong_trinh": "A SOLUTION FOR DETECTING BLACK HOLE ATTACKS BASED ON MANET'S T3-AODV PROTOCOL",
+        "ten_cong_trinh_vi": "MỘT GIẢI PHÁP PHÁT HIỆN TẤN CÔNG LỖ ĐEN DỰA TRÊN GIAO THỨC T3-AODV CỦA MẠNG MANET",
+        "slug": "a-solution-for-detecting-black-hole-attacks-based-on-manets-t3-aodv-protocol",
+        "slug_vi": "mot-giai-phap-phat-hien-tan-cong-lo-den-dua-tren-giao-thuc-t3-aodv-cua-mang-manet"
+    },
+    {
+        "id": "ct_143",
+        "ten_cong_trinh": "MANET ATTACK SIMULATION PLATFORM – NTU_ATTACK",
+        "ten_cong_trinh_vi": "NỀN TẢNG MÔ PHỎNG TẤN CÔNG MẠNG MANET – NTU_ATTACK",
+        "slug": "manet-attack-simulation-platform-ntuattack",
+        "slug_vi": "nen-tang-mo-phong-tan-cong-mang-manet-ntuattack"
+    },
+    {
+        "id": "ct_144",
+        "ten_cong_trinh": "EVALUATION OF SOME MACHINE LEARNING ALGORITHMS APPLIED IN DEPLOYING WEBSITE ATTACK DETECTION SYSTEMS",
+        "ten_cong_trinh_vi": "ĐÁNH GIÁ MỘT SỐ THUẬT TOÁN HỌC MÁY ỨNG DỤNG TRONG TRIỂN KHAI HỆ THỐNG PHÁT HIỆN TẤN CÔNG WEBSITE",
+        "slug": "evaluation-of-some-machine-learning-algorithms-applied-in-deploying-website-attack-detection-systems",
+        "slug_vi": "danh-gia-mot-so-thuat-toan-hoc-may-ung-dung-trong-trien-khai-he-thong-phat-hien-tan-cong-website"
+    },
+    {
+        "id": "ct_145",
+        "ten_cong_trinh": "AUTOMATICALLY GENERATED ACADEMIC WEBSITES FOR UNIVERSITY TEACHERS",
+        "ten_cong_trinh_vi": "SINH TỰ ĐỘNG WEBSITE HỌC THUẬT CHO GIẢNG VIÊN ĐẠI HỌC",
+        "slug": "automatically-generated-academic-websites-for-university-teachers",
+        "slug_vi": "sinh-tu-dong-website-hoc-thuat-cho-giang-vien-dai-hoc"
+    },
+    {
+        "id": "ct_146",
+        "ten_cong_trinh": "BUILDING AND IMPLEMENTING SOME SOLUTIONS TO DEVELOP AND IMPROVE THE QUALITY OF THE INFORMATION SYSTEM ON THE WEBSITE OF NHA TRANG UNIVERSITY ACCORDING TO THE REQUIREMENTS OF EDUCATION QUALITY ACCOUNTING ORGANIZATIONS",
+        "ten_cong_trinh_vi": "XÂY DỰNG VÀ TRIỂN KHAI MỘT SỐ GIẢI PHÁP NHẰM PHÁT TRIỂN VÀ NÂNG CAO CHẤT LƯỢNG HỆ THỐNG THÔNG TIN TRÊN WEBSITE CỦA TRƯỜNG ĐẠI HỌC NHA TRANG THEO YÊU CẦU CỦA CÁC TỔ CHỨC KIỂM ĐỊNH CHẤT LƯỢNG GIÁO DỤC",
+        "slug": "building-and-implementing-some-solutions-to-develop-and-improve-the-quality-of-the-information-system-on-the-website-of-nha-trang-university-according-to-the-requirements-of-education-quality-accounting-organizations",
+        "slug_vi": "xay-dung-va-trien-khai-mot-so-giai-phap-nham-phat-trien-va-nang-cao-chat-luong-he-thong-thong-tin-tren-website-cua-truong-dai-hoc-nha-trang-theo-yeu-cau-cua-cac-to-chuc-kiem-dinh-chat-luong-giao-duc"
+    },
+    {
+        "id": "ct_147",
+        "ten_cong_trinh": "INFORMATION QUERY IN VIETNAMESE VOICE",
+        "ten_cong_trinh_vi": "TRUY VẤN THÔNG TIN TRONG TIẾNG NÓI TIẾNG VIỆT",
+        "slug": "information-query-in-vietnamese-voice",
+        "slug_vi": "truy-van-thong-tin-trong-tieng-noi-tieng-viet"
+    },
+    {
+        "id": "ct_148",
+        "ten_cong_trinh": "TO BUILD A TOOL AND / TO EVALUATE THE LAW OF VARIATION OF VOICE SIGNAL AMPLIFICATION ACCORDING TO VIETNAMESE TONES",
+        "ten_cong_trinh_vi": "XÂY DỰNG CÔNG CỤ VÀ / ĐỂ ĐÁNH GIÁ QUY LUẬT BIẾN THIÊN BIÊN ĐỘ TÍN HIỆU TIẾNG NÓI THEO CÁC THANH ĐIỆU TIẾNG VIỆT",
+        "slug": "to-build-a-tool-and-to-evaluate-the-law-of-variation-of-voice-signal-amplification-according-to-vietnamese-tones",
+        "slug_vi": "xay-dung-cong-cu-va-de-danh-gia-quy-luat-bien-thien-bien-do-tin-hieu-tieng-noi-theo-cac-thanh-dieu-tieng-viet"
+    },
+    {
+        "id": "ct_151",
+        "ten_cong_trinh": "EFFICIENT DATA DELIVERY SCHEME FOR LARGE-SCALE MICROSERVICES IN DISTRIBUTED CLOUD ENVIRONMENT",
+        "ten_cong_trinh_vi": "LƯỢC ĐỒ CUNG CẤP DỮ LIỆU HIỆU QUẢ CHO VI DỊCH VỤ QUY MÔ LỚN TRONG MÔI TRƯỜNG ĐÁM MÂY PHÂN TÁN",
+        "slug": "efficientdatadeliveryschemeforlargescalemicroservicesindistributedcloudenvironment",
+        "slug_vi": "luocdocungcapdulieuhieuquachovidichvuquymolontrongmoitruongdammayphantan"
+    },
+    {
+        "id": "ct_152",
+        "ten_cong_trinh": "MODELING DATA REDUNDANCY AND COST-AWARE TASK ALLOCATION IN MEC-ENABLED INTERNET-OF-VEHICLES APPLICATIONS",
+        "ten_cong_trinh_vi": "MÔ HÌNH DỰ PHÒNG DỮ LIỆU VÀ PHÂN PHỐI NHIỆM VỤ NHẬN BIẾT CHI PHÍ TRONG CÁC ỨNG DỤNG INTERNET CỦA XE ĐƯỢC MEC HỖ TRỢ",
+        "slug": "modelingdataredundancyandcostawaretaskallocationinmecenabledinternetofvehiclesapplications",
+        "slug_vi": "mo-hinh-du-phong-du-lieu-va-phan-phoi-nhiem-vu-nhan-biet-chi-phi-trong-cac-ung-dung-internet-cua-xe-duoc-mec-ho-tro"
+    },
+    {
+        "id": "ct_153",
+        "ten_cong_trinh": "EFFICIENT SOLUTION FOR LARGE-SCALE IOT APPLICATIONS WITH PROACTIVE EDGE-CLOUD PUBLISH/SUBSCRIBE BROKERS CLUSTERING",
+        "ten_cong_trinh_vi": "GIẢI PHÁP HIỆU QUẢ CHO CÁC ỨNG DỤNG IOT QUY MÔ LỚN VỚI TỔNG HỢP NHÀ MÔI GIỚI ĐĂNG KÝ/XUẤT BẢN EDGE-CLOUD CHỦ ĐỘNG",
+        "slug": "efficientsolutionforlargescaleiotapplicationswithproactiveedgecloudpublishsubscribebrokersclustering",
+        "slug_vi": "giai-phap-hieu-qua-cho-cac-ung-dung-iot-quy-mo-lon-voi-tong-hop-nha-moi-gioi-dang-kyxuat-ban-edge-cloud-chu-dong"
+    },
+    {
+        "id": "ct_154",
+        "ten_cong_trinh": "EFFICIENT EDGE-CLOUD PUBLISH/SUBSCRIBE BROKER OVERLAY NETWORKS TO SUPPORT LATENCY-SENSITIVE WIDE-SCALE IOT APPLICATIONS",
+        "ten_cong_trinh_vi": "MẠNG LỚP LỚP LỚP PHỦ MÔI GIỚI ĐĂNG KÝ/NHÀ XUẤT BẢN EDGE-CLOUD HIỆU QUẢ ĐỂ HỖ TRỢ CÁC ỨNG DỤNG IOT QUY MÔ RỘNG NHẠY CẢM VỚI ĐỘ TRỄ",
+        "slug": "efficientedgecloudpublishsubscribebrokeroverlaynetworkstosupportlatencysensitivewidescaleiotapplications",
+        "slug_vi": "mang-lop-lop-lop-phu-moi-gioi-dang-kynha-xuat-ban-edge-cloud-hieu-qua-de-ho-tro-cac-ung-dung-iot-quy-mo-rong-nhay-cam-voi-do-tre"
+    },
+    {
+        "id": "ct_155",
+        "ten_cong_trinh": "AN EFFICIENT EDGE-CLOUD PUBLISH/SUBSCRIBE MODEL FOR LARGE-SCALE IOT APPLICATIONS",
+        "ten_cong_trinh_vi": "MÔ HÌNH XUẤT BẢN/ĐĂNG KÝ EDGE-CLOUD HIỆU QUẢ CHO CÁC ỨNG DỤNG IOT QUY MÔ LỚN",
+        "slug": "anefficientedgecloudpublishsubscribemodelforlargescaleiotapplications",
+        "slug_vi": "mo-hinh-xuat-bandang-ky-edge-cloud-hieu-qua-cho-cac-ung-dung-iot-quy-mo-lon"
+    },
+    {
+        "id": "ct_156",
+        "ten_cong_trinh": "A FOG/CLOUD BASED DATA DELIVERY MODEL FOR PUBLISH-SUBSCRIBE SYSTEMS",
+        "ten_cong_trinh_vi": "MÔ HÌNH PHÂN PHỐI DỮ LIỆU DỰA VÀO SƯƠNG MÙ/ĐÁM MÂY CHO HỆ THỐNG ĐĂNG KÝ XUẤT BẢN",
+        "slug": "afogcloudbaseddatadeliverymodelforpublishsubscribesystems",
+        "slug_vi": "mo-hinh-phan-phoi-du-lieu-dua-vao-suong-mudam-may-cho-he-thong-dang-ky-xuat-ban"
+    },
+    {
+        "id": "ct_186",
+        "ten_cong_trinh": "ONTOLOGY-ENHANCED MACHINE LEARNING MODELS FOR BREAST CANCER DIAGNOSIS",
+        "ten_cong_trinh_vi": "CÁC MÔ HÌNH HỌC MÁY ĐƯỢC TĂNG CƯỜNG BẰNG ONTOLOGY CHO CHẨN ĐOÁN UNG THƯ VÚ",
+        "slug": "ontologyenhancedmachinelearningmodelsforbreastcancerdiagnosis",
+        "slug_vi": "cacmohinhhocmayduoctangcuongbangontologychochandoanungthuvu"
+    },
+    {
+        "id": "ct_225",
+        "ten_cong_trinh": "CLUSTERING VIETNAMESE CONVERSATIONS FROM FACEBOOK PAGE TO BUILD TRAINING DATASET FOR CHATBOT",
+        "ten_cong_trinh_vi": "TỔNG HỢP ĐÀO TẠO TIẾNG VIỆT TỪ TRANG FACEBOOK ĐỂ XÂY DỰNG DỮ LIỆU ĐÀO TẠO CHO CHATBOT",
+        "slug": "clusteringvietnameseconversationsfromfacebookpagetobuildtrainingdatasetforchatbot",
+        "slug_vi": "tong-hop-dao-tao-tieng-viet-tu-trang-facebook-de-xay-dung-du-lieu-dao-tao-cho-chatbot"
+    },
+    {
+        "id": "ct_228",
+        "ten_cong_trinh": "DEVELOPING AND IMPLEMENTING THE EVALUATION OF THE VIRTUAL EXPERIMENT \" QUANTITATIVE CHLOROPHYLL USING SPECTROSCOPY METHOD\" AT NHA TRANG UNIVERSITY",
+        "ten_cong_trinh_vi": "XÂY DỰNG VÀ TRIỂN KHAI ĐÁNH GIÁ BÀI THÍ NGHIỆM ẢO \"ĐỊNH LƯỢNG CHLOROPHYLL BẰNG PHƯƠNG PHÁP QUANG PHỔ\" TẠI TRƯỜNG ĐẠI HỌC NHA TRANG",
+        "slug": "developing-and-implementing-the-evaluation-of-the-virtual-experiment-quantitative-chlorophyll-using-spectroscopy-method-at-nha-trang-university",
+        "slug_vi": "xay-dung-va-trien-khai-danh-gia-bai-thi-nghiem-ao-dinh-luong-chlorophyll-bang-phuong-phap-quang-pho-tai-truong-dai-hoc-nha-trang"
+    },
+    {
+        "id": "ct_229",
+        "ten_cong_trinh": "SURVEY OF ENVIRONMENTAL CONDITIONS IN BREEDING PURPLE AMOMUM LONGILIGULARE T.L. UNDER THE MONITORING AND CONTROL OF THE IOT AUTOMATED SYSTEM",
+        "ten_cong_trinh_vi": "KHẢO SÁT ĐIỀU KIỆN MÔI TRƯỜNG TRONG NHÂN GIỐNG SA NHÂN TÍM (AMOMUM LONGILIGULARE T.L.) DƯỚI SỰ GIÁM SÁT VÀ ĐIỀU KHIỂN CỦA HỆ THỐNG TỰ ĐỘNG IOT",
+        "slug": "survey-of-environmental-conditions-in-breeding-purple-amomum-longiligulare-tl-under-the-monitoring-and-control-of-the-iot-automated-system",
+        "slug_vi": "khao-sat-dieu-kien-moi-truong-trong-nhan-giong-sa-nhan-tim-amomum-longiligulare-tl-duoi-su-giam-sat-va-dieu-khien-cua-he-thong-tu-dong-iot"
+    },
+    {
+        "id": "ct_232",
+        "ten_cong_trinh": "ỨNG DỤNG CÔNG NGHỆ THÔNG TIN ĐỂ QUẢN LÝ CƠ SỞ DỮ LIỆU NGHỆ THUẬT BÀI CHÒI Ở KHÁNH HÒA",
+        "ten_cong_trinh_vi": "ỨNG DỤNG CÔNG NGHỆ THÔNG TIN ĐỂ QUẢN LÝ CƠ SỞ DỮ LIỆU NGHỆ THUẬT BÀI CHÒI Ở KHÁNH HÒA",
+        "slug": "ung-dung-cong-nghe-thong-tin-de-quan-ly-co-so-du-lieu-nghe-thuat-bai-choi-o-khanh-hoa",
+        "slug_vi": "ung-dung-cong-nghe-thong-tin-de-quan-ly-co-so-du-lieu-nghe-thuat-bai-choi-o-khanh-hoa"
+    },
+    {
+        "id": "ct_233",
+        "ten_cong_trinh": "SOLUTIONS FOR APPLYING INFORMATION TECHNOLOGY IN THE PROCESS OF SELF-ASSESSMENT OF THE TRAINING PROGRAM",
+        "ten_cong_trinh_vi": "GIẢI PHÁP ỨNG DỤNG CÔNG NGHỆ THÔNG TIN TRONG QUÁ TRÌNH TỰ ĐÁNH GIÁ CHƯƠNG TRÌNH ĐÀO TẠO",
+        "slug": "solutions-for-applying-information-technology-in-the-process-of-self-assessment-of-the-training-program",
+        "slug_vi": "giai-phap-ung-dung-cong-nghe-thong-tin-trong-qua-trinh-tu-danh-gia-chuong-trinh-dao-tao"
+    },
+    {
+        "id": "ct_234",
+        "ten_cong_trinh": "HANDLING LEARNERS' FEEDBACK BASED ON TEXT CLASSIFICATION METHOD",
+        "ten_cong_trinh_vi": "XỬ LÝ Ý KIẾN PHẢN HỒI CỦA NGƯỜI HỌC DỰA TRÊN PHƯƠNG PHÁP PHÂN LOẠI VĂN BẢN",
+        "slug": "handling-learners-feedback-based-on-text-classification-method",
+        "slug_vi": "xu-ly-y-kien-phan-hoi-cua-nguoi-hoc-dua-tren-phuong-phap-phan-loai-van-ban"
+    },
+    {
+        "id": "ct_236",
+        "ten_cong_trinh": "ONTOLOGY-BASED PARALLEL SPLITTING FOR KEY PLAYER IDENTIFICATION",
+        "ten_cong_trinh_vi": "PHÂN CHIA SONG SONG DỰA TRÊN BẢN THỂ ĐỂ NHẬN DẠNG NGƯỜI CHƠI CHÍNH",
+        "slug": "ontologybasedparallelsplittingforkeyplayeridentification",
+        "slug_vi": "phan-chia-song-song-dua-tren-ban-the-de-nhan-dang-nguoi-choi-chinh"
+    },
+    {
+        "id": "ct_237",
+        "ten_cong_trinh": "APPLY AND IMPROVE THE ASSOCIATION RULES IN PREDICTING NATIONAL HIGH SCHOOL ADMISSION SCORES TO NHA TRANG UNIVERSITY",
+        "ten_cong_trinh_vi": "ÁP DỤNG VÀ CẢI THIỆN QUY TẮC LIÊN KẾT TRONG DỰ ĐOÁN ĐIỂM TUYỂN SINH TRUNG HỌC QUỐC GIA ĐẠI HỌC NHA TRANG",
+        "slug": "applyandimprovetheassociationrulesinpredictingnationalhighschooladmissionscorestonhatranguniversity",
+        "slug_vi": "ap-dung-va-cai-thien-quy-tac-lien-ket-trong-du-doan-diem-tuyen-sinh-trung-hoc-quoc-gia-dai-hoc-nha-trang"
+    },
+    {
+        "id": "ct_238",
+        "ten_cong_trinh": "SOCIAL NETWORK RECOMMENDATIONS FOR FRIENDS WITH NEO4J GRAPH DATABASE",
+        "ten_cong_trinh_vi": "KHUYẾN NGHỊ MẠNG XÃ HỘI DÀNH CHO BẠN BÈ VỚI CƠ SỞ DỮ LIỆU GRAPH NEO4J",
+        "slug": "socialnetworkrecommendationsforfriendswithneo4jgraphdatabase",
+        "slug_vi": "khuyen-nghi-mang-xa-hoi-danh-cho-ban-be-voi-co-so-du-lieu-graph-neo4j"
+    },
+    {
+        "id": "ct_239",
+        "ten_cong_trinh": "ENHANCING OWL ONTOLOGIES MATCHING BASED ON SEMANTIC SIMILARITY MEASUREMENT",
+        "ten_cong_trinh_vi": "NÂNG CAO KHỐI ĐỐI VỚI CÁC BẢN THỂ OWL DỰA TRÊN ĐO LƯỜNG ĐƠN GIẢN NGHIÊM TÍCH",
+        "slug": "enhancingowlontologiesmatchingbasedonsemanticsimilaritymeasurement",
+        "slug_vi": "nang-cao-khoi-doi-voi-cac-ban-the-owl-dua-tren-do-luong-don-gian-nghiem-tich"
+    },
+    {
+        "id": "ct_240",
+        "ten_cong_trinh": "ALGORITHM TO DETERMINE RELIABILITY BETWEEN FRIENDS ON SOCIAL NETWORKS BASED ON ONTOLOGY",
+        "ten_cong_trinh_vi": "THUẬT TOÁN XÁC ĐỊNH ĐỘ TIN CẬY GIỮA BẠN BÈ TRÊN MẠNG XÃ HỘI DỰA VÀO ONTOLOGY",
+        "slug": "algorithm-to-determine-reliability-between-friends-on-social-networks-based-on-ontology",
+        "slug_vi": "thuat-toan-xac-dinh-do-tin-cay-giua-ban-be-tren-mang-xa-hoi-dua-vao-ontology"
+    },
+    {
+        "id": "ct_241",
+        "ten_cong_trinh": "AN IMPROVEMENT METHOD FOR SEMANTIC MAPPING DATABASE TO ONTOLOGY",
+        "ten_cong_trinh_vi": "MỘT PHƯƠNG PHÁP CẢI TIẾN VỀ CƠ SỞ DỮ LIỆU BẢN XÁC NGỮ NGHĨA VÀO ONTOLOGY",
+        "slug": "animprovementmethodforsemanticmappingdatabasetoontology",
+        "slug_vi": "mot-phuong-phap-cai-tien-ve-co-so-du-lieu-ban-xac-ngu-nghia-vao-ontology"
+    },
+    {
+        "id": "ct_242",
+        "ten_cong_trinh": "BUILDING A DIGITAL DATA FRAMEWORK ON THE HAI DUONG AND THE ENVIRONMENT OF THE MARINE AREA OF NINH THUAN - BINH THUAN",
+        "ten_cong_trinh_vi": "XÂY DỰNG KHUNG CƠ SỞ DỮ LIỆU SỐ VỀ HẢI DƯƠNG, MÔI TRƯỜNG VÙNG VEN BIỂN BÌNH THUẬN – NINH THUẬN",
+        "slug": "buildingadigitaldataframeworkonthehaiduongandtheenvironmentofthemarineareaofninhthuanbinhthuan",
+        "slug_vi": "xaydungkhungcosodulieusovehaiduongmoitruongvungvenbienbinhthuanninhthuan"
+    },
+    {
+        "id": "ct_245",
+        "ten_cong_trinh": "AUTOMATIC MULTIPLIER CONVERSION IN COMPUTER VISION FOR SHRIMP SEEDING POINT PROBLEM",
+        "ten_cong_trinh_vi": "CHUYỂN ĐỔI NHÂN TỰ ĐỘNG TRONG THỊ GIÁC MÁY TÍNH CHO BÀI TOÁN ĐIỂM TÔM GIỐNG",
+        "slug": "automatic-multiplier-conversion-in-computer-vision-for-shrimp-seeding-point-problem",
+        "slug_vi": "chuyen-doi-nhan-tu-dong-trong-thi-giac-may-tinh-cho-bai-toan-diem-tom-giong"
+    },
+    {
+        "id": "ct_246",
+        "ten_cong_trinh": "DETECTING FRAUD DURING THE TEST AND EVALUATION PROCESS ON THE NTU E-LEARNING PLATFORM AT NHA TRANG UNIVERSITY USING COMPUTER VISION",
+        "ten_cong_trinh_vi": "PHÁT HIỆN GIAN LẬN TRONG QUÁ TRÌNH KIỂM TRA ĐÁNH GIÁ TRÊN NỀN TẢNG NTU E-LEARNING TẠI TRƯỜNG ĐH NHA TRANG SỬ DỤNG THỊ GIÁC MÁY TÍNH",
+        "slug": "detecting-fraud-during-the-test-and-evaluation-process-on-the-ntu-e-learning-platform-at-nha-trang-university-using-computer-vision",
+        "slug_vi": "phat-hien-gian-lan-trong-qua-trinh-kiem-tra-danh-gia-tren-nen-tang-ntu-e-learning-tai-truong-dh-nha-trang-su-dung-thi-giac-may-tinh"
+    },
+    {
+        "id": "ct_247",
+        "ten_cong_trinh": "A SOLUTION TO SUPPORT ANALYSIS AND EVALUATION OF OBJECTIVE MULTIPLE-CHOICE QUESTIONS ON THE MOODLE SYSTEM ACCORDING TO THE IRT MODEL",
+        "ten_cong_trinh_vi": "MỘT GIẢI PHÁP HỖ TRỢ PHÂN TÍCH, ĐÁNH GIÁ CÂU HỎI TRẮC NGHIỆM KHÁCH QUAN TRÊN HỆ THỐNG MOODLE THEO MÔ HÌNH IRT",
+        "slug": "a-solution-to-support-analysis-and-evaluation-of-objective-multiple-choice-questions-on-the-moodle-system-according-to-the-irt-model",
+        "slug_vi": "mot-giai-phap-ho-tro-phan-tich-danh-gia-cau-hoi-trac-nghiem-khach-quan-tren-he-thong-moodle-theo-mo-hinh-irt"
+    },
+    {
+        "id": "ct_248",
+        "ten_cong_trinh": "INDUSTRIAL REVOLUTION 4.0 NEW DYNAMICS FOR EDUCATION TRANSFORMATION",
+        "ten_cong_trinh_vi": "CÁCH MẠNG CÔNG NGHIỆP 4.0 ĐỘNG LỰC MỚI ĐỂ CHUYỂN ĐỔI GIÁO DỤC",
+        "slug": "industrial-revolution-40-new-dynamics-for-education-transformation",
+        "slug_vi": "cach-mang-cong-nghiep-40-dong-luc-moi-de-chuyen-doi-giao-duc"
+    },
+    {
+        "id": "ct_251",
+        "ten_cong_trinh": "RECOMMENDER SYSTEM WITH APACHE SPARK",
+        "ten_cong_trinh_vi": "HỆ THỐNG KHUYẾN NGHỊ VỚI APACHE SPARK",
+        "slug": "recommendersystemwithapachespark",
+        "slug_vi": "he-thong-khuyen-nghi-voi-apache-spark"
+    },
+    {
+        "id": "ct_252",
+        "ten_cong_trinh": "THE EFFECT OF LUXURY VALUE ON WILLINGNESS TO PAY AND WORD OF MOUTH FOR LUXURY HOTELS: THE ROLE OF SATISFACTION",
+        "ten_cong_trinh_vi": "ẢNH HƯỞNG CỦA GIÁ TRỊ SANG TRỌNG ĐẾN SẴN LÒNG CHI TRẢ VÀ TRUYỀN MIỆNG ĐỐI VỚI KHÁCH SẠN HẠNG SANG: VAI TRÒ CỦA SỰ HÀI LÒNG",
+        "slug": "the-effect-of-luxury-value-on-willingness-to-pay-and-word-of-mouth-for-luxury-hotels-the-role-of-satisfaction",
+        "slug_vi": "anh-huong-cua-gia-tri-sang-trong-den-san-long-chi-tra-va-truyen-mieng-doi-voi-khach-san-hang-sang-vai-tro-cua-su-hai-long"
+    },
+    {
+        "id": "ct_253",
+        "ten_cong_trinh": "SOME SOLUTIONS TO HELP STUDENTS STUDY WELL IN SPECIALIZED SUBJECTS IN ENGLISH",
+        "ten_cong_trinh_vi": "MỘT SỐ GIẢI PHÁP GIÚP SINH VIÊN HỌC TỐT CÁC MÔN CHUYÊN NGÀNH BẰNG TIẾNG ANH",
+        "slug": "some-solutions-to-help-students-study-well-in-specialized-subjects-in-english",
+        "slug_vi": "mot-so-giai-phap-giup-sinh-vien-hoc-tot-cac-mon-chuyen-nganh-bang-tieng-anh"
+    },
+    {
+        "id": "ct_254",
+        "ten_cong_trinh": "CURRENT SITUATION AND SOLUTIONS TO SUPPORT THE DRAFTING OF ADMINISTRATIVE DOCUMENTS AT NHA TRANG UNIVERSITY",
+        "ten_cong_trinh_vi": "THỰC TRẠNG VÀ GIẢI PHÁP HỖ TRỢ SOẠN THẢO VĂN BẢN HÀNH CHÍNH TẠI TRƯỜNG ĐẠI HỌC NHA TRANG",
+        "slug": "current-situation-and-solutions-to-support-the-drafting-of-administrative-documents-at-nha-trang-university",
+        "slug_vi": "thuc-trang-va-giai-phap-ho-tro-soan-thao-van-ban-hanh-chinh-tai-truong-dai-hoc-nha-trang"
+    },
+    {
+        "id": "ct_255",
+        "ten_cong_trinh": "TEACHERS' RELATED ACTIVITIES WITH THE EMI METHOD (ENGLISH AS A MEDIUM OF INSTRUCTION) WHEN TEACHING SPECIALIZED SUBJECTS IN ENGLISH",
+        "ten_cong_trinh_vi": "NHỮNG HOẠT ĐỘNG LIÊN QUAN CỦA GIẢNG VIÊN VỚI PHƯƠNG PHÁP EMI (ENGLISH AS A MEDIUM OF INSTRUCTION) KHI GIẢNG DẠY CÁC MÔN CHUYÊN NGÀNH BẰNG TIẾNG ANH",
+        "slug": "teachers-related-activities-with-the-emi-method-english-as-a-medium-of-instruction-when-teaching-specialized-subjects-in-english",
+        "slug_vi": "nhung-hoat-dong-lien-quan-cua-giang-vien-voi-phuong-phap-emi-english-as-a-medium-of-instruction-khi-giang-day-cac-mon-chuyen-nganh-bang-tieng-anh"
+    },
+    {
+        "id": "ct_258",
+        "ten_cong_trinh": "TEACHERS' AND STUDENTS' PERSPECTIVES ON INTEGRATED PROFESSIONAL SKILLS INTO TEACHING AT NHA TRANG UNIVERSITY",
+        "ten_cong_trinh_vi": "GÓC NHÌN CỦA GIẢNG VIÊN VÀ SINH VIÊN VỀ VIỆC LỒNG GHÉP KỸ NĂNG NGHỀ NGHIỆP VÀO GIẢNG DẠY TẠI TRƯỜNG ĐẠI HỌC NHA TRANG",
+        "slug": "teachers-and-students-perspectives-on-integrated-professional-skills-into-teaching-at-nha-trang-university",
+        "slug_vi": "goc-nhin-cua-giang-vien-va-sinh-vien-ve-viec-long-ghep-ky-nang-nghe-nghiep-vao-giang-day-tai-truong-dai-hoc-nha-trang"
+    },
+    {
+        "id": "ct_259",
+        "ten_cong_trinh": "BRIDGING THE GAP: INTEGRATING EMPLOYABILITY SKILLS - FROM COURSE SYLLABI TO CLASSROOM INSTRUCTION",
+        "ten_cong_trinh_vi": "THU NHẬP KHOẢNG CÁCH: TÍCH HỢP KỸ NĂNG LÀM VIỆC - TỪ GIÁO TRÌNH KHÓA HỌC ĐẾN HƯỚNG DẪN TRONG LỚP",
+        "slug": "bridgingthegapintegratingemployabilityskillsfromcoursesyllabitoclassroominstruction",
+        "slug_vi": "thu-nhap-khoang-cach-tich-hop-ky-nang-lam-viec-tu-giao-trinh-khoa-hoc-den-huong-dan-trong-lop"
+    },
+    {
+        "id": "ct_261",
+        "ten_cong_trinh": "QLR‐FANET: A Q‐LEARNING AND RATE CONTROL‐BASED ROUTING PROTOCOL FOR FLYING AD HOC NETWORK",
+        "ten_cong_trinh_vi": "QLR-FANET: GIAO THỨC ĐỊNH TUYẾN DỰA TRÊN Q-LEARNING VÀ KIỂM SOÁT TỶ LỆ CHO MẠNG BAY AD HOC",
+        "slug": "qlrfanetaqlearningandratecontrolbasedroutingprotocolforflyingadhocnetwork",
+        "slug_vi": "qlr-fanet-giao-thuc-dinh-tuyen-dua-tren-q-learning-va-kiem-soat-ty-le-cho-mang-bay-ad-hoc-ct_261"
+    },
+    {
+        "id": "ct_266",
+        "ten_cong_trinh": "RECOGNITION OF HUMAN POSTURES FROM DEPTH SENSOR DATA USING DISTANCE AND SKIN COLOR FEATURES",
+        "ten_cong_trinh_vi": "NHẬN DẠNG CÁC TƯ THẾ CON NGƯỜI TỪ DỮ LIỆU CẢM BIẾN ĐỘ SÂU SỬ DỤNG ĐẶC TRƯNG KHOẢN CÁCH VÀ MÀU DA",
+        "slug": "recognition-of-human-postures-from-depth-sensor-data-using-distance-and-skin-color-features",
+        "slug_vi": "nhan-dang-cac-tu-the-con-nguoi-tu-du-lieu-cam-bien-do-sau-su-dung-dac-trung-khoan-cach-va-mau-da"
+    },
+    {
+        "id": "ct_267",
+        "ten_cong_trinh": "SYNTHESIS OF VIETNAMESE WITH EMOTION",
+        "ten_cong_trinh_vi": "TỔNG HỢP TIẾNG VIỆT CÓ CẢM XÚC",
+        "slug": "synthesis-of-vietnamese-with-emotion",
+        "slug_vi": "tong-hop-tieng-viet-co-cam-xuc"
+    },
+    {
+        "id": "ct_272",
+        "ten_cong_trinh": "DETERMINING THE PARAMETERS OF THE KINETIC MODEL FOR THE DEVELOPMENT OF SPOILABLE MICROBIOLOGIES AND HYGIENE INDICATORS IN TIGER SHRIMP AT THE END OF THE COLD SUPPLY CHAIN",
+        "ten_cong_trinh_vi": "XÁC ĐỊNH CÁC THÔNG SỐ CỦA MÔ HÌNH ĐỘNG HỌC VỀ SỰ PHÁT TRIỂN CỦA VI SINH VẬT GÂY HỎNG VÀ CHỈ THỊ VỆ SINH TRÊN TÔM SÚ CUỐI CHUỖI CUNG ỨNG LẠNH",
+        "slug": "determining-the-parameters-of-the-kinetic-model-for-the-development-of-spoilable-microbiologies-and-hygiene-indicators-in-tiger-shrimp-at-the-end-of-the-cold-supply-chain",
+        "slug_vi": "xac-dinh-cac-thong-so-cua-mo-hinh-dong-hoc-ve-su-phat-trien-cua-vi-sinh-vat-gay-hong-va-chi-thi-ve-sinh-tren-tom-su-cuoi-chuoi-cung-ung-lanh"
+    },
+    {
+        "id": "ct_274",
+        "ten_cong_trinh": "APPLICATION OF ARTIFICIAL INTELLIGENCE IN AUTOMATICALLY IDENTIFICATION OF DISEASE IN TIGER SHRIMP",
+        "ten_cong_trinh_vi": "ỨNG DỤNG TRÍ TUỆ NHÂN TẠO TRONG TỰ ĐỘNG HÓA NHẬN DẠNG BỆNH TRÊN TÔM SÚ",
+        "slug": "application-of-artificial-intelligence-in-automatically-identification-of-disease-in-tiger-shrimp",
+        "slug_vi": "ung-dung-tri-tue-nhan-tao-trong-tu-dong-hoa-nhan-dang-benh-tren-tom-su"
+    },
+    {
+        "id": "ct_275",
+        "ten_cong_trinh": "PREDICTING COMMUNITY HEALTH THROUGH HETEROGENEOUS SOCIAL NETWORKS",
+        "ten_cong_trinh_vi": "DỰ ĐOÁN SỨC KHỎE CỘNG ĐỒNG QUA CÁC MẠNG XÃ HỘI KHÔNG ĐỒNG THỂ",
+        "slug": "predictingcommunityhealththroughheterogeneoussocialnetworks",
+        "slug_vi": "du-doan-suc-khoe-cong-dong-qua-cac-mang-xa-hoi-khong-dong-the"
+    },
+    {
+        "id": "ct_276",
+        "ten_cong_trinh": "A GRAPH-BASED APPROACH FOR POPULATION HEALTH ANALYSIS USING GEO-TAGGED TWEETS",
+        "ten_cong_trinh_vi": "PHƯƠNG PHÁP DỰA TRÊN ĐỒ HỌA ĐỂ PHÂN TÍCH SỨC KHỎE DÂN SỐ BẰNG CÁCH TWEET ĐƯỢC GẮN THẺ ĐỊA LÝ",
+        "slug": "agraphbasedapproachforpopulationhealthanalysisusinggeotaggedtweets",
+        "slug_vi": "phuong-phap-dua-tren-do-hoa-de-phan-tich-suc-khoe-dan-so-bang-cach-tweet-duoc-gan-the-dia-ly"
+    },
+    {
+        "id": "ct_277",
+        "ten_cong_trinh": "AN EMPIRICAL STUDY ON PREDICTION OF POPULATION HEALTH THROUGH SOCIAL MEDIA",
+        "ten_cong_trinh_vi": "NGHIÊN CỨU THỰC NGHIỆM VỀ DỰ BÁO SỨC KHỎE DÂN SỐ QUA TRUYỀN THÔNG XÃ HỘI",
+        "slug": "anempiricalstudyonpredictionofpopulationhealththroughsocialmedia",
+        "slug_vi": "nghien-cuu-thuc-nghiem-ve-du-bao-suc-khoe-dan-so-qua-truyen-thong-xa-hoi"
+    },
+    {
+        "id": "ct_278",
+        "ten_cong_trinh": "GRAPHDTA: PREDICTING DRUG–TARGET BINDING AFFINITY WITH GRAPH NEURAL NETWORKS",
+        "ten_cong_trinh_vi": "GRAPHDTA: DỰ ĐOÁN SỰ TÁC ĐỘNG LIÊN KẾT THUỐC-MỤC TIÊU VỚI MẠNG THẦN KINH GRAPH",
+        "slug": "graphdtapredictingdrugtargetbindingaffinitywithgraphneuralnetworks",
+        "slug_vi": "graphdta-du-doan-su-tac-dong-lien-ket-thuoc-muc-tieu-voi-mang-than-kinh-graph"
+    },
+    {
+        "id": "ct_280",
+        "ten_cong_trinh": "A COMMUNITY-AWARE GRAPH NEURAL NETWORK APPLIED TO GEOGRAPHICAL LOCATION-BASED REPRESENTATION LEARNING AND CLUSTERING WITHIN GIS",
+        "ten_cong_trinh_vi": "MẠNG THẦN KINH GRAPH CÓ NHẬN THỨC CỘNG ĐỒNG ÁP DỤNG CHO VIỆC ĐẠI DIỆN DỰA TRÊN VỊ TRÍ ĐỊA LÝ HỌC TẬP VÀ TẬP HỢP TRONG GIS",
+        "slug": "acommunityawaregraphneuralnetworkappliedtogeographicallocationbasedrepresentationlearningandclusteringwithingis",
+        "slug_vi": "mang-than-kinh-graph-co-nhan-thuc-cong-dong-ap-dung-cho-viec-dai-dien-dua-tren-vi-tri-dia-ly-hoc-tap-va-tap-hop-trong-gis"
+    },
+    {
+        "id": "ct_281",
+        "ten_cong_trinh": "GEOSPATIAL DATA CLUSTERING IN NETWORK SPACE: A SURVEY",
+        "ten_cong_trinh_vi": "TẬP HỢP DỮ LIỆU KHÔNG GIAN TRONG KHÔNG GIAN MẠNG: KHẢO SÁT",
+        "slug": "geospatialdataclusteringinnetworkspaceasurvey",
+        "slug_vi": "tap-hop-du-lieu-khong-gian-trong-khong-gian-mang-khao-sat"
+    },
+    {
+        "id": "ct_282",
+        "ten_cong_trinh": "NS-IDBSCAN: AN EFFICIENT INCREMENTAL CLUSTERING METHOD FOR GEOSPATIAL DATA IN NETWORK SPACE",
+        "ten_cong_trinh_vi": "NS-IDBSCAN: PHƯƠNG PHÁP TĂNG CÂN HIỆU QUẢ CHO DỮ LIỆU KHÔNG GIAN TRONG KHÔNG GIAN MẠNG",
+        "slug": "nsidbscananefficientincrementalclusteringmethodforgeospatialdatainnetworkspace",
+        "slug_vi": "ns-idbscan-phuong-phap-tang-can-hieu-qua-cho-du-lieu-khong-gian-trong-khong-gian-mang"
+    },
+    {
+        "id": "ct_283",
+        "ten_cong_trinh": "EFFICIENT STRATEGIES FOR SPATIAL DATA CLUSTERING USING TOPOLOGICAL RELATIONS",
+        "ten_cong_trinh_vi": "CHIẾN LƯỢC HIỆU QUẢ ĐỐI VỚI CỤM DỮ LIỆU KHÔNG GIAN SỬ DỤNG CÁC MỐI QUAN HỆ ĐỐI VỚI",
+        "slug": "efficientstrategiesforspatialdataclusteringusingtopologicalrelations",
+        "slug_vi": "chien-luoc-hieu-qua-doi-voi-cum-du-lieu-khong-gian-su-dung-cac-moi-quan-he-doi-voi"
+    },
+    {
+        "id": "ct_284",
+        "ten_cong_trinh": "AN EFFICIENT TOPOLOGICAL-BASED CLUSTERING METHOD ON SPATIAL DATA IN NETWORK SPACE",
+        "ten_cong_trinh_vi": "MỘT PHƯƠNG PHÁP PHÂN LOẠI DỰA TRÊN ĐỒNG PHÁT HIỆU QUẢ TRÊN DỮ LIỆU KHÔNG GIAN TRONG KHÔNG GIAN MẠNG",
+        "slug": "anefficienttopologicalbasedclusteringmethodonspatialdatainnetworkspace",
+        "slug_vi": "mot-phuong-phap-phan-loai-dua-tren-dong-phat-hieu-qua-tren-du-lieu-khong-gian-trong-khong-gian-mang"
+    },
+    {
+        "id": "ct_285",
+        "ten_cong_trinh": "INFORMATION AND COMMUNICATION TECHNOLOGY SOLUTIONS FOR COMBINED TRAINING MODEL AT NHA TRANG UNIVERSITY",
+        "ten_cong_trinh_vi": "GIẢI PHÁP CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG CHO MÔ HÌNH ĐÀO TẠO KẾT HỢP TẠI TRƯỜNG ĐẠI HỌC NHA TRANG",
+        "slug": "information-and-communication-technology-solutions-for-combined-training-model-at-nha-trang-university",
+        "slug_vi": "giai-phap-cong-nghe-thong-tin-va-truyen-thong-cho-mo-hinh-dao-tao-ket-hop-tai-truong-dai-hoc-nha-trang"
+    },
+    {
+        "id": "ct_286",
+        "ten_cong_trinh": "A METHOD FOR EFFICIENT CLUSTERING OF SPATIAL DATA IN NETWORK SPACE",
+        "ten_cong_trinh_vi": "PHƯƠNG PHÁP ĐỂ TẬP HỢP HIỆU QUẢ DỮ LIỆU KHÔNG GIAN TRONG KHÔNG GIAN MẠNG",
+        "slug": "amethodforefficientclusteringofspatialdatainnetworkspace",
+        "slug_vi": "phuong-phap-de-tap-hop-hieu-qua-du-lieu-khong-gian-trong-khong-gian-mang"
+    },
+    {
+        "id": "ct_287",
+        "ten_cong_trinh": "CREATIVE METHODOLOGY - A COMPETENCY THAT NEEDS TO BE EQUIPPED FOR STUDENTS IN THE 4.0 ERA",
+        "ten_cong_trinh_vi": "PHƯƠNG PHÁP LUẬN SÁNG TẠO - MỘT NĂNG LỰC CẦN TRANG BỊ CHO SINH VIÊN TRONG KỶ NGUYÊN 4.0",
+        "slug": "creative-methodology-a-competency-that-needs-to-be-equipped-for-students-in-the-40-era",
+        "slug_vi": "phuong-phap-luan-sang-tao-mot-nang-luc-can-trang-bi-cho-sinh-vien-trong-ky-nguyen-40"
+    },
+    {
+        "id": "ct_288",
+        "ten_cong_trinh": "SOLUTIONS TO PROMOTE STUDENTS' SPIRIT OF SELF-STUDYING IN THE ERA OF THE 4.0 INDUSTRIAL REVOLUTION",
+        "ten_cong_trinh_vi": "GIẢI PHÁP THÚC ĐẨY TINH THẦN TỰ HỌC CỦA SINH VIÊN TRONG THỜI ĐẠI CÁCH MẠNG CÔNG NGHIỆP 4.0",
+        "slug": "solutions-to-promote-students-spirit-of-self-studying-in-the-era-of-the-40-industrial-revolution",
+        "slug_vi": "giai-phap-thuc-day-tinh-than-tu-hoc-cua-sinh-vien-trong-thoi-dai-cach-mang-cong-nghiep-40"
+    },
+    {
+        "id": "ct_289",
+        "ten_cong_trinh": "SOME PROPOSALS TO IMPROVE THE QUALITY OF HUMAN RESOURCE TRAINING",
+        "ten_cong_trinh_vi": "MỘT VÀI ĐỀ XUẤT NHẰM NÂNG CAO CHẤT LƯỢNG ĐÀO TẠO NGUỒN NHÂN LỰC",
+        "slug": "some-proposals-to-improve-the-quality-of-human-resource-training",
+        "slug_vi": "mot-vai-de-xuat-nham-nang-cao-chat-luong-dao-tao-nguon-nhan-luc"
+    },
+    {
+        "id": "ct_291",
+        "ten_cong_trinh": "KNOWLEDGE MODELING FOR A RELATIONAL DATABASE USING ONTOLOGY WEB LANGUAGE",
+        "ten_cong_trinh_vi": "MÔ HÌNH HÓA TRI THỨC CHO MỘT CƠ SỞ DỮ LIỆU QUAN HỆ BẰNG ONTOLOGY WEB LANGUAGE",
+        "slug": "knowledge-modeling-for-a-relational-database-using-ontology-web-language",
+        "slug_vi": "mo-hinh-hoa-tri-thuc-cho-mot-co-so-du-lieu-quan-he-bang-ontology-web-language"
+    },
+    {
+        "id": "ct_307",
+        "ten_cong_trinh": "MACHINE LEARNING AND CONTROL THEORY",
+        "ten_cong_trinh_vi": "LÝ THUYẾT HỌC TẬP VÀ ĐIỀU KHIỂN MÁY",
+        "slug": "machinelearningandcontroltheory",
+        "slug_vi": "ly-thuyet-hoc-tap-va-dieu-khien-may"
+    },
+    {
+        "id": "ct_308",
+        "ten_cong_trinh": "CAUSAL REASONING OVER ONTOLOGY-ENRICHED GRAPHS FOR INTERPRETABLE MEDICAL AI",
+        "ten_cong_trinh_vi": "SUY LUẬN NHÂN QUẢ TRÊN CÁC ĐỒ THỊ ĐƯỢC LÀM GIÀU BẰNG ONTOLOGY NHẰM XÂY DỰNG TRÍ TUỆ NHÂN TẠO Y TẾ CÓ KHẢ NĂNG GIẢI THÍCH",
+        "slug": "causalreasoningoverontologyenrichedgraphsforinterpretablemedicalai",
+        "slug_vi": "suyluannhanquatrencacdothiduoclamgiaubangontologynhamxaydungtrituenhantaoytecokhananggiaithich"
+    },
+    {
+        "id": "ct_329",
+        "ten_cong_trinh": "APRIORI-DT HYBRID ALGORITHM AND EXPERIMENTAL",
+        "ten_cong_trinh_vi": "",
+        "slug": "aprioridthybridalgorithmandexperimental",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_47",
+        "ten_cong_trinh": "RATIOLOGICAL FUNCTION INTEGRATION PROBLEM",
+        "ten_cong_trinh_vi": "BÀI TOÁN TÍCH PHÂN HÀM HỮU TỶ",
+        "slug": "ratiological-function-integration-problem",
+        "slug_vi": "bai-toan-tich-phan-ham-huu-ty"
+    },
+    {
+        "id": "ct_48",
+        "ten_cong_trinh": "RECOGNIZING DOMINATING CYCLES IS NP-HARD",
+        "ten_cong_trinh_vi": "NHẬN BIẾT CÁC CHU KỲ THỐNG TRỊ LÀ NP-HARD",
+        "slug": "recognizingdominatingcyclesisnphard",
+        "slug_vi": "nhan-biet-cac-chu-ky-thong-tri-la-np-hard"
+    },
+    {
+        "id": "ct_49",
+        "ten_cong_trinh": "INTRODUCTION TO EXAM SCHEDULING METHOD",
+        "ten_cong_trinh_vi": "GIỚI THIỆU PHƯƠNG PHÁP LẬP LỊCH THI",
+        "slug": "introduction-to-exam-scheduling-method",
+        "slug_vi": "gioi-thieu-phuong-phap-lap-lich-thi"
+    },
+    {
+        "id": "ct_50",
+        "ten_cong_trinh": "POLYNOMIAL REDUCTION IN NP-FULL CLASS",
+        "ten_cong_trinh_vi": "PHÉP QUI DẪN ĐA THỨC TRONG LỚP NP-ĐẦY ĐỦ",
+        "slug": "polynomial-reduction-in-np-full-class",
+        "slug_vi": "phep-qui-dan-da-thuc-trong-lop-np-day-du"
+    },
+    {
+        "id": "ct_51",
+        "ten_cong_trinh": "APPROACH A GRAPH'S HAMILTON CYCLE FROM ITS CLOSURE",
+        "ten_cong_trinh_vi": "TIẾP CẬN CHU TRÌNH HAMILTON CỦA ĐỒ THỊ TỪ BAO ĐÓNG CỦA NÓ",
+        "slug": "approach-a-graphs-hamilton-cycle-from-its-closure",
+        "slug_vi": "tiep-can-chu-trinh-hamilton-cua-do-thi-tu-bao-dong-cua-no"
+    },
+    {
+        "id": "ct_52",
+        "ten_cong_trinh": "UNIQUENESS OF GRAPH BACKGROUND",
+        "ten_cong_trinh_vi": "TÍNH DUY NHẤT CỦA BAO ĐÓNG ĐỒ THỊ",
+        "slug": "uniqueness-of-graph-background",
+        "slug_vi": "tinh-duy-nhat-cua-bao-dong-do-thi"
+    },
+    {
+        "id": "ct_53",
+        "ten_cong_trinh": "POLYNOMIAL ALGORITHM TO DETERMINE HAMILTON CYCLE FROM CLOSURE OF THE GRAPH",
+        "ten_cong_trinh_vi": "THUẬT TOÁN ĐA THỨC XÁC ĐỊNH CHU TRÌNH HAMILTON TỪ BAO ĐÓNG CỦA ĐỒ THỊ",
+        "slug": "polynomial-algorithm-to-determine-hamilton-cycle-from-closure-of-the-graph",
+        "slug_vi": "thuat-toan-da-thuc-xac-dinh-chu-trinh-hamilton-tu-bao-dong-cua-do-thi"
+    },
+    {
+        "id": "ct_54",
+        "ten_cong_trinh": "APPLYING THE ADJUSTABLE BRANCH ALGORITHM TO SOLVE SOME OPTIMIZATION PROBLEMS RELATED TO THE HAMILTON CYCLE BASED ON THE TSP PROBLEM",
+        "ten_cong_trinh_vi": "ỨNG DỤNG THUẬTTOÁN NHÁNH CẬN ĐỂ GIẢI MỘT SỐ BÀI TOÁN TỐI ƯU LIÊN QUAN ĐẾN CHU TRÌNH HAMILTON DỰA TRÊN BÀI TOÁN TSP",
+        "slug": "applying-the-adjustable-branch-algorithm-to-solve-some-optimization-problems-related-to-the-hamilton-cycle-based-on-the-tsp-problem",
+        "slug_vi": "ung-dung-thuattoan-nhanh-can-de-giai-mot-so-bai-toan-toi-uu-lien-quan-den-chu-trinh-hamilton-dua-tren-bai-toan-tsp"
+    },
+    {
+        "id": "ct_56",
+        "ten_cong_trinh": "THE ULTIMATE HAMILTON GRAPH",
+        "ten_cong_trinh_vi": "ĐỒ THỊ HAMILTON TỐI ĐẠI",
+        "slug": "the-ultimate-hamilton-graph",
+        "slug_vi": "do-thi-hamilton-toi-dai"
+    },
+    {
+        "id": "ct_57",
+        "ten_cong_trinh": "APPLYING THE HAMILTON CYCLE PROBLEM TO SOLVING SOME OPTIMIZATION PROBLEMS ON GRAPH",
+        "ten_cong_trinh_vi": "ỨNG DỤNG BÀI TOÁN CHU TRÌNH HAMILTON GIẢI QUYẾT MỘT SỐ BÀI TOÁN TỐI ƯU TRÊN ĐỒ THỊ",
+        "slug": "applying-the-hamilton-cycle-problem-to-solving-some-optimization-problems-on-graph",
+        "slug_vi": "ung-dung-bai-toan-chu-trinh-hamilton-giai-quyet-mot-so-bai-toan-toi-uu-tren-do-thi"
+    },
+    {
+        "id": "ct_58",
+        "ten_cong_trinh": "NEW RESULTS ON THE ULTIMATE HAMILTON GRAPH",
+        "ten_cong_trinh_vi": "KẾT QUẢ MỚI VỀ ĐỒ THỊ HAMILTON TỐI ĐẠI",
+        "slug": "new-results-on-the-ultimate-hamilton-graph",
+        "slug_vi": "ket-qua-moi-ve-do-thi-hamilton-toi-dai"
+    },
+    {
+        "id": "ct_59",
+        "ten_cong_trinh": "MAXIMUM HAMILTON GRAPH NUMBER",
+        "ten_cong_trinh_vi": "SỐ ĐỒ THỊ HAMILTON TỐI ĐẠI",
+        "slug": "maximum-hamilton-graph-number",
+        "slug_vi": "so-do-thi-hamilton-toi-dai"
+    },
+    {
+        "id": "ct_60",
+        "ten_cong_trinh": "LEARN EVOLUTIONAL & GENETIC ALGORITHM AND EXPERIMENTAL SETUP",
+        "ten_cong_trinh_vi": "TÌM HIỂU THUẬT TOÁN TIẾN HÓA & DI TRUYỀN VÀ CÀI ĐẶT THỬ NGHIỆM",
+        "slug": "learn-evolutional-genetic-algorithm-and-experimental-setup",
+        "slug_vi": "tim-hieu-thuat-toan-tien-hoa-di-truyen-va-cai-dat-thu-nghiem"
+    },
+    {
+        "id": "ct_61",
+        "ten_cong_trinh": "SOME NOTES ON MINIMUM COVERAGE OF FUNCTIONAL DEPENDENCE SET IN RELATIONAL DATABASES",
+        "ten_cong_trinh_vi": "MỘT SỐ LƯU Ý VỀ PHỦ TỐI THIỂU TẬP PHỤ THUỘC HÀM TRONG CSDL QUAN HỆ",
+        "slug": "some-notes-on-minimum-coverage-of-functional-dependence-set-in-relational-databases",
+        "slug_vi": "mot-so-luu-y-ve-phu-toi-thieu-tap-phu-thuoc-ham-trong-csdl-quan-he"
+    },
+    {
+        "id": "ct_62",
+        "ten_cong_trinh": "LEARN CONFERENCE CONTROL ALGORITHM AND EXPERIMENTAL SETUP ON LOCAL NETWORK NOVELL NETWARE PROJECT",
+        "ten_cong_trinh_vi": "TÌM HIỂU CÁC THUẬT TOÁN ĐIỀU KHIỂN TƯƠNG TRANH VÀ CÀI ĐẶT THỰC NGHIỆM TRÊN MẠNG CỤC BỘ NOVELL NETWARE PROJECT",
+        "slug": "learnconferencecontrolalgorithmandexperimentalsetuponlocalnetworknovellnetwareproject",
+        "slug_vi": "timhieucacthuattoandieukhientuongtranhvacaidatthucnghiemtrenmangcucbonovellnetwareproject"
+    },
+    {
+        "id": "ct_63",
+        "ten_cong_trinh": "A CASE STUDY FOR APPLICATION LAYER MULTICAST WITH JXTA TECHNOLOGY",
+        "ten_cong_trinh_vi": "NGHIÊN CỨU TRƯỜNG HỢP CHO LỚP ỨNG DỤNG ĐA NĂNG VỚI CÔNG NGHỆ JXTA",
+        "slug": "acasestudyforapplicationlayermulticastwithjxtatechnology",
+        "slug_vi": "nghien-cuu-truong-hop-cho-lop-ung-dung-da-nang-voi-cong-nghe-jxta"
+    },
+    {
+        "id": "ct_64",
+        "ten_cong_trinh": "TRANSFORMING VALID XML INTO RDF VIA RDF SCHEMA",
+        "ten_cong_trinh_vi": "CHUYỂN ĐỔI XML HỢP LỆ THÀNH RDF QUA LƯỢC ĐỒ RDF",
+        "slug": "transformingvalidxmlintordfviardfschema",
+        "slug_vi": "chuyen-doi-xml-hop-le-thanh-rdf-qua-luoc-do-rdf"
+    },
+    {
+        "id": "ct_65",
+        "ten_cong_trinh": "WEIGHTED MAHALANOBIS DISTANCE IMPROVE SPEECH RECOGNITION PERFORMANCE",
+        "ten_cong_trinh_vi": "KHOẢNG CÁCH MAHALANOBIS CÓ TRỌNG LƯỢNG CẢI THIỆN HIỆU SUẤT NHẬN DẠNG GIỌNG NÓI",
+        "slug": "weightedmahalanobisdistanceimprovespeechrecognitionperformance",
+        "slug_vi": "khoang-cach-mahalanobis-co-trong-luong-cai-thien-hieu-suat-nhan-dang-giong-noi"
+    },
+    {
+        "id": "ct_66",
+        "ten_cong_trinh": "SUBBAND CALIBRATE LIMABEAM ALGORITM FOR SPEECH RECOGNITION SYSTEM USING MICROPHONE ARRAY",
+        "ten_cong_trinh_vi": "SUBBAND ​​HIỆU CHỈNH THỦ THUẬT LIMABEAM CHO HỆ THỐNG NHẬN DẠNG NÓI SỬ DỤNG MẢNG MICROPHONE",
+        "slug": "subbandcalibratelimabeamalgoritmforspeechrecognitionsystemusingmicrophonearray",
+        "slug_vi": "subband-hieu-chinh-thu-thuat-limabeam-cho-he-thong-nhan-dang-noi-su-dung-mang-microphone"
+    },
+    {
+        "id": "ct_68",
+        "ten_cong_trinh": "A SUFFICIENT CONDITION FOR NON-HAMILTONIAN GRAPH",
+        "ten_cong_trinh_vi": "ĐIỀU KIỆN ĐỦ CHO ĐỒ HỌA KHÔNG HAMILTONIAN",
+        "slug": "asufficientconditionfornonhamiltoniangraph",
+        "slug_vi": "dieu-kien-du-cho-do-hoa-khong-hamiltonian"
+    },
+    {
+        "id": "ct_69",
+        "ten_cong_trinh": "VIEWER PERCEPTION OF SUPERELLIPSOID-BASED ACCELEROMETER VISUALIZATION TECHNIQUES",
+        "ten_cong_trinh_vi": "CẢM GIÁC CỦA NGƯỜI XEM VỀ KỸ THUẬT HÌNH ẢNH DỰA TRÊN SUPERELLIPSOID",
+        "slug": "viewerperceptionofsuperellipsoidbasedaccelerometervisualizationtechniques",
+        "slug_vi": "cam-giac-cua-nguoi-xem-ve-ky-thuat-hinh-anh-dua-tren-superellipsoid"
+    },
+    {
+        "id": "ct_70",
+        "ten_cong_trinh": "SOME PROBLEMS ABOUT HAMILTONIAN CYCLE IN SPECIAL GRAPHS",
+        "ten_cong_trinh_vi": "MỘT SỐ VẤN ĐỀ VỀ CHU KỲ HAMILTONIAN TRONG CÁC ĐỒ HỌA ĐẶC BIỆT",
+        "slug": "someproblemsabouthamiltoniancycleinspecialgraphs",
+        "slug_vi": "mot-so-van-de-ve-chu-ky-hamiltonian-trong-cac-do-hoa-dac-biet"
+    },
+    {
+        "id": "ct_71",
+        "ten_cong_trinh": "EXPLOITING XML SCHEMA FOR INTERPRETING XML DOCUMENTS AS RDF",
+        "ten_cong_trinh_vi": "KHAI THÁC LƯỢC ĐỒ XML ĐỂ GIẢI THÍCH TÀI LIỆU XML NHƯ RDF",
+        "slug": "exploitingxmlschemaforinterpretingxmldocumentsasrdf",
+        "slug_vi": "khai-thac-luoc-do-xml-de-giai-thich-tai-lieu-xml-nhu-rdf"
+    },
+    {
+        "id": "ct_72",
+        "ten_cong_trinh": "IMPROVED PARALLEL MODEL COMBINATION USING NOISE ESTIMATION ALGORITHMS",
+        "ten_cong_trinh_vi": "TỔNG HỢP MÔ HÌNH SONG SONG ĐƯỢC CẢI TIẾN SỬ DỤNG THUẬT TOÁN ƯỚC LƯỢNG TIẾNG ỒN",
+        "slug": "improvedparallelmodelcombinationusingnoiseestimationalgorithms",
+        "slug_vi": "tong-hop-mo-hinh-song-song-duoc-cai-tien-su-dung-thuat-toan-uoc-luong-tieng-on"
+    },
+    {
+        "id": "ct_73",
+        "ten_cong_trinh": "QUALITY MEASUREMENT FOR TRANSMITTED AUDIO DATA USING DISTRIBUTION OF SUB-BAND SIGNALS",
+        "ten_cong_trinh_vi": "ĐO LƯỜNG CHẤT LƯỢNG DỮ LIỆU ÂM THANH TRUYỀN SỬ DỤNG PHÂN PHỐI TÍN HIỆU SUB-BAND",
+        "slug": "qualitymeasurementfortransmittedaudiodatausingdistributionofsubbandsignals",
+        "slug_vi": "do-luong-chat-luong-du-lieu-am-thanh-truyen-su-dung-phan-phoi-tin-hieu-sub-band"
+    },
+    {
+        "id": "ct_74",
+        "ten_cong_trinh": "PERFORMANCE IMPROVEMENT OF SPEECH RECOGNITION SYSTEM USING MICROPHONE ARRAY",
+        "ten_cong_trinh_vi": "NÂNG CAO HIỆU SUẤT CỦA HỆ THỐNG NHẬN DẠNG GIỌNG NÓI SỬ DỤNG MẢNG MICROPHONE",
+        "slug": "performanceimprovementofspeechrecognitionsystemusingmicrophonearray",
+        "slug_vi": "nang-cao-hieu-suat-cua-he-thong-nhan-dang-giong-noi-su-dung-mang-microphone"
+    },
+    {
+        "id": "ct_75",
+        "ten_cong_trinh": "COVERING ROUGH SETS FROM A TOPOLOGICAL POINT OF VIEW",
+        "ten_cong_trinh_vi": "BAO GỒM CÁC TẬP THÔ TỪ QUAN ĐIỂM ĐỊA PHƯƠNG",
+        "slug": "coveringroughsetsfromatopologicalpointofview",
+        "slug_vi": "bao-gom-cac-tap-tho-tu-quan-diem-dia-phuong"
+    },
+    {
+        "id": "ct_76",
+        "ten_cong_trinh": "A NEW MEASURE TO EVALUATE THE CONSISTENCY OF A SET OF DECISION RULES EXTRACTED FROM A DECISION TABLE",
+        "ten_cong_trinh_vi": "BIỆN PHÁP MỚI ĐÁNH GIÁ SỰ ĐỒNG ĐỘI CỦA BỘ QUY TẮC QUYẾT ĐỊNH ĐƯỢC TRƯỢT TỪ BẢNG QUYẾT ĐỊNH",
+        "slug": "anewmeasuretoevaluatetheconsistencyofasetofdecisionrulesextractedfromadecisiontable",
+        "slug_vi": "bien-phap-moi-danh-gia-su-dong-doi-cua-bo-quy-tac-quyet-dinh-duoc-truot-tu-bang-quyet-dinh"
+    },
+    {
+        "id": "ct_77",
+        "ten_cong_trinh": "DTD2OWL: AUTOMATIC TRANSFORMING XML DOCUMENTS INTO OWL ONTOLOGY",
+        "ten_cong_trinh_vi": "DTD2OWL: TỰ ĐỘNG CHUYỂN ĐỔI TÀI LIỆU XML THÀNH BẢN THỂ OWL",
+        "slug": "dtd2owlautomatictransformingxmldocumentsintoowlontology",
+        "slug_vi": "dtd2owl-tu-dong-chuyen-doi-tai-lieu-xml-thanh-ban-the-owl"
+    },
+    {
+        "id": "ct_78",
+        "ten_cong_trinh": "EXTRACTING OWL ONTOLOGY FROM XML INSTANCES VIA XML SCHEMA",
+        "ten_cong_trinh_vi": "TRÍCH XUẤT CẬP NHẬT OWL TỪ CÁC THIẾT BỊ XML QUA LƯỢC ĐỒ XML",
+        "slug": "extractingowlontologyfromxmlinstancesviaxmlschema",
+        "slug_vi": "trich-xuat-cap-nhat-owl-tu-cac-thiet-bi-xml-qua-luoc-do-xml"
+    },
+    {
+        "id": "ct_79",
+        "ten_cong_trinh": "FACE DETECTION USING VARIANCE BASED HAAR-LIKE FEATURE AND SVM",
+        "ten_cong_trinh_vi": "PHÁT HIỆN KHUÔN MẶT SỬ DỤNG TÍNH NĂNG VÀ SVM GIỐNG NHƯ HAAR DỰA TRÊN PHƯƠNG PHÁP",
+        "slug": "facedetectionusingvariancebasedhaarlikefeatureandsvm",
+        "slug_vi": "phat-hien-khuon-mat-su-dung-tinh-nang-va-svm-giong-nhu-haar-dua-tren-phuong-phap"
+    },
+    {
+        "id": "ct_80",
+        "ten_cong_trinh": "RECOGNITION PERFORMANCE IMPROVEMENT OF UNSUPERVISED-LIMABEAM ALGORITHM USING POST-FILTERING TECHNIQUE",
+        "ten_cong_trinh_vi": "CẢI THIỆN HIỆU SUẤT NHẬN DẠNG CỦA THUẬT TOÁN LIMABEAM KHÔNG GIÁM SÁT SỬ DỤNG KỸ THUẬT SAU LỌC",
+        "slug": "recognitionperformanceimprovementofunsupervisedlimabeamalgorithmusingpostfilteringtechnique",
+        "slug_vi": "cai-thien-hieu-suat-nhan-dang-cua-thuat-toan-limabeam-khong-giam-sat-su-dung-ky-thuat-sau-loc"
+    },
+    {
+        "id": "ct_81",
+        "ten_cong_trinh": "IMPROVED RECOGNITION PERFORMANCE BY COMBINATION OF DELAY AND SUM ALGORITHM MODEL ADAPTIVE IN MICROPHONE ARRAY SYSTEM",
+        "ten_cong_trinh_vi": "NÂNG CAO HIỆU SUẤT NHẬN DẠNG BẰNG CÁCH KẾT HỢP MÔ HÌNH TRÌ HOÃN VÀ TỔNG THÍCH ỨNG TRONG HỆ THỐNG MẢNG MICROPHONE",
+        "slug": "improvedrecognitionperformancebycombinationofdelayandsumalgorithmmodeladaptiveinmicrophonearraysystem",
+        "slug_vi": "nang-cao-hieu-suat-nhan-dang-bang-cach-ket-hop-mo-hinh-tri-hoan-va-tong-thich-ung-trong-he-thong-mang-microphone"
+    },
+    {
+        "id": "ct_82",
+        "ten_cong_trinh": "A FAMILY OF COVERING ROUGH SETS BASED ALGORITHM FOR REDUCTION OF ATTRIBUTES",
+        "ten_cong_trinh_vi": "",
+        "slug": "afamilyofcoveringroughsetsbasedalgorithmforreductionofattributes",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_83",
+        "ten_cong_trinh": "AN APPLIED RESEARCH BASED ON ROUGH SET FOR DISCOVERING AND IMPROVING THE QUALITY OF THE ASSOCIATION RULES SET ON THE TEACHING AND LEARNING DATABASE AT NHA TRANG UNIVERSITY",
+        "ten_cong_trinh_vi": "",
+        "slug": "anappliedresearchbasedonroughsetfordiscoveringandimprovingthequalityoftheassociationrulessetontheteachingandlearningdatabaseatnhatranguniversity",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_84",
+        "ten_cong_trinh": "COVERING UPPER APPROXIMATIONS OF ROUGH SETS AND CLOSURE MAPPINGS",
+        "ten_cong_trinh_vi": "",
+        "slug": "coveringupperapproximationsofroughsetsandclosuremappings",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_85",
+        "ten_cong_trinh": "APRIORI-DT HYBRID ALGORITHM AND EXPERIMENTAL",
+        "ten_cong_trinh_vi": "THUẬT TOÁN LAI TẠP APRIORI-DT VÀ THỰC NGHIỆM",
+        "slug": "apriori-dt-hybrid-algorithm-and-experimental",
+        "slug_vi": "thuat-toan-lai-tap-apriori-dt-va-thuc-nghiem"
+    },
+    {
+        "id": "ct_86",
+        "ten_cong_trinh": "XSD2RDFS AND XML2RDF TRANSFORMATION: A SEMANTIC APPROACH",
+        "ten_cong_trinh_vi": "",
+        "slug": "xsd2rdfsandxml2rdftransformationasemanticapproach",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_87",
+        "ten_cong_trinh": "PERFORMANCE IMPROVEMENT OF MICROPHONE ARRAY SPEECH RECOGNITION USING FEATURE WEIGHTED MAHALANOBIS DISTANCE",
+        "ten_cong_trinh_vi": "",
+        "slug": "performanceimprovementofmicrophonearrayspeechrecognitionusingfeatureweightedmahalanobisdistance",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_88",
+        "ten_cong_trinh": "THE LAW OF AFFIRMATION AND NEGATION IS BASED ON GROSS SET THEORY AND APPLICATION",
+        "ten_cong_trinh_vi": "LUẬT KHẲNG ĐỊNH VÀ PHỦ ĐỊNH DỰA TRÊN LÝ THUYẾT TẬP THÔ VÀ ỨNG DỤNG",
+        "slug": "the-law-of-affirmation-and-negation-is-based-on-gross-set-theory-and-application",
+        "slug_vi": "luat-khang-dinh-va-phu-dinh-dua-tren-ly-thuyet-tap-tho-va-ung-dung"
+    },
+    {
+        "id": "ct_89",
+        "ten_cong_trinh": "SEMANTIC AND STRUCTURAL SIMILARITIES BETWEEN XML SCHEMAS FOR INTEGRATION OF UBIQUITOUS HEALTHCARE DATA",
+        "ten_cong_trinh_vi": "SỰ TƯƠNG ĐƯƠNG GIỮA NGUYÊN NGHIỆM VÀ CẤU TRÚC GIỮA CÁC LƯỢC ĐỒ XML ĐỂ TÍCH HỢP DỮ LIỆU CHĂM SÓC SỨC KHỎE UBIQUITOUS",
+        "slug": "semanticandstructuralsimilaritiesbetweenxmlschemasforintegrationofubiquitoushealthcaredata",
+        "slug_vi": "su-tuong-duong-giua-nguyen-nghiem-va-cau-truc-giua-cac-luoc-do-xml-de-tich-hop-du-lieu-cham-soc-suc-khoe-ubiquitous"
+    },
+    {
+        "id": "ct_90",
+        "ten_cong_trinh": "NECESSARY AND SUFFICIENT CONDITION FOR MAXIMAL UNIQUELY HAMILTONIAN GRAPH",
+        "ten_cong_trinh_vi": "",
+        "slug": "necessaryandsufficientconditionformaximaluniquelyhamiltoniangraph",
+        "slug_vi": ""
+    },
+    {
+        "id": "ct_91",
+        "ten_cong_trinh": "MAXIMUM INDEPENDENT SET IN SPECIAL GRAPHS",
+        "ten_cong_trinh_vi": "BỘ ĐỘC LẬP TỐI ĐA TRONG HÌNH ĐẶC BIỆT",
+        "slug": "maximumindependentsetinspecialgraphs",
+        "slug_vi": "bo-doc-lap-toi-da-trong-hinh-dac-biet"
+    },
+    {
+        "id": "ct_92",
+        "ten_cong_trinh": "IMPACT: A NOVEL CLUSTERING ALGORITHM BASED ON ATTRACTION",
+        "ten_cong_trinh_vi": "TÁC ĐỘNG: MỘT THUẬT TOÁN PHÂN CỤM MỚI DỰA TRÊN SỨC HẤP DẪN",
+        "slug": "impactanovelclusteringalgorithmbasedonattraction",
+        "slug_vi": "tac-dong-mot-thuat-toan-phan-cum-moi-dua-tren-suc-hap-dan"
+    },
+    {
+        "id": "ct_93",
+        "ten_cong_trinh": "SEMANTIC AND STRUCTURAL SIMILARITY ANALYSIS FOR INTEGRATION OF UBIQUITOUS XML HEALTHCARE DATA",
+        "ten_cong_trinh_vi": "PHÂN TÍCH SỰ ĐƠN GIẢN VỀ NGHĨA HỌC VÀ CẤU TRÚC ĐỂ TÍCH HỢP DỮ LIỆU CHĂM SÓC SỨC KHỎE XML UBIQUITOUS",
+        "slug": "semanticandstructuralsimilarityanalysisforintegrationofubiquitousxmlhealthcaredata",
+        "slug_vi": "phan-tich-su-don-gian-ve-nghia-hoc-va-cau-truc-de-tich-hop-du-lieu-cham-soc-suc-khoe-xml-ubiquitous"
+    },
+    {
+        "id": "ct_94",
+        "ten_cong_trinh": "S-TRANS: SEMANTIC TRANSFORMATION OF XML HEALTHCARE DATA INTO OWL ONTOLOGY",
+        "ten_cong_trinh_vi": "S-TRANS: CHUYỂN ĐỔI NGUYÊN NGHIỆM DỮ LIỆU Y TẾ XML THÀNH BẢN THỂ OWL",
+        "slug": "stranssemantictransformationofxmlhealthcaredataintoowlontology",
+        "slug_vi": "s-trans-chuyen-doi-nguyen-nghiem-du-lieu-y-te-xml-thanh-ban-the-owl"
+    },
+    {
+        "id": "ct_95",
+        "ten_cong_trinh": "R2SIM: A NOVEL SEMANTIC SIMILARITY MEASURE FOR MATCHING BETWEEN RDF SCHEMAS",
+        "ten_cong_trinh_vi": "R2SIM: MỘT BIỆN PHÁP ĐƯƠNG ĐỒNG NGUYÊN TẮC MỚI ĐỂ KH KHỚP GIỮA CÁC LƯỢC ĐỒ RDF",
+        "slug": "r2simanovelsemanticsimilaritymeasureformatchingbetweenrdfschemas",
+        "slug_vi": "r2sim-mot-bien-phap-duong-dong-nguyen-tac-moi-de-kh-khop-giua-cac-luoc-do-rdf"
+    },
+    {
+        "id": "ct_96",
+        "ten_cong_trinh": "IMPROVE RECOGNITION PERFORMANCE OF LIMABEAM ALGORITHM USING MLLR ADAPTATON FOR ENVIRONMENT",
+        "ten_cong_trinh_vi": "NÂNG CAO HIỆU SUẤT NHẬN DẠNG CỦA THUẬT TOÁN LIMABEAM SỬ DỤNG MLLR ADAPTATON CHO MÔI TRƯỜNG",
+        "slug": "improverecognitionperformanceoflimabeamalgorithmusingmllradaptatonforenvironment",
+        "slug_vi": "nang-cao-hieu-suat-nhan-dang-cua-thuat-toan-limabeam-su-dung-mllr-adaptaton-cho-moi-truong"
+    },
+    {
+        "id": "ct_97",
+        "ten_cong_trinh": "INDEPENDENCE OF REDUNDANT ATTRIBUTES IN THE ATTRIBUTE REDUCTION ALGORITHM",
+        "ten_cong_trinh_vi": "SỰ ĐỘC LẬP CỦA CÁC THUỘC TÍNH DỰ PHÒNG TRONG THUẬT TOÁN RÚT GỌN THUỘC TÍNH",
+        "slug": "independenceofredundantattributesintheattributereductionalgorithm",
+        "slug_vi": "su-doc-lap-cua-cac-thuoc-tinh-du-phong-trong-thuat-toan-rut-gon-thuoc-tinh"
+    },
+    {
+        "id": "ct_98",
+        "ten_cong_trinh": "APPROACH TO ROUGH SET THEORY IN DATA MINING",
+        "ten_cong_trinh_vi": "TIẾP CẬN LÝ THUYẾT TẬP THÔ TRONG KHAI PHÁ DỮ LIỆU",
+        "slug": "approach-to-rough-set-theory-in-data-mining",
+        "slug_vi": "tiep-can-ly-thuyet-tap-tho-trong-khai-pha-du-lieu"
+    },
+    {
+        "id": "ct_99",
+        "ten_cong_trinh": "DC SERVO POSTION CONTROLLER DESIGN BASED ON DIRECT ADAPTIVE FUZZY ALGORITHM USING DSPIC MICROCONTROLLER",
+        "ten_cong_trinh_vi": "THIẾT KẾ BỘ ĐIỀU KHIỂN VỊ TRÍ SERVO DC DỰA TRÊN THUẬT TOÁN MỜ THÍCH ỨNG TRỰC TIẾP SỬ DỤNG BỘ ĐIỀU KHIỂN DSPIC",
+        "slug": "dcservopostioncontrollerdesignbasedondirectadaptivefuzzyalgorithmusingdspicmicrocontroller",
+        "slug_vi": "thiet-ke-bo-dieu-khien-vi-tri-servo-dc-dua-tren-thuat-toan-mo-thich-ung-truc-tiep-su-dung-bo-dieu-khien-dspic"
+    }
+]
