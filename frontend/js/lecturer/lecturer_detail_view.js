@@ -26,7 +26,9 @@ async function viewProjectDetail(dtId) {
 
     try {
 
-        const res  = await fetch(`/api/de-tai/${dtId}`);
+        const gvId = (typeof userInfo !== 'undefined' && userInfo?.id) ? userInfo.id : '';
+
+        const res  = await fetch(`/api/lecturer/de-tai/${dtId}?gv_id=${gvId}`);
 
         const data = await res.json();
 
@@ -176,7 +178,9 @@ async function viewPublicationDetail(ctId) {
 
     try {
 
-        const res  = await fetch(`/api/cong-trinh/${ctId}`);
+        const gvId = (typeof userInfo !== 'undefined' && userInfo?.id) ? userInfo.id : '';
+
+        const res  = await fetch(`/api/lecturer/cong-trinh/${ctId}?gv_id=${gvId}`);
 
         const data = await res.json();
 

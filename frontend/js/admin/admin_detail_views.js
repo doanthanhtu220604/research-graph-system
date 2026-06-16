@@ -89,7 +89,7 @@ async function viewLecturerStats(gvId) {
 async function viewPublicationStats(ctId) {
     const body = _openStatsModal();
     try {
-        const res  = await fetch(`${API_BASE}/cong-trinh/${ctId}`);
+        const res  = await fetch(`${ADMIN_API_BASE}/cong-trinh/${ctId}`);
         const data = await res.json();
         if (data.status !== 'ok') { body.innerHTML = `<p style="color:red">Lỗi: ${data.message}</p>`; return; }
         const ct = data.data;
@@ -136,7 +136,7 @@ async function viewPublicationStats(ctId) {
 async function viewProjectStats(dtId) {
     const body = _openStatsModal();
     try {
-        const res  = await fetch(`${API_BASE}/de-tai/${dtId}`);
+        const res  = await fetch(`${ADMIN_API_BASE}/de-tai/${dtId}`);
         const data = await res.json();
         if (data.status !== 'ok') { body.innerHTML = `<p style="color:red">Lỗi: ${data.message}</p>`; return; }
         const dt = data.data;

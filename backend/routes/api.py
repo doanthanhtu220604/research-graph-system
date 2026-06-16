@@ -85,18 +85,20 @@ def get_giang_vien_detail(gv_id):
     if not gv:
         return jsonify({"status": "error", "message": "Không tìm thấy giảng viên"}), 404
 
-    # Công trình nghiên cứu
+    # Công trình nghiên cứu (chỉ lấy đã được duyệt cho hiển thị công khai)
     cong_trinh = conn.query("""
         MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         WHERE gv.id = $id AND coalesce(ct.is_deleted, false) = false
+          AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
         RETURN ct, type(r) AS vai_tro
         ORDER BY ct.nam_xuat_ban DESC
     """, {"id": gv_id})
 
-    # Đề tài nghiên cứu
+    # Đề tài nghiên cứu (chỉ lấy đã được duyệt cho hiển thị công khai)
     de_tai = conn.query("""
         MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
         WHERE gv.id = $id AND coalesce(dt.is_deleted, false) = false
+          AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
         RETURN dt, type(r) AS vai_tro
         ORDER BY dt.nam DESC
     """, {"id": gv_id})
@@ -147,14 +149,15 @@ def get_all_cong_trinh():
     results = conn.query("""
         MATCH (ct:CongTrinhNghienCuu)
         WHERE coalesce(ct.is_deleted, false) = false
+          AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
         OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
+        WHERE coalesce(gv.is_deleted, false) = false
         OPTIONAL MATCH (tgn:TacGiaNgoai)-[:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct)
         WHERE coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
         RETURN ct,
                collect(DISTINCT gv.ho_va_ten) AS tac_gia,
                collect(DISTINCT tgn.ho_va_ten) AS tac_gia_ngoai
-        ORDER BY CASE WHEN ct.trang_thai IN ['Chờ duyệt', 'Yêu cầu xóa', 'Yêu cầu đổi trạng thái'] THEN 0 ELSE 1 END ASC,
-                 toInteger(ct.nam_xuat_ban) DESC,
+        ORDER BY toInteger(ct.nam_xuat_ban) DESC,
                  coalesce(ct.created_at, 0) DESC,
                  id(ct) DESC
     """)
@@ -174,6 +177,7 @@ def get_cong_trinh_detail(ct_id):
     result = conn.query_single("""
         MATCH (ct:CongTrinhNghienCuu) 
         WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
+          AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
         OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
         RETURN ct, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS tac_gia
     """, {"id": ct_id})
@@ -185,7 +189,7 @@ def get_cong_trinh_detail(ct_id):
     """, {"id": ct_id})
     
     if not result or not result.get("ct"):
-        return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
+        return jsonify({"status": "error", "message": "Không tìm thấy công trình hoặc công trình chưa được duyệt"}), 404
         
     data = dict(result["ct"])
     data["tac_gia"] = result["tac_gia"]
@@ -206,16 +210,18 @@ def get_all_de_tai():
     results = conn.query("""
         MATCH (dt:DeTaiNghienCuu)
         WHERE coalesce(dt.is_deleted, false) = false
+          AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
         OPTIONAL MATCH (gv_cn:GiangVien)-[:CHU_NHIEM]->(dt)
+        WHERE coalesce(gv_cn.is_deleted, false) = false
         OPTIONAL MATCH (gv_tv:GiangVien)-[:THAM_GIA]->(dt)
+        WHERE coalesce(gv_tv.is_deleted, false) = false
         OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt)
         WHERE coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
         RETURN dt,
                collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
                collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
                collect(DISTINCT tgn.ho_va_ten)   AS tac_gia_ngoai
-        ORDER BY CASE WHEN dt.trang_thai IN ['Chờ duyệt', 'Yêu cầu xóa', 'Yêu cầu đổi trạng thái'] THEN 0 ELSE 1 END ASC,
-                 toInteger(dt.nam) DESC,
+        ORDER BY toInteger(dt.nam) DESC,
                  coalesce(dt.created_at, 0) DESC,
                  id(dt) DESC
     """)
@@ -240,6 +246,7 @@ def get_de_tai_detail(dt_id):
     result = conn.query_single("""
         MATCH (dt:DeTaiNghienCuu) 
         WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
+          AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
         OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
         RETURN dt, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS thanh_vien
     """, {"id": dt_id})
@@ -251,7 +258,7 @@ def get_de_tai_detail(dt_id):
     """, {"id": dt_id})
 
     if not result or not result.get("dt"):
-        return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
+        return jsonify({"status": "error", "message": "Không tìm thấy đề tài hoặc đề tài chưa được duyệt"}), 404
         
     data = dict(result["dt"])
     if "nam" in data:
@@ -344,6 +351,8 @@ def search():
               AND NOT (n:TacGiaNgoai AND EXISTS {{
                 MATCH (gv:GiangVien) WHERE gv.ho_va_ten = n.ho_va_ten
             }})
+              AND NOT (n:CongTrinhNghienCuu AND NOT n.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
+              AND NOT (n:DeTaiNghienCuu AND NOT n.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
             OPTIONAL MATCH (tg)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(n)
             WHERE NOT (tg:TacGiaNgoai) OR coalesce(tg.trang_thai, 'Đã duyệt') = 'Đã duyệt'
             OPTIONAL MATCH (tv)-[:CHU_NHIEM|THAM_GIA]->(n)
@@ -449,10 +458,12 @@ def get_full_graph():
     """Lấy toàn bộ dữ liệu đồ thị cho visualization."""
     conn = get_neo4j_connection()
 
-    # Lấy tất cả nodes
+    # Lấy tất cả nodes (chỉ lấy công trình/đề tài đã duyệt)
     nodes_result = conn.query("""
         MATCH (n)
         WHERE n.id IS NOT NULL AND coalesce(n.is_deleted, false) = false
+          AND NOT (n:CongTrinhNghienCuu AND NOT n.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
+          AND NOT (n:DeTaiNghienCuu AND NOT n.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
         RETURN n.id AS id, labels(n) AS labels, properties(n) AS props
     """)
 
@@ -462,6 +473,10 @@ def get_full_graph():
         WHERE a.id IS NOT NULL AND b.id IS NOT NULL
           AND coalesce(a.is_deleted, false) = false
           AND coalesce(b.is_deleted, false) = false
+          AND NOT (a:CongTrinhNghienCuu AND NOT a.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
+          AND NOT (b:CongTrinhNghienCuu AND NOT b.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
+          AND NOT (a:DeTaiNghienCuu AND NOT a.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
+          AND NOT (b:DeTaiNghienCuu AND NOT b.trang_thai IN ['Đang thực hiện', 'Hoàn thành'])
         RETURN a.id AS source, b.id AS target, type(r) AS type,
                properties(r) AS props
     """)
@@ -631,39 +646,43 @@ def get_overview_stats():
         conn = get_neo4j_connection()
 
         gv_count = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
-        ct_count = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
-        dt_count = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+        ct_count = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false AND n.trang_thai IN ['\u0110ang th\u1ef1c hi\u1ec7n', 'Ho\u00e0n th\u00e0nh'] RETURN count(n) AS count")
+        dt_count = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false AND n.trang_thai IN ['\u0110ang th\u1ef1c hi\u1ec7n', 'Ho\u00e0n th\u00e0nh'] RETURN count(n) AS count")
         bm_count = conn.query_single("MATCH (n:BoMon) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
 
-        # Top giảng viên theo số công trình
+        # Top giảng viên theo số công trình đã duyệt
         top_gv = conn.query("""
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN gv.ho_va_ten AS ten, gv.id AS id, count(ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC
             LIMIT 10
         """)
 
-        # Thống kê công trình theo năm xuất bản (5 năm gần nhất)
+        # Thống kê công trình theo năm xuất bản (chỉ đã duyệt)
         ct_theo_nam = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
             WHERE ct.nam_xuat_ban IS NOT NULL AND toString(ct.nam_xuat_ban) <> '' AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN toInteger(ct.nam_xuat_ban) AS nam, count(ct) AS so_luong
             ORDER BY nam ASC
         """)
 
-        # Thống kê đề tài theo cấp
+        # Thống kê đề tài theo cấp (đã duyệt)
         dt_theo_cap = conn.query("""
             MATCH (dt:DeTaiNghienCuu)
             WHERE dt.cap_de_tai IS NOT NULL AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN dt.cap_de_tai AS cap, count(dt) AS so_luong
             ORDER BY so_luong DESC
         """)
 
-        # Thống kê đề tài theo năm bắt đầu
+        # Thống kê đề tài theo năm bắt đầu (đã duyệt)
         dt_theo_nam = conn.query("""
             MATCH (dt:DeTaiNghienCuu)
-            WHERE dt.nam IS NOT NULL
+            WHERE dt.nam IS NOT NULL AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN toInteger(dt.nam) AS nam, count(dt) AS so_luong
             ORDER BY nam ASC
         """)
@@ -671,7 +690,7 @@ def get_overview_stats():
         # ── Đề tài đang thực hiện ──────────────────────────────────────────
         dt_dang_thuc_hien = conn.query("""
             MATCH (dt:DeTaiNghienCuu)
-            WHERE dt.trang_thai = 'Đang thực hiện'
+            WHERE dt.trang_thai = 'Đang thực hiện' AND coalesce(dt.is_deleted, false) = false
             OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
             RETURN dt.id AS id,
                    dt.ten_de_tai AS ten_de_tai,
@@ -686,7 +705,8 @@ def get_overview_stats():
         # ── Công trình mới nhất ─────────────────────────────────────────────
         ct_moi = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
-            WHERE ct.nam_xuat_ban IS NOT NULL
+            WHERE ct.nam_xuat_ban IS NOT NULL AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             OPTIONAL MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
             RETURN ct.id AS id,
                    ct.ten_cong_trinh AS ten_cong_trinh,
@@ -701,6 +721,7 @@ def get_overview_stats():
         ct_theo_loai = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
             WHERE coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN 'Bài báo' AS loai, count(ct) AS so_luong
         """)
 
@@ -787,10 +808,11 @@ def get_stats_trends():
             RETURN gv.ho_va_ten AS gv_ten, lv.ten_linh_vuc AS lv_ten
         """)
         
-        # Lấy tất cả bài báo cùng tác giả
+        # Lấy tất cả bài báo cùng tác giả (chỉ đã duyệt)
         ct_nodes = conn.query("""
             MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN ct.id AS id, ct.ten_cong_trinh AS title, ct.tom_tat AS summary, ct.nam_xuat_ban AS nam, gv.ho_va_ten AS gv_ten
         """)
 

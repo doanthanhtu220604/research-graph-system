@@ -249,11 +249,11 @@ def add_my_publication():
         if slug:
             exists_en = conn.query_single("""
                 MATCH (ct:CongTrinhNghienCuu)
-                WHERE ct.slug = $slug AND coalesce(ct.is_deleted, false) = false
+                WHERE (ct.slug = $slug OR ct.slug_vi = $slug) AND coalesce(ct.is_deleted, false) = false
                 RETURN ct.id AS id
             """, {"slug": slug})
             if exists_en:
-                return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống'}), 400
+                return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống (trùng tên tiếng Anh hoặc tiếng Việt)'}), 400
 
         # Kiểm tra trùng tên tiếng Việt (nếu có)
         slug_vi = None
@@ -261,11 +261,11 @@ def add_my_publication():
             slug_vi = generate_slug(ten_cong_trinh_vi)
             exists_vi = conn.query_single("""
                 MATCH (ct:CongTrinhNghienCuu)
-                WHERE ct.slug_vi = $slug_vi AND coalesce(ct.is_deleted, false) = false
+                WHERE (ct.slug = $slug_vi OR ct.slug_vi = $slug_vi) AND coalesce(ct.is_deleted, false) = false
                 RETURN ct.id AS id
             """, {"slug_vi": slug_vi})
             if exists_vi:
-                return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống'}), 400
+                return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống (trùng tên tiếng Anh hoặc tiếng Việt)'}), 400
 
         query = """
         // 1. Tìm người tạo dựa trên gv_id
@@ -288,6 +288,7 @@ def add_my_publication():
             tom_tat: $tom_tat,
             link: $link,
             trang_thai: 'Chờ duyệt',
+            old_status: coalesce($trang_thai, 'Đang thực hiện'),
             nguoi_tao: creator.ho_va_ten,
             created_at: timestamp()
         })
@@ -313,7 +314,8 @@ def add_my_publication():
             'nam_xb': data.get('nam_xuat_ban'),
             'noi_xb': data.get('noi_xuat_ban'),
             'tom_tat': data.get('tom_tat', ''),
-            'link': data.get('link', '')
+            'link': data.get('link', ''),
+            'trang_thai': data.get('trang_thai')
         })
         new_ct = result[0]['new_ct'] if result else None
         if new_ct and tac_gia_ngoai_ids:
@@ -392,11 +394,11 @@ def update_my_publication(ct_id):
             if slug:
                 exists_en_upd = conn.query_single("""
                     MATCH (ct:CongTrinhNghienCuu)
-                    WHERE ct.slug = $slug AND ct.id <> $ct_id AND coalesce(ct.is_deleted, false) = false
+                    WHERE (ct.slug = $slug OR ct.slug_vi = $slug) AND ct.id <> $ct_id AND coalesce(ct.is_deleted, false) = false
                     RETURN ct.id AS id
                 """, {"slug": slug, "ct_id": ct_id})
                 if exists_en_upd:
-                    return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống'}), 400
+                    return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Anh này đã tồn tại trong hệ thống (trùng tên tiếng Anh hoặc tiếng Việt)'}), 400
 
             slug_vi_upd = generate_slug(ten_ct_vi) if ten_ct_vi else None
 
@@ -404,18 +406,18 @@ def update_my_publication(ct_id):
             if slug_vi_upd:
                 exists_vi_upd = conn.query_single("""
                     MATCH (ct:CongTrinhNghienCuu)
-                    WHERE ct.slug_vi = $slug_vi AND ct.id <> $ct_id AND coalesce(ct.is_deleted, false) = false
+                    WHERE (ct.slug = $slug_vi OR ct.slug_vi = $slug_vi) AND ct.id <> $ct_id AND coalesce(ct.is_deleted, false) = false
                     RETURN ct.id AS id
                 """, {"slug_vi": slug_vi_upd, "ct_id": ct_id})
                 if exists_vi_upd:
-                    return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống'}), 400
+                    return jsonify({'status': 'error', 'message': 'Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống (trùng tên tiếng Anh hoặc tiếng Việt)'}), 400
 
             # Khi giảng viên sửa thông tin, luôn chuyển về trạng thái 'Chờ duyệt' để Admin phê duyệt lại
             new_status = "'Chờ duyệt'"
 
             query = f"""
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
-            SET ct.old_status = CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END,
+            SET ct.old_status = coalesce($trang_thai, CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END, 'Đang thực hiện'),
                 ct.ten_cong_trinh = toUpper($ten_ct),
                 ct.ten_cong_trinh_vi = toUpper($ten_ct_vi),
                 ct.slug = $slug,
@@ -436,7 +438,8 @@ def update_my_publication(ct_id):
                 'nam_xb': data.get('nam_xuat_ban'),
                 'noi_xb': data.get('noi_xuat_ban'),
                 'tom_tat': data.get('tom_tat', ''),
-                'link': data.get('link', '')
+                'link': data.get('link', ''),
+                'trang_thai': data.get('trang_thai')
             })
 
             # Cập nhật thành viên (giảng viên nội bộ) — không cập nhật người tạo (GV hiện tại)
@@ -529,8 +532,7 @@ def add_my_project():
     if not isinstance(tac_gia_ngoai_ids, list):
         tac_gia_ngoai_ids = []
         
-    vai_tro = data.get('vai_tro', 'THAM_GIA')
-    rel_type = "CHU_NHIEM" if vai_tro == "CHU_NHIEM" else "THAM_GIA"
+    rel_type = "CHU_NHIEM"
     
     try:
         conn = get_neo4j_connection()
@@ -564,7 +566,8 @@ def add_my_project():
             nam: toInteger($nam),
             tom_tat: $tom_tat,
             link: $link,
-            trang_thai: 'Chờ duyệt'
+            trang_thai: 'Chờ duyệt',
+            old_status: coalesce($trang_thai, 'Đang thực hiện')
         }})
         WITH g, members, dt
         SET dt.id = 'dt_' + toString(id(dt))
@@ -587,7 +590,8 @@ def add_my_project():
             'cap': data.get('cap_de_tai', ''),
             'nam': data.get('nam') or data.get('nam_bat_dau') or data.get('nam_ket_thuc'),
             'tom_tat': data.get('tom_tat', ''),
-            'link': data.get('link', '')
+            'link': data.get('link', ''),
+            'trang_thai': data.get('trang_thai')
         })
         new_dt = result[0]['new_dt'] if result else None
         if new_dt:
@@ -888,7 +892,7 @@ def update_my_project(dt_id):
             # Cập nhật thông tin cơ bản
             query = f"""
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
-            SET dt.old_status = CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END,
+            SET dt.old_status = coalesce($trang_thai, CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END, 'Đang thực hiện'),
                 dt.ten_de_tai = toUpper($ten_dt),
                 dt.slug = $slug,
                 dt.cap_de_tai = toUpper($cap),
@@ -905,7 +909,8 @@ def update_my_project(dt_id):
                 'cap': data.get('cap_de_tai', ''),
                 'nam': data.get('nam') or data.get('nam_bat_dau') or data.get('nam_ket_thuc'),
                 'tom_tat': data.get('tom_tat', ''),
-                'link': data.get('link', '')
+                'link': data.get('link', ''),
+                'trang_thai': data.get('trang_thai')
             })
             
             # Cập nhật vai trò nếu có
@@ -1170,5 +1175,111 @@ def lecturer_create_tac_gia_ngoai():
             "id": new_id,
             "trang_thai": "Chờ duyệt"
         })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ============================================================
+# XEM CHI TIẾT CÔNG TRÌNH / ĐỀ TÀI CỦA GIẢNG VIÊN (kể cả chưa duyệt)
+# ============================================================
+
+@lecturer_api_bp.route('/cong-trinh/<ct_id>', methods=['GET'])
+def get_cong_trinh_detail_for_lecturer(ct_id):
+    """
+    Trả về chi tiết công trình dành cho Giảng viên.
+    Cho phép xem mọi trạng thái (kể cả Chờ duyệt) miễn là GV là tác giả của công trình đó.
+    """
+    gv_id = request.args.get('gv_id', '').strip()
+
+    try:
+        conn = get_neo4j_connection()
+
+        # Kiểm tra quyền: GV phải là tác giả của công trình này
+        if gv_id:
+            ownership = conn.query_single("""
+                MATCH (gv:GiangVien {id: $gv_id})-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu {id: $ct_id})
+                WHERE coalesce(ct.is_deleted, false) = false
+                RETURN ct.id AS id
+            """, {"gv_id": gv_id, "ct_id": ct_id})
+            if not ownership:
+                return jsonify({"status": "error", "message": "Không tìm thấy công trình hoặc bạn không có quyền xem."}), 404
+
+        result = conn.query_single("""
+            MATCH (ct:CongTrinhNghienCuu)
+            WHERE ct.id = $id AND coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv:GiangVien)-[r:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct)
+            RETURN ct, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS tac_gia
+        """, {"id": ct_id})
+
+        tac_gia_ngoai_res = conn.query("""
+            MATCH (tgn:TacGiaNgoai)-[r:TAC_GIA_CHINH|CONG_SU|DONG_TAC_GIA]->(ct:CongTrinhNghienCuu)
+            WHERE ct.id = $id
+            RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro, coalesce(tgn.trang_thai, 'Đã duyệt') AS trang_thai
+        """, {"id": ct_id})
+
+        if not result or not result.get("ct"):
+            return jsonify({"status": "error", "message": "Không tìm thấy công trình"}), 404
+
+        data = dict(result["ct"])
+        data["tac_gia"] = result["tac_gia"]
+        data["tac_gia_ngoai"] = [
+            {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"], "trang_thai": r["trang_thai"]}
+            for r in tac_gia_ngoai_res
+        ]
+        return jsonify({"status": "ok", "data": data})
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@lecturer_api_bp.route('/de-tai/<dt_id>', methods=['GET'])
+def get_de_tai_detail_for_lecturer(dt_id):
+    """
+    Trả về chi tiết đề tài dành cho Giảng viên.
+    Cho phép xem mọi trạng thái (kể cả Chờ duyệt) miễn là GV là thành viên của đề tài đó.
+    """
+    gv_id = request.args.get('gv_id', '').strip()
+
+    try:
+        conn = get_neo4j_connection()
+
+        # Kiểm tra quyền: GV phải là thành viên của đề tài này
+        if gv_id:
+            ownership = conn.query_single("""
+                MATCH (gv:GiangVien {id: $gv_id})-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu {id: $dt_id})
+                WHERE coalesce(dt.is_deleted, false) = false
+                RETURN dt.id AS id
+            """, {"gv_id": gv_id, "dt_id": dt_id})
+            if not ownership:
+                return jsonify({"status": "error", "message": "Không tìm thấy đề tài hoặc bạn không có quyền xem."}), 404
+
+        result = conn.query_single("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
+            OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
+            RETURN dt, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS thanh_vien
+        """, {"id": dt_id})
+
+        tac_gia_ngoai_res = conn.query("""
+            MATCH (tgn:TacGiaNgoai)-[r:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+            WHERE dt.id = $id
+            RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro, coalesce(tgn.trang_thai, 'Đã duyệt') AS trang_thai
+        """, {"id": dt_id})
+
+        if not result or not result.get("dt"):
+            return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
+
+        data = dict(result["dt"])
+        if "nam" in data:
+            data["nam_bat_dau"] = data["nam"]
+            data["nam_ket_thuc"] = data["nam"]
+            data["nam_thuc_hien"] = str(data["nam"])
+        data["thanh_vien"] = result["thanh_vien"]
+        data["tac_gia_ngoai"] = [
+            {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"], "trang_thai": r["trang_thai"]}
+            for r in tac_gia_ngoai_res
+        ]
+        return jsonify({"status": "ok", "data": data})
+
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

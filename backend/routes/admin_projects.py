@@ -188,3 +188,77 @@ def reject_de_tai(id):
             return jsonify({"status": "error", "message": "Không hỗ trợ từ chối ở trạng thái hiện tại"}), 400
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_projects_bp.route("/de-tai", methods=["GET"])
+def get_all_de_tai():
+    """Lấy danh sách tất cả đề tài nghiên cứu cho Admin (bao gồm cả chưa duyệt, từ chối, v.v., không bao gồm đã xóa mềm)."""
+    conn = get_neo4j_connection()
+    try:
+        results = conn.query("""
+            MATCH (dt:DeTaiNghienCuu)
+            WHERE coalesce(dt.is_deleted, false) = false
+            OPTIONAL MATCH (gv_cn:GiangVien)-[:CHU_NHIEM]->(dt)
+            WHERE coalesce(gv_cn.is_deleted, false) = false
+            OPTIONAL MATCH (gv_tv:GiangVien)-[:THAM_GIA]->(dt)
+            WHERE coalesce(gv_tv.is_deleted, false) = false
+            OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt)
+            WHERE coalesce(tgn.trang_thai, 'Đã duyệt') = 'Đã duyệt'
+            RETURN dt,
+                   collect(DISTINCT gv_cn.ho_va_ten) AS chu_nhiem,
+                   collect(DISTINCT gv_tv.ho_va_ten) AS thanh_vien,
+                   collect(DISTINCT tgn.ho_va_ten)   AS tac_gia_ngoai
+            ORDER BY toInteger(dt.nam) DESC,
+                     coalesce(dt.created_at, 0) DESC,
+                     id(dt) DESC
+        """)
+        de_tai_list = []
+        for r in results:
+            dt = dict(r["dt"])
+            if "nam" in dt:
+                dt["nam_bat_dau"] = dt["nam"]
+                dt["nam_ket_thuc"] = dt["nam"]
+                dt["nam_thuc_hien"] = str(dt["nam"])
+            dt["chu_nhiem"]    = [t for t in (r["chu_nhiem"] or []) if t]
+            dt["thanh_vien"]   = [t for t in (r["thanh_vien"] or []) if t]
+            dt["tac_gia_ngoai"] = [t for t in (r["tac_gia_ngoai"] or []) if t]
+            de_tai_list.append(dt)
+        return jsonify({"status": "ok", "data": de_tai_list})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@admin_projects_bp.route("/de-tai/<id>", methods=["GET"])
+def get_de_tai_detail(id):
+    """Lấy chi tiết đề tài nghiên cứu cho Admin (bao gồm cả trạng thái chưa duyệt)."""
+    conn = get_neo4j_connection()
+    try:
+        result = conn.query_single("""
+            MATCH (dt:DeTaiNghienCuu) 
+            WHERE dt.id = $id AND coalesce(dt.is_deleted, false) = false
+            OPTIONAL MATCH (gv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt)
+            RETURN dt, collect(CASE WHEN gv IS NOT NULL THEN {id: gv.id, ten: gv.ho_va_ten, vai_tro: type(r), is_deleted: coalesce(gv.is_deleted, false)} END) AS thanh_vien
+        """, {"id": id})
+
+        tac_gia_ngoai_res = conn.query("""
+            MATCH (tgn:TacGiaNgoai)-[r:CHU_NHIEM|THAM_GIA|DONG_TAC_GIA]->(dt:DeTaiNghienCuu)
+            WHERE dt.id = $id
+            RETURN tgn.ho_va_ten AS ten, tgn.don_vi_cong_tac AS don_vi, type(r) AS vai_tro, coalesce(tgn.trang_thai, 'Đã duyệt') AS trang_thai
+        """, {"id": id})
+
+        if not result or not result.get("dt"):
+            return jsonify({"status": "error", "message": "Không tìm thấy đề tài"}), 404
+            
+        data = dict(result["dt"])
+        if "nam" in data:
+            data["nam_bat_dau"] = data["nam"]
+            data["nam_ket_thuc"] = data["nam"]
+            data["nam_thuc_hien"] = str(data["nam"])
+        data["thanh_vien"] = result["thanh_vien"]
+        data["tac_gia_ngoai"] = [
+            {"ten": r["ten"], "don_vi": r["don_vi"], "vai_tro": r["vai_tro"], "trang_thai": r["trang_thai"]} for r in tac_gia_ngoai_res
+        ]
+        return jsonify({"status": "ok", "data": data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+

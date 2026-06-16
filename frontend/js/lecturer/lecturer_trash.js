@@ -40,7 +40,7 @@ async function loadLecturerTrash() {
 
                 const typeLabel = item.type === 'cong-trinh' ? 'Công trình' : 'Đề tài';
 
-                const title = item.ten_cong_trinh || item.ten_de_tai || 'Chưa rõ';
+                const title = item.ten_cong_trinh || item.ten_cong_trinh_vi || item.ten_de_tai || 'Chưa rõ';
 
                 
 

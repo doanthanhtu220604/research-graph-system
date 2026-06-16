@@ -578,25 +578,12 @@ const ENTITY_CONFIG = {
             { name: 'ten_de_tai', label: 'Tên đề tài', type: 'text', required: true },
 
             { name: 'cap_de_tai', label: 'Cấp đề tài', type: 'select', options: [
-
-                { value: 'Cấp cơ sở', label: 'Cấp cơ sở' },
-
-                { value: 'Cấp Bộ', label: 'Cấp Bộ' },
-
-                { value: 'Cấp Tỉnh', label: 'Cấp Tỉnh' },
-
-                { value: 'Cấp Nhà nước', label: 'Cấp Nhà nước' },
-
-                { value: 'Khác', label: 'Khác' }
-
-            ]},
-
-            { name: 'vai_tro', label: 'Vai trò của bạn', type: 'select', required: true, options: [
-
-                { value: 'CHU_NHIEM', label: 'Chủ nhiệm đề tài' },
-
-                { value: 'THAM_GIA', label: 'Thành viên tham gia' }
-
+                { value: 'ĐỀ TÀI, DỰ ÁN NCKH CẤP TRƯỜNG', label: 'ĐỀ TÀI, DỰ ÁN NCKH CẤP TRƯỜNG' },
+                { value: 'HƯỚNG DẪN SINH VIÊN LÀM ĐỀ TÀI NCKH', label: 'HƯỚNG DẪN SINH VIÊN LÀM ĐỀ TÀI NCKH' },
+                { value: 'ĐỀ TÀI NGHIÊN CỨU CẤP BỘ', label: 'ĐỀ TÀI NGHIÊN CỨU CẤP BỘ' },
+                { value: 'ĐỀ TÀI NAFOSTED', label: 'ĐỀ TÀI NAFOSTED' },
+                { value: 'THỰC HIỆN ĐỀ TÀI, DỰ ÁN NCKH DO NƯỚC NGOÀI TÀI TRỢ', label: 'THỰC HIỆN ĐỀ TÀI, DỰ ÁN NCKH DO NƯỚC NGOÀI TÀI TRỢ' },
+                { value: 'CHƯA XÁC ĐỊNH', label: 'CHƯA XÁC ĐỊNH' }
             ]},
 
             { name: 'nam', label: 'Năm thực hiện', type: 'number' },
@@ -725,7 +712,7 @@ async function loadProjects() {
 
             if(data.data.length === 0) {
 
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa tham gia đề tài nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa tham gia đề tài nào.</td></tr>';
 
                 return;
 
@@ -763,8 +750,6 @@ async function loadProjects() {
                     <td>${dt.id}</td>
 
                     <td><strong style="color: var(--text-primary);">${dt.ten_de_tai}</strong>${isRejected ? ' <span style="color:#dc3545;font-size:11px;font-weight:600;"><i class="fas fa-times-circle"></i> Từ chối</span>' : ''}</td>
-
-                    <td><span style="background: var(--bg-hover); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">${dt.vai_tro === 'CHU_NHIEM' ? 'Chủ nhiệm' : 'Thành viên'}</span></td>
 
                     <td>${dt.cap_de_tai || 'N/A'}</td>
 
@@ -1816,7 +1801,9 @@ async function viewProjectDetail(dtId) {
 
     try {
 
-        const res  = await fetch(`/api/de-tai/${dtId}`);
+        const gvId = (typeof userInfo !== 'undefined' && userInfo?.id) ? userInfo.id : '';
+
+        const res  = await fetch(`/api/lecturer/de-tai/${dtId}?gv_id=${gvId}`);
 
         const data = await res.json();
 
@@ -1974,7 +1961,9 @@ async function viewPublicationDetail(ctId) {
 
     try {
 
-        const res  = await fetch(`/api/cong-trinh/${ctId}`);
+        const gvId = (typeof userInfo !== 'undefined' && userInfo?.id) ? userInfo.id : '';
+
+        const res  = await fetch(`/api/lecturer/cong-trinh/${ctId}?gv_id=${gvId}`);
 
         const data = await res.json();
 
@@ -2122,7 +2111,7 @@ async function viewPublicationDetail(ctId) {
 
 function filterProjects() {
 
-    const nameVal = document.getElementById('filterProjName').value.toLowerCase();
+    const nameVal = document.getElementById('filterProjName').value.toLowerCase().trim();
 
     const levelVal = document.getElementById('filterProjLevel').value;
 
@@ -2134,13 +2123,13 @@ function filterProjects() {
 
     rows.forEach(row => {
 
-        if (row.cells.length < 5) return;
+        if (row.cells.length < 4) return;
 
         const name = row.cells[1].textContent.toLowerCase();
 
-        const level = row.cells[3].textContent;
+        const level = row.cells[2].textContent;
 
-        const status = row.cells[4].textContent;
+        const status = row.cells[3].textContent;
 
 
 
@@ -2148,7 +2137,27 @@ function filterProjects() {
 
         if (nameVal && !name.includes(nameVal)) visible = false;
 
-        if (levelVal && !level.includes(levelVal)) visible = false;
+        if (levelVal) {
+            const capUpper = level.toUpperCase().normalize('NFC');
+            const selUpper = levelVal.toUpperCase().normalize('NFC');
+            let matchLevel = false;
+            if (selUpper === 'CẤP CƠ SỞ') {
+                matchLevel = capUpper.includes('CƠ SỞ') || capUpper.includes('TRƯỜNG') || capUpper.includes('SINH VIÊN');
+            } else if (selUpper === 'CẤP BỘ') {
+                matchLevel = capUpper.includes('BỘ') && !capUpper.includes('TỈNH');
+            } else if (selUpper === 'CẤP TỈNH') {
+                matchLevel = capUpper.includes('TỈNH') || capUpper.includes('THÀNH PHỐ');
+            } else if (selUpper === 'CẤP NHÀ NƯỚC') {
+                matchLevel = capUpper.includes('NHÀ NƯỚC') || capUpper.includes('NAFOSTED');
+            } else if (selUpper === 'KHÁC') {
+                matchLevel = !capUpper.includes('CƠ SỞ') && !capUpper.includes('TRƯỜNG') && !capUpper.includes('SINH VIÊN') &&
+                             !capUpper.includes('BỘ') && !capUpper.includes('TỈNH') && !capUpper.includes('THÀNH PHỐ') &&
+                             !capUpper.includes('NHÀ NƯỚC') && !capUpper.includes('NAFOSTED');
+            } else {
+                matchLevel = capUpper.includes(selUpper);
+            }
+            if (!matchLevel) visible = false;
+        }
 
         if (statusVal && status !== statusVal) visible = false;
 

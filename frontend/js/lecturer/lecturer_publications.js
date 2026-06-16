@@ -42,9 +42,7 @@ async function loadPublications() {
 
                 const isPending = ct.trang_thai === 'Yêu cầu xóa' || ct.trang_thai === 'Chờ duyệt';
 
-                // Khi bị từ chối: chỉ tắt nút đổi trạng thái, vẫn cho xóa và sửa+nộp lại
-                const disableStatusChange = isPending || isRejected;
-                const disableDelete       = isPending;  // Từ chối vẫn cho xóa
+                const disableDelete = isPending;  // Từ chối vẫn cho xóa
 
                 const editTitle = isRejected ? 'Sửa và nộp lại để kiểm duyệt' : 'Chỉnh sửa';
 
@@ -74,8 +72,6 @@ async function loadPublications() {
                         <button class="btn btn-sm" title="Xem chi tiết" onclick="viewPublicationDetail('${ct.id}')" style="background:#f39c12;color:#fff;border:none;margin-right:4px;"><i class="fas fa-eye"></i></button>
 
                         <button class="btn btn-sm btn-view" title="${editTitle}" onclick="openLecturerModal('cong-trinh', '${ct.id}')" style="${editStyle}" ${isPending ? 'disabled style="opacity:0.5"' : ''}><i class="fas ${isRejected ? 'fa-paper-plane' : 'fa-edit'}"></i></button>
-
-                        <button class="btn btn-sm" title="Đổi trạng thái" onclick="openStatusChangeModal('cong-trinh', '${ct.id}')" style="background: rgba(139,92,246,0.1); color: #8B5CF6; border: none; margin-right:4px;" ${disableStatusChange ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-exchange-alt"></i></button>
 
                         <button class="btn btn-sm" style="color:var(--accent-red); background: rgba(231,76,60,0.1); border:none;" title="Xóa" onclick="${deleteOnclick}" ${disableDelete ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fas fa-trash"></i></button>
 

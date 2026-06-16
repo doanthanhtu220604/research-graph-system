@@ -42,7 +42,7 @@ function openStatusChangeModal(type, id) {
 
                             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Đối tượng đề xuất:</p>
 
-                            <p style="font-size: 14px; color: var(--text-primary); font-weight: 700; line-height: 1.4; margin: 0;">${item.ten_cong_trinh || item.ten_de_tai}</p>
+                            <p style="font-size: 14px; color: var(--text-primary); font-weight: 700; line-height: 1.4; margin: 0;">${item.ten_cong_trinh || item.ten_cong_trinh_vi || item.ten_de_tai || 'Không rõ'}</p>
 
                         </div>
 
@@ -104,7 +104,7 @@ function openStatusChangeModal(type, id) {
 
         const titleEl = document.querySelector('#statusChangeModalOverlay p[style*="font-weight: 700"]');
 
-        if (titleEl) titleEl.textContent = item.ten_cong_trinh || item.ten_de_tai;
+        if (titleEl) titleEl.textContent = item.ten_cong_trinh || item.ten_cong_trinh_vi || item.ten_de_tai || 'Không rõ';
 
         
 

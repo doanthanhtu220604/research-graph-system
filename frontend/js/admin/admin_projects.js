@@ -4,7 +4,7 @@ const ADMIN_PROJECTS_PER_PAGE = 15;
 
 async function loadProjects() {
     try {
-        const res  = await fetch(ENTITY_CONFIG['de-tai'].apiUrl);
+        const res  = await fetch(ENTITY_CONFIG['de-tai'].adminApiUrl);
         const data = await res.json();
 
         if (data.status === 'ok') {
@@ -50,6 +50,7 @@ function renderProjectsTable(dataList) {
             <td class="col-year">${namThucHien}</td>
             <td class="col-status"><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight: 600; white-space: nowrap;">${trangThai}</span></td>
             <td class="col-actions">
+                <div class="col-actions-wrap">
                 ${trangThai === 'Chờ duyệt'   ? `
                     <button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt đề tài" onclick="approveProject('${dt.id}')"><i class="fas fa-check"></i></button>
                     <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Từ chối duyệt đề tài" onclick="rejectEntity('de-tai', '${dt.id}')"><i class="fas fa-ban"></i></button>
@@ -62,6 +63,7 @@ function renderProjectsTable(dataList) {
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('de-tai', '${dt.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${dt.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Chủ nhiệm/Thành viên" onclick="openRelationModal('de-tai', '${dt.id}')"><i class="fas fa-link"></i></button>` : ''}
                 <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('de-tai', '${dt.id}')"><i class="fas fa-trash"></i></button>
+                </div>
             </td>
         </tr>
     `}).join('');
@@ -221,7 +223,7 @@ function populateProjectLevelFilter(data) {
 
 
 async function approveProject(id) {
-    if (!confirm('Bạn có chắc muốn duyệt đề tài này thành "Đang thực hiện"?')) return;
+    if (!confirm('Bạn có chắc muốn duyệt đề tài này?')) return;
     try {
         const res  = await fetch(`${ADMIN_API_BASE}/de-tai/${id}/approve`, { method: 'PUT' });
         const data = await res.json();

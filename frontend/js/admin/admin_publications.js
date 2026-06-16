@@ -4,7 +4,7 @@ const ADMIN_PUBLICATIONS_PER_PAGE = 15;
 
 async function loadPublications() {
     try {
-        const res  = await fetch(ENTITY_CONFIG['cong-trinh'].apiUrl);
+        const res  = await fetch(ENTITY_CONFIG['cong-trinh'].adminApiUrl);
         const data = await res.json();
 
         if (data.status === 'ok') {
@@ -45,6 +45,7 @@ function renderPublicationsTable(dataList) {
             <td class="col-year">${ct.nam_xuat_ban || ''}</td>
             <td class="col-status"><span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusColor}; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">${trangThai}</span></td>
             <td class="col-actions">
+                <div class="col-actions-wrap">
                 ${trangThai === 'Chờ duyệt'    ? `
                     <button class="btn btn-sm" style="background:#28a745;color:#fff;border-color:#28a745;" title="Duyệt công trình" onclick="approvePublication('${ct.id}')"><i class="fas fa-check"></i></button>
                     <button class="btn btn-sm" style="background:#e74c3c;color:#fff;border-color:#e74c3c;" title="Từ chối duyệt công trình" onclick="rejectEntity('cong-trinh', '${ct.id}')"><i class="fas fa-ban"></i></button>
@@ -57,6 +58,7 @@ function renderPublicationsTable(dataList) {
                 <button class="btn btn-sm btn-view" title="Sửa thông tin" onclick="openAdminModal('cong-trinh', '${ct.id}', ${originalIndex})"><i class="fas fa-edit"></i></button>
                 ${ct.id ? `<button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8;" title="Gán Tác giả" onclick="openRelationModal('cong-trinh', '${ct.id}')"><i class="fas fa-link"></i></button>` : ''}
                 <button class="btn btn-sm" style="color:var(--accent-red);border-color:var(--accent-red);" title="Xóa" onclick="deleteEntity('cong-trinh', '${ct.id}')"><i class="fas fa-trash"></i></button>
+                </div>
             </td>
         </tr>
     `}).join('');

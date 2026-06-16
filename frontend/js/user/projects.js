@@ -140,21 +140,7 @@ function renderProjectPagination(totalPages, currentPage) {
 function matchProjectLevel(cap, selectedLevel) {
     if (!selectedLevel) return true;
     if (!cap) return false;
-    const capUpper = cap.toUpperCase().normalize('NFC');
-    
-    if (selectedLevel === 'Cấp Nhà nước') {
-        return capUpper.includes('NHÀ NƯỚC') || capUpper.includes('NAFOSTED');
-    }
-    if (selectedLevel === 'Cấp Bộ/Tỉnh' || selectedLevel === 'Cấp Bộ' || selectedLevel === 'Cấp Tỉnh/Thành phố' || selectedLevel === 'Cấp Tỉnh') {
-        return capUpper.includes('BỘ') || capUpper.includes('TỈNH') || capUpper.includes('THÀNH PHỐ');
-    }
-    if (selectedLevel === 'Cấp Trường' || selectedLevel === 'Cấp cơ sở') {
-        return capUpper.includes('TRƯỜNG') || capUpper.includes('CƠ SỞ') || capUpper.includes('SINH VIÊN');
-    }
-    if (selectedLevel === 'Đề tài Doanh nghiệp') {
-        return capUpper.includes('DOANH NGHIỆP') || capUpper.includes('NƯỚC NGOÀI') || capUpper.includes('DOANH');
-    }
-    return false;
+    return cap.toUpperCase().normalize('NFC').includes(selectedLevel.toUpperCase().normalize('NFC'));
 }
 
 function populateUserProjectYearFilter(data) {

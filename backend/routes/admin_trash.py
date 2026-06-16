@@ -86,7 +86,9 @@ def list_trash():
         # Công trình
         ct_list = conn.query("""
             MATCH (n:CongTrinhNghienCuu) WHERE n.is_deleted = true
-            RETURN n.id AS id, n.ten_cong_trinh AS ten, n.nam_xuat_ban AS nam,
+            RETURN n.id AS id,
+                   coalesce(n.ten_cong_trinh, n.ten_cong_trinh_vi) AS ten,
+                   n.nam_xuat_ban AS nam,
                    n.deleted_at AS deleted_at, n.deleted_note AS note,
                    n.trang_thai AS trang_thai,
                    'cong-trinh' AS type

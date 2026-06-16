@@ -25,6 +25,11 @@ const ENTITY_CONFIG = {
 
             { name: 'link', label: 'Link bài viết', type: 'url' },
 
+            { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
+                { value: 'Đang thực hiện', label: 'Đang thực hiện' },
+                { value: 'Hoàn thành', label: 'Hoàn thành' }
+            ]},
+
             { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' },
 
             { name: 'tac_gia_ngoai_ids', label: 'Tác giả ngoài (Tùy chọn)', type: 'external-authors-select' }
@@ -42,31 +47,24 @@ const ENTITY_CONFIG = {
             { name: 'ten_de_tai', label: 'Tên đề tài', type: 'text', required: true },
 
             { name: 'cap_de_tai', label: 'Cấp đề tài', type: 'select', options: [
-
-                { value: 'Cấp cơ sở', label: 'Cấp cơ sở' },
-
-                { value: 'Cấp Bộ', label: 'Cấp Bộ' },
-
-                { value: 'Cấp Tỉnh', label: 'Cấp Tỉnh' },
-
-                { value: 'Cấp Nhà nước', label: 'Cấp Nhà nước' },
-
-                { value: 'Khác', label: 'Khác' }
-
-            ]},
-
-            { name: 'vai_tro', label: 'Vai trò của bạn', type: 'select', required: true, options: [
-
-                { value: 'CHU_NHIEM', label: 'Chủ nhiệm đề tài' },
-
-                { value: 'THAM_GIA', label: 'Thành viên tham gia' }
-
+                { value: 'ĐỀ TÀI, DỰ ÁN NCKH CẤP TRƯỜNG', label: 'ĐỀ TÀI, DỰ ÁN NCKH CẤP TRƯỜNG' },
+                { value: 'HƯỚNG DẪN SINH VIÊN LÀM ĐỀ TÀI NCKH', label: 'HƯỚNG DẪN SINH VIÊN LÀM ĐỀ TÀI NCKH' },
+                { value: 'ĐỀ TÀI NGHIÊN CỨU CẤP BỘ', label: 'ĐỀ TÀI NGHIÊN CỨU CẤP BỘ' },
+                { value: 'ĐỀ TÀI NAFOSTED', label: 'ĐỀ TÀI NAFOSTED' },
+                { value: 'THỰC HIỆN ĐỀ TÀI, DỰ ÁN NCKH DO NƯỚC NGOÀI TÀI TRỢ', label: 'THỰC HIỆN ĐỀ TÀI, DỰ ÁN NCKH DO NƯỚC NGOÀI TÀI TRỢ' },
+                { value: 'CHƯA XÁC ĐỊNH', label: 'CHƯA XÁC ĐỊNH' }
             ]},
 
             { name: 'nam', label: 'Năm thực hiện', type: 'number' },
             { name: 'tom_tat', label: 'Tóm tắt nội dung', type: 'textarea' },
 
             { name: 'link', label: 'Link đề tài', type: 'url' },
+
+            { name: 'trang_thai', label: 'Trạng thái', type: 'select', default: 'Đang thực hiện', options: [
+                { value: 'Đang thực hiện', label: 'Đang thực hiện' },
+                { value: 'Hoàn thành', label: 'Hoàn thành' },
+                { value: 'Hủy bỏ', label: 'Hủy bỏ' }
+            ]},
 
             { name: 'thanh_vien_ids', label: 'Thành viên tham gia (Tùy chọn)', type: 'lecturers-select' },
 
@@ -222,7 +220,11 @@ function openLecturerModal(type, id = null) {
 
                 if (input && item[f.name] !== undefined) {
 
-                    input.value = item[f.name] || '';
+                    let val = item[f.name];
+                    if (f.name === 'trang_thai' && ['Chờ duyệt', 'Yêu cầu đổi trạng thái', 'Yêu cầu xóa', 'Yêu cầu khôi phục'].includes(val)) {
+                        val = item.old_status || 'Đang thực hiện';
+                    }
+                    input.value = val || '';
 
                 }
 
