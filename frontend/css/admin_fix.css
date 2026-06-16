@@ -279,8 +279,8 @@ body:has(.sidebar) .card {
 /* Cột học vị: không xuống dòng */
 .data-table th.col-degree,
 .data-table td.col-degree {
-    white-space: nowrap;
-    overflow: hidden;
+    white-space: normal;
+    word-break: break-word;
 }
 
 /* Cột tên & bộ môn: cho phép xuống dòng, hiển thị đầy đủ */
