@@ -3,6 +3,10 @@
    ============================================================ */
 
 let _allPublications = [];
+let _filteredPublications = [];
+let _currentPublicationsPage = 1;
+const PUBLICATIONS_PER_PAGE = 15;
+
 // Lưu tên EN/VI của công trình đang xem để toggle
 let _currentDetailTitleEN = '';
 let _currentDetailTitleVI = '';
@@ -42,6 +46,7 @@ async function loadPublications() {
         const data = await res.json();
         if (data.status === 'ok') {
             _allPublications = data.data;
+            _filteredPublications = [..._allPublications];
             // Dynamically fill year filter
             const years = [...new Set(data.data.map(ct => Number(ct.nam_xuat_ban)).filter(y => !isNaN(y) && y > 0))].sort((a, b) => b - a);
             const ysel = document.getElementById('pubYearFilter');
@@ -56,23 +61,39 @@ async function loadPublications() {
                     }
                 });
             }
-            renderPublicationRows(_allPublications);
+            renderPublicationPage(1);
         }
     } catch (err) {
         console.error('Publications error:', err);
     }
 }
 
-function renderPublicationRows(list) {
-    const container = document.getElementById('publicationsList');
+function renderPublicationPage(page) {
+    _currentPublicationsPage = page;
+    const limit = PUBLICATIONS_PER_PAGE;
+    const total = _filteredPublications.length;
+    const totalPages = Math.ceil(total / limit);
+
+    if (_currentPublicationsPage < 1) _currentPublicationsPage = 1;
+    if (_currentPublicationsPage > totalPages && totalPages > 0) _currentPublicationsPage = totalPages;
+
+    const start = (_currentPublicationsPage - 1) * limit;
+    const end = start + limit;
+    const listToRender = _filteredPublications.slice(start, end);
+
     const countEl = document.getElementById('pubCount');
+    if (countEl) countEl.textContent = `${total} công trình`;
+
+    const container = document.getElementById('publicationsList');
     if (!container) return;
-    if (countEl) countEl.textContent = `${list.length} công trình`;
-    if (list.length === 0) {
+
+    if (total === 0) {
         container.innerHTML = '<div class="list-empty"><i class="fas fa-file-times"></i>Không tìm thấy công trình phù hợp</div>';
+        renderPublicationPagination(0, 1);
         return;
     }
-    container.innerHTML = list.map(ct => {
+
+    container.innerHTML = listToRender.map(ct => {
         const title = String(ct.ten_cong_trinh || 'Chưa rõ').replace(/</g, '&lt;');
         const authors = (ct.tac_gia || []).map(tg => typeof tg === 'object' ? tg.ten : tg).join(', ');
         return `
@@ -91,13 +112,68 @@ function renderPublicationRows(list) {
             </div>
         `;
     }).join('');
+
+    renderPublicationPagination(totalPages, _currentPublicationsPage);
+}
+
+function renderPublicationPagination(totalPages, currentPage) {
+    const container = document.getElementById('publicationsPagination');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '<div class="pagination">';
+
+    if (currentPage > 1) {
+        html += `<button class="page-btn" onclick="renderPublicationPage(${currentPage - 1})" title="Trang trước"><i class="fas fa-chevron-left"></i></button>`;
+    } else {
+        html += `<button class="page-btn disabled" disabled><i class="fas fa-chevron-left"></i></button>`;
+    }
+
+    // Hiển thị tối đa 5 nút trang xung quanh trang hiện tại
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="page-btn" onclick="renderPublicationPage(1)">1</button>`;
+        if (startPage > 2) html += `<span class="pagination-ellipsis">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="page-btn active">${i}</button>`;
+        } else {
+            html += `<button class="page-btn" onclick="renderPublicationPage(${i})">${i}</button>`;
+        }
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span class="pagination-ellipsis">...</span>`;
+        html += `<button class="page-btn" onclick="renderPublicationPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    if (currentPage < totalPages) {
+        html += `<button class="page-btn" onclick="renderPublicationPage(${currentPage + 1})" title="Trang sau"><i class="fas fa-chevron-right"></i></button>`;
+    } else {
+        html += `<button class="page-btn disabled" disabled><i class="fas fa-chevron-right"></i></button>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 function filterUserPublications() {
     const q = (document.getElementById('pubSearchInput')?.value || '').normalize('NFC').toLowerCase().trim();
     const year = document.getElementById('pubYearFilter')?.value || '';
 
-    const filtered = _allPublications.filter(ct => {
+    _filteredPublications = _allPublications.filter(ct => {
         const title = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
         const pubYear = (ct.nam_xuat_ban || '').toString().toLowerCase();
         const authors = (ct.tac_gia || []).map(a => typeof a === 'object' ? a.ten : a).join(' ').normalize('NFC').toLowerCase();
@@ -107,7 +183,7 @@ function filterUserPublications() {
         const matchYear = !year || (String(ct.nam_xuat_ban) === year);
         return matchQ && matchYear;
     });
-    renderPublicationRows(filtered);
+    renderPublicationPage(1);
 }
 
 async function showPublicationDetail(ctId) {

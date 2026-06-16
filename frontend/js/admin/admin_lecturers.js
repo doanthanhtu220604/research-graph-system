@@ -1,6 +1,6 @@
-/* ============================================================
-   ADMIN LECTURERS — Quản lý Giảng viên
-   ============================================================ */
+let _currentAdminLecturersPage = 1;
+let _filteredAdminLecturers = [];
+const ADMIN_LECTURERS_PER_PAGE = 15;
 
 async function loadLecturers() {
     try {
@@ -66,13 +66,93 @@ function renderLecturersTable(dataList) {
 }
 
 
+function renderLecturersPage(page) {
+    _currentAdminLecturersPage = page;
+    const limit = ADMIN_LECTURERS_PER_PAGE;
+    const total = _filteredAdminLecturers.length;
+    const totalPages = Math.ceil(total / limit);
+
+    if (_currentAdminLecturersPage < 1) _currentAdminLecturersPage = 1;
+    if (_currentAdminLecturersPage > totalPages && totalPages > 0) _currentAdminLecturersPage = totalPages;
+
+    const start = (_currentAdminLecturersPage - 1) * limit;
+    const end = start + limit;
+    const listToRender = _filteredAdminLecturers.slice(start, end);
+
+    renderLecturersTable(listToRender);
+    renderLecturersPagination(totalPages, _currentAdminLecturersPage, total, start, end);
+}
+
+
+function renderLecturersPagination(totalPages, currentPage, totalCount, start, end) {
+    const container = document.getElementById('adminLecturersPagination');
+    if (!container) return;
+
+    if (totalCount === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const itemStart = totalCount === 0 ? 0 : start + 1;
+    const itemEnd = Math.min(end, totalCount);
+
+    let html = `
+        <div class="pagination-info">
+            Hiển thị <b>${itemStart}-${itemEnd}</b> trong tổng số <b>${totalCount}</b> giảng viên
+        </div>
+        <div class="pagination-buttons">
+    `;
+
+    if (currentPage > 1) {
+        html += `<button class="pagination-btn" onclick="renderLecturersPage(${currentPage - 1})" title="Trang trước"><i class="fas fa-chevron-left"></i></button>`;
+    } else {
+        html += `<button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>`;
+    }
+
+    // Hiển thị tối đa 5 nút trang
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" onclick="renderLecturersPage(1)">1</button>`;
+        if (startPage > 2) html += `<span class="pagination-ellipsis" style="padding: 6px 12px; color: var(--text-secondary);">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="pagination-btn active">${i}</button>`;
+        } else {
+            html += `<button class="pagination-btn" onclick="renderLecturersPage(${i})">${i}</button>`;
+        }
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span class="pagination-ellipsis" style="padding: 6px 12px; color: var(--text-secondary);">...</span>`;
+        html += `<button class="pagination-btn" onclick="renderLecturersPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    if (currentPage < totalPages) {
+        html += `<button class="pagination-btn" onclick="renderLecturersPage(${currentPage + 1})" title="Trang sau"><i class="fas fa-chevron-right"></i></button>`;
+    } else {
+        html += `<button class="pagination-btn" disabled><i class="fas fa-chevron-right"></i></button>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+
 function filterLecturers() {
     const list        = currentEntitiesData['giang-vien'] || [];
     const nameFilter  = (document.getElementById('filterName')?.value || '').normalize('NFC').toLowerCase().trim();
     const deptFilter  = (document.getElementById('filterDepartment')?.value || '').toLowerCase().trim();
     const degreeFilter = (document.getElementById('filterDegree')?.value || '').toLowerCase().trim();
 
-    const filtered = list.filter(gv => {
+    _filteredAdminLecturers = list.filter(gv => {
         const name        = (gv.ho_va_ten || '').normalize('NFC').toLowerCase();
         const matchName   = name.includes(nameFilter);
         const matchDept   = deptFilter === '' || ((gv.bo_mon || '').toLowerCase().trim() === deptFilter);
@@ -80,7 +160,7 @@ function filterLecturers() {
         return matchName && matchDept && matchDegree;
     });
 
-    renderLecturersTable(filtered);
+    renderLecturersPage(1);
 }
 
 

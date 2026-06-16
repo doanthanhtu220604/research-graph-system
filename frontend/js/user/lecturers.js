@@ -5,7 +5,7 @@
 let _allLecturers = [];
 let _filteredLecturers = [];
 let _currentLecturerPage = 1;
-const LECTURERS_PER_PAGE = 10;
+const LECTURERS_PER_PAGE = 15;
 
 async function loadLecturers() {
     try {

@@ -1,6 +1,6 @@
-/* ============================================================
-   ADMIN PUBLICATIONS — Quản lý Công trình
-   ============================================================ */
+let _currentAdminPublicationsPage = 1;
+let _filteredAdminPublications = [];
+const ADMIN_PUBLICATIONS_PER_PAGE = 15;
 
 async function loadPublications() {
     try {
@@ -23,7 +23,7 @@ function renderPublicationsTable(dataList) {
     if (!tbody) return;
 
     if (dataList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy công trình phù hợp.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy công trình phù hợp.</td></tr>';
         return;
     }
 
@@ -63,12 +63,92 @@ function renderPublicationsTable(dataList) {
 }
 
 
+function renderPublicationsPage(page) {
+    _currentAdminPublicationsPage = page;
+    const limit = ADMIN_PUBLICATIONS_PER_PAGE;
+    const total = _filteredAdminPublications.length;
+    const totalPages = Math.ceil(total / limit);
+
+    if (_currentAdminPublicationsPage < 1) _currentAdminPublicationsPage = 1;
+    if (_currentAdminPublicationsPage > totalPages && totalPages > 0) _currentAdminPublicationsPage = totalPages;
+
+    const start = (_currentAdminPublicationsPage - 1) * limit;
+    const end = start + limit;
+    const listToRender = _filteredAdminPublications.slice(start, end);
+
+    renderPublicationsTable(listToRender);
+    renderPublicationsPagination(totalPages, _currentAdminPublicationsPage, total, start, end);
+}
+
+
+function renderPublicationsPagination(totalPages, currentPage, totalCount, start, end) {
+    const container = document.getElementById('adminPublicationsPagination');
+    if (!container) return;
+
+    if (totalCount === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const itemStart = totalCount === 0 ? 0 : start + 1;
+    const itemEnd = Math.min(end, totalCount);
+
+    let html = `
+        <div class="pagination-info">
+            Hiển thị <b>${itemStart}-${itemEnd}</b> trong tổng số <b>${totalCount}</b> công trình
+        </div>
+        <div class="pagination-buttons">
+    `;
+
+    if (currentPage > 1) {
+        html += `<button class="pagination-btn" onclick="renderPublicationsPage(${currentPage - 1})" title="Trang trước"><i class="fas fa-chevron-left"></i></button>`;
+    } else {
+        html += `<button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>`;
+    }
+
+    // Hiển thị tối đa 5 nút trang
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" onclick="renderPublicationsPage(1)">1</button>`;
+        if (startPage > 2) html += `<span class="pagination-ellipsis" style="padding: 6px 12px; color: var(--text-secondary);">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="pagination-btn active">${i}</button>`;
+        } else {
+            html += `<button class="pagination-btn" onclick="renderPublicationsPage(${i})">${i}</button>`;
+        }
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span class="pagination-ellipsis" style="padding: 6px 12px; color: var(--text-secondary);">...</span>`;
+        html += `<button class="pagination-btn" onclick="renderPublicationsPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    if (currentPage < totalPages) {
+        html += `<button class="pagination-btn" onclick="renderPublicationsPage(${currentPage + 1})" title="Trang sau"><i class="fas fa-chevron-right"></i></button>`;
+    } else {
+        html += `<button class="pagination-btn" disabled><i class="fas fa-chevron-right"></i></button>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+
 function filterPublications() {
     const list        = currentEntitiesData['cong-trinh'] || [];
     const titleFilter = (document.getElementById('filterPubTitle')?.value || '').normalize('NFC').toLowerCase().trim();
     const yearFilter  = document.getElementById('filterPubYear')?.value || '';
 
-    const filtered = list.filter(ct => {
+    _filteredAdminPublications = list.filter(ct => {
         const titleEn  = (ct.ten_cong_trinh || '').normalize('NFC').toLowerCase();
         const titleVi  = (ct.ten_cong_trinh_vi || '').normalize('NFC').toLowerCase();
         const matchTitle = titleEn.includes(titleFilter) || titleVi.includes(titleFilter);
@@ -76,7 +156,7 @@ function filterPublications() {
         return matchTitle && matchYear;
     });
 
-    renderPublicationsTable(filtered);
+    renderPublicationsPage(1);
 }
 
 

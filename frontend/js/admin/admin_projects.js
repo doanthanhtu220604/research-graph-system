@@ -1,6 +1,6 @@
-/* ============================================================
-   ADMIN PROJECTS — Quản lý Đề tài
-   ============================================================ */
+let _currentAdminProjectsPage = 1;
+let _filteredAdminProjects = [];
+const ADMIN_PROJECTS_PER_PAGE = 15;
 
 async function loadProjects() {
     try {
@@ -68,13 +68,93 @@ function renderProjectsTable(dataList) {
 }
 
 
+function renderProjectsPage(page) {
+    _currentAdminProjectsPage = page;
+    const limit = ADMIN_PROJECTS_PER_PAGE;
+    const total = _filteredAdminProjects.length;
+    const totalPages = Math.ceil(total / limit);
+
+    if (_currentAdminProjectsPage < 1) _currentAdminProjectsPage = 1;
+    if (_currentAdminProjectsPage > totalPages && totalPages > 0) _currentAdminProjectsPage = totalPages;
+
+    const start = (_currentAdminProjectsPage - 1) * limit;
+    const end = start + limit;
+    const listToRender = _filteredAdminProjects.slice(start, end);
+
+    renderProjectsTable(listToRender);
+    renderProjectsPagination(totalPages, _currentAdminProjectsPage, total, start, end);
+}
+
+
+function renderProjectsPagination(totalPages, currentPage, totalCount, start, end) {
+    const container = document.getElementById('adminProjectsPagination');
+    if (!container) return;
+
+    if (totalCount === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const itemStart = totalCount === 0 ? 0 : start + 1;
+    const itemEnd = Math.min(end, totalCount);
+
+    let html = `
+        <div class="pagination-info">
+            Hiển thị <b>${itemStart}-${itemEnd}</b> trong tổng số <b>${totalCount}</b> đề tài
+        </div>
+        <div class="pagination-buttons">
+    `;
+
+    if (currentPage > 1) {
+        html += `<button class="pagination-btn" onclick="renderProjectsPage(${currentPage - 1})" title="Trang trước"><i class="fas fa-chevron-left"></i></button>`;
+    } else {
+        html += `<button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>`;
+    }
+
+    // Hiển thị tối đa 5 nút trang
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="pagination-btn" onclick="renderProjectsPage(1)">1</button>`;
+        if (startPage > 2) html += `<span class="pagination-ellipsis" style="padding: 6px 12px; color: var(--text-secondary);">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="pagination-btn active">${i}</button>`;
+        } else {
+            html += `<button class="pagination-btn" onclick="renderProjectsPage(${i})">${i}</button>`;
+        }
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span class="pagination-ellipsis" style="padding: 6px 12px; color: var(--text-secondary);">...</span>`;
+        html += `<button class="pagination-btn" onclick="renderProjectsPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    if (currentPage < totalPages) {
+        html += `<button class="pagination-btn" onclick="renderProjectsPage(${currentPage + 1})" title="Trang sau"><i class="fas fa-chevron-right"></i></button>`;
+    } else {
+        html += `<button class="pagination-btn" disabled><i class="fas fa-chevron-right"></i></button>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+
 function filterProjects() {
     const list        = currentEntitiesData['de-tai'] || [];
     const nameFilter  = (document.getElementById('filterProjName')?.value || '').normalize('NFC').toLowerCase().trim();
     const levelFilter = document.getElementById('filterProjLevel')?.value || '';
     const yearFilter  = document.getElementById('filterProjYear')?.value || '';
 
-    const filtered = list.filter(dt => {
+    _filteredAdminProjects = list.filter(dt => {
         const title     = (dt.ten_de_tai || '').normalize('NFC').toLowerCase();
         const matchName  = title.includes(nameFilter);
         const matchLevel = levelFilter === '' || (dt.cap_de_tai === levelFilter);
@@ -82,7 +162,7 @@ function filterProjects() {
         return matchName && matchLevel && matchYear;
     });
 
-    renderProjectsTable(filtered);
+    renderProjectsPage(1);
 }
 
 

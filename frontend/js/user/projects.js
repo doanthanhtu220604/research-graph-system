@@ -3,6 +3,9 @@
    ============================================================ */
 
 let _allProjects = [];
+let _filteredProjects = [];
+let _currentProjectsPage = 1;
+const PROJECTS_PER_PAGE = 15;
 
 function getLevelBadge(cap) {
     if (!cap) return '<span class="badge badge-gray">Chưa xác định</span>';
@@ -20,24 +23,41 @@ async function loadProjects() {
         const data = await res.json();
         if (data.status === 'ok') {
             _allProjects = data.data;
+            _filteredProjects = [..._allProjects];
             populateUserProjectYearFilter(_allProjects);
-            renderProjectRows(_allProjects);
+            renderProjectPage(1);
         }
     } catch (err) {
         console.error('Projects error:', err);
     }
 }
 
-function renderProjectRows(list) {
-    const container = document.getElementById('projectsList');
+function renderProjectPage(page) {
+    _currentProjectsPage = page;
+    const limit = PROJECTS_PER_PAGE;
+    const total = _filteredProjects.length;
+    const totalPages = Math.ceil(total / limit);
+
+    if (_currentProjectsPage < 1) _currentProjectsPage = 1;
+    if (_currentProjectsPage > totalPages && totalPages > 0) _currentProjectsPage = totalPages;
+
+    const start = (_currentProjectsPage - 1) * limit;
+    const end = start + limit;
+    const listToRender = _filteredProjects.slice(start, end);
+
     const countEl = document.getElementById('projCount');
+    if (countEl) countEl.textContent = `${total} đề tài`;
+
+    const container = document.getElementById('projectsList');
     if (!container) return;
-    if (countEl) countEl.textContent = `${list.length} đề tài`;
-    if (list.length === 0) {
+
+    if (total === 0) {
         container.innerHTML = '<div class="list-empty"><i class="fas fa-flask"></i>Không tìm thấy đề tài phù hợp</div>';
+        renderProjectPagination(0, 1);
         return;
     }
-    container.innerHTML = list.map(dt => {
+
+    container.innerHTML = listToRender.map(dt => {
         const title = String(dt.ten_de_tai || 'Chưa rõ').replace(/</g, '&lt;');
         const startYear = dt.nam_bat_dau || dt.nam_thuc_hien;
         const endYear = dt.nam_ket_thuc;
@@ -60,6 +80,61 @@ function renderProjectRows(list) {
             </div>
         `;
     }).join('');
+
+    renderProjectPagination(totalPages, _currentProjectsPage);
+}
+
+function renderProjectPagination(totalPages, currentPage) {
+    const container = document.getElementById('projectsPagination');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '<div class="pagination">';
+
+    if (currentPage > 1) {
+        html += `<button class="page-btn" onclick="renderProjectPage(${currentPage - 1})" title="Trang trước"><i class="fas fa-chevron-left"></i></button>`;
+    } else {
+        html += `<button class="page-btn disabled" disabled><i class="fas fa-chevron-left"></i></button>`;
+    }
+
+    // Hiển thị tối đa 5 nút trang
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button class="page-btn" onclick="renderProjectPage(1)">1</button>`;
+        if (startPage > 2) html += `<span class="pagination-ellipsis">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            html += `<button class="page-btn active">${i}</button>`;
+        } else {
+            html += `<button class="page-btn" onclick="renderProjectPage(${i})">${i}</button>`;
+        }
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span class="pagination-ellipsis">...</span>`;
+        html += `<button class="page-btn" onclick="renderProjectPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    if (currentPage < totalPages) {
+        html += `<button class="page-btn" onclick="renderProjectPage(${currentPage + 1})" title="Trang sau"><i class="fas fa-chevron-right"></i></button>`;
+    } else {
+        html += `<button class="page-btn disabled" disabled><i class="fas fa-chevron-right"></i></button>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 function matchProjectLevel(cap, selectedLevel) {
@@ -113,7 +188,7 @@ function filterUserProjects() {
     const level = document.getElementById('projLevelFilter')?.value || '';
     const year = document.getElementById('projYearFilter')?.value || '';
 
-    const filtered = _allProjects.filter(dt => {
+    _filteredProjects = _allProjects.filter(dt => {
         const title = (dt.ten_de_tai || '').normalize('NFC').toLowerCase();
         const startYear = (dt.nam_bat_dau || '').toString().toLowerCase();
         const endYear = (dt.nam_ket_thuc || '').toString().toLowerCase();
@@ -125,7 +200,7 @@ function filterUserProjects() {
         const matchYear = !year || (dt.nam_bat_dau == year || dt.nam_ket_thuc == year);
         return matchQ && matchLevel && matchYear;
     });
-    renderProjectRows(filtered);
+    renderProjectPage(1);
 }
 
 async function showProjectDetail(dtId) {
