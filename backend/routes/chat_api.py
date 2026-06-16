@@ -347,7 +347,7 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
         return f"Hệ thống hiện có **{count} giảng viên** đang hoạt động nghiên cứu."
 
     if "bộ môn" in q:
-        r = conn.query_single("MATCH (n:BoMon) RETURN count(n) AS count")
+        r = conn.query_single("MATCH (n:BoMon) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
         count = int(r["count"]) if r else 0
         return f"Khoa CNTT có **{count} bộ môn**."
 
@@ -383,11 +383,11 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
             return f"Tổng cộng hệ thống có **{count} đề tài nghiên cứu**."
 
     # Thống kê tổng quan
-    gv = conn.query_single("MATCH (n:GiangVien) RETURN count(n) AS count")
-    ct = conn.query_single("MATCH (n:CongTrinhNghienCuu) RETURN count(n) AS count")
-    dt = conn.query_single("MATCH (n:DeTaiNghienCuu) RETURN count(n) AS count")
-    bm = conn.query_single("MATCH (n:BoMon) RETURN count(n) AS count")
-    lv = conn.query_single("MATCH (n:LinhVucNghienCuu) RETURN count(n) AS count")
+    gv = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+    ct = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+    dt = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+    bm = conn.query_single("MATCH (n:BoMon) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+    lv = conn.query_single("MATCH (n:LinhVucNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
     return (
         f"📊 **Thống kê tổng quan Khoa CNTT:**\n"
         f"- 👨‍🏫 Giảng viên: **{int(gv['count']) if gv else 0}**\n"
@@ -409,7 +409,7 @@ def handle_search_lecturer(question: str, entities: Optional[dict] = None):
             """
             MATCH (gv:GiangVien)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name) AND coalesce(gv.is_deleted, false) = false
-            OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
             RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, gv.chuc_danh AS chuc_danh, gv.chuc_vu AS chuc_vu,
@@ -449,7 +449,7 @@ def handle_search_lecturer(question: str, entities: Optional[dict] = None):
                    OR toLower(coalesce(gv.chuc_danh,'')) CONTAINS $hv
                    OR toLower(coalesce(gv.chuc_vu,'')) CONTAINS $hv)
                    AND coalesce(gv.is_deleted, false) = false
-                OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+                OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
                 RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
                 ORDER BY gv.ho_va_ten
                 LIMIT 20
@@ -683,7 +683,7 @@ def handle_search_by_field(question: str, include_pubs: bool = True, entities: O
         cypher_gv += " MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept) "
         params_gv["dept"] = dept
     else:
-        cypher_gv += " OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) "
+        cypher_gv += " OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false "
         
     cypher_gv += """
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, 
@@ -814,10 +814,13 @@ def handle_department(question: str, entities: Optional[dict] = None):
             """
             MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
             WHERE toLower(bm.ten_bo_mon) CONTAINS toLower($dept)
-            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+              AND coalesce(gv.is_deleted, false) = false
+              AND coalesce(bm.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
             RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    bm.ten_bo_mon AS bo_mon, count(DISTINCT ct) AS so_cong_trinh
             ORDER BY so_cong_trinh DESC, gv.ho_va_ten
+            LIMIT 15
             """,
             {"dept": dept_name}
         )
@@ -840,7 +843,9 @@ def handle_department(question: str, entities: Optional[dict] = None):
     # Liệt kê tất cả bộ môn
     results = conn.query("""
         MATCH (bm:BoMon)
+        WHERE coalesce(bm.is_deleted, false) = false
         OPTIONAL MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm)
+        WHERE coalesce(gv.is_deleted, false) = false
         RETURN bm.ten_bo_mon AS ten, count(gv) AS so_gv
         ORDER BY so_gv DESC
     """)
@@ -857,7 +862,7 @@ def handle_top_lecturers(question: str, entities: Optional[dict] = None):
         MATCH (gv:GiangVien)
         OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
                count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt
         ORDER BY so_ct DESC, so_dt DESC
@@ -880,7 +885,7 @@ def handle_top_by_projects(question: str, entities: Optional[dict] = None):
     conn = get_neo4j_connection()
     results = conn.query("""
         MATCH (gv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                count(DISTINCT dt) AS so_de_tai, bm.ten_bo_mon AS bo_mon
         ORDER BY so_de_tai DESC
@@ -1063,7 +1068,7 @@ def handle_lecturer_info(question: str, entities: Optional[dict] = None):
         """
         MATCH (gv:GiangVien)
         WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
         OPTIONAL MATCH (gv)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu)
@@ -1108,7 +1113,7 @@ def handle_unknown(question: str, entities: Optional[dict] = None):
         """
         MATCH (gv:GiangVien)
         WHERE toLower(gv.ho_va_ten) CONTAINS toLower($q)
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon
         LIMIT 3
         """,

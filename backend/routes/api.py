@@ -53,7 +53,7 @@ def get_all_giang_vien():
     results = conn.query("""
         MATCH (gv:GiangVien)
         WHERE coalesce(gv.is_deleted, false) = false
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
             WHERE coalesce(lv.is_deleted, false) = false
         RETURN gv, bm.ten_bo_mon AS bo_mon,
@@ -78,7 +78,7 @@ def get_giang_vien_detail(gv_id):
     gv = conn.query_single("""
         MATCH (gv:GiangVien) 
         WHERE gv.id = $id AND coalesce(gv.is_deleted, false) = false
-        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         RETURN gv, bm.ten_bo_mon AS bo_mon
     """, {"id": gv_id})
 
@@ -715,7 +715,7 @@ def get_overview_stats():
         # ── Thống kê giảng viên theo bộ môn ─────────────────────────────────
         gv_theo_bo_mon = conn.query("""
             MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
-            WHERE coalesce(gv.is_deleted, false) = false
+            WHERE coalesce(gv.is_deleted, false) = false AND coalesce(bm.is_deleted, false) = false
             RETURN bm.ten_bo_mon AS bo_mon, count(gv) AS so_luong
             ORDER BY so_luong DESC
         """)

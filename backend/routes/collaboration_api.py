@@ -97,8 +97,8 @@ def get_top_pairs():
             WITH gv1, gv2, so_ct, so_dt, (so_ct + so_dt) AS tong_hop_tac
             ORDER BY tong_hop_tac DESC
             LIMIT $limit
-            OPTIONAL MATCH (gv1)-[:THUOC_BO_MON]->(bm1:BoMon)
-            OPTIONAL MATCH (gv2)-[:THUOC_BO_MON]->(bm2:BoMon)
+            OPTIONAL MATCH (gv1)-[:THUOC_BO_MON]->(bm1:BoMon) WHERE coalesce(bm1.is_deleted, false) = false
+            OPTIONAL MATCH (gv2)-[:THUOC_BO_MON]->(bm2:BoMon) WHERE coalesce(bm2.is_deleted, false) = false
             RETURN
                 gv1.id AS id1, gv1.ho_va_ten AS ten1, gv1.hoc_vi AS hoc_vi1, bm1.ten_bo_mon AS bo_mon1,
                 gv2.id AS id2, gv2.ho_va_ten AS ten2, gv2.hoc_vi AS hoc_vi2, bm2.ten_bo_mon AS bo_mon2,
@@ -160,7 +160,7 @@ def get_top_connectors():
             ORDER BY tong_cong_su DESC
             LIMIT $limit
             
-            OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct2:CongTrinhNghienCuu)
             WHERE coalesce(ct2.is_deleted, false) = false
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
@@ -199,9 +199,9 @@ def get_bridge_connectors():
         conn = get_neo4j_connection()
 
         results = conn.query("""
-            MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm_own:BoMon)
+            MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm_own:BoMon) WHERE coalesce(bm_own.is_deleted, false) = false
             MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)-[:THUOC_BO_MON]->(bm2:BoMon)
-            WHERE gv <> gv2 AND bm_own <> bm2
+            WHERE gv <> gv2 AND bm_own <> bm2 AND coalesce(bm2.is_deleted, false) = false
             WITH gv, bm_own, collect(DISTINCT bm2.ten_bo_mon) AS bo_mon_ket_noi,
                  count(DISTINCT gv2) AS so_cong_su_khac_bm
             WHERE so_cong_su_khac_bm > 0
@@ -323,7 +323,7 @@ def get_collaboration_graph():
         gv_info_results = conn.query("""
             MATCH (gv:GiangVien)
             WHERE gv.id IN $ids
-            OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
@@ -424,7 +424,9 @@ def get_bo_mon_list():
         conn = get_neo4j_connection()
         results = conn.query("""
             MATCH (bm:BoMon)
+            WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm)
+            WHERE coalesce(gv.is_deleted, false) = false
             RETURN bm.ten_bo_mon AS ten, count(gv) AS so_gv
             ORDER BY so_gv DESC
         """)

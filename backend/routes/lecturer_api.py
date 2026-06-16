@@ -32,7 +32,7 @@ def suggest_collaborators():
         # ── Lấy bộ môn của GV hiện tại ────────────────────────────────────
         bo_mon_res = conn.query_single("""
             MATCH (me:GiangVien)-[:THUOC_BO_MON]->(bm:BoMon)
-            WHERE me.id = $gv_id
+            WHERE me.id = $gv_id AND coalesce(bm.is_deleted, false) = false
             RETURN bm.ten_bo_mon AS bo_mon
         """, {'gv_id': gv_id})
         my_bo_mon = bo_mon_res.get('bo_mon') if bo_mon_res else None
@@ -61,7 +61,7 @@ def suggest_collaborators():
             MATCH (other:GiangVien)
             WHERE other.id <> $gv_id AND coalesce(other.is_deleted, false) = false
             OPTIONAL MATCH (other)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-            OPTIONAL MATCH (other)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (other)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (other)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             OPTIONAL MATCH (other)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             RETURN other.id AS id,
@@ -156,7 +156,7 @@ def get_me():
         conn = get_neo4j_connection()
         query = """
         MATCH (g:GiangVien) WHERE g.id = $id AND coalesce(g.is_deleted, false) = false
-        OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon)
+        OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
         OPTIONAL MATCH (g)-[r_ct:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (g)-[r_dt:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
@@ -605,7 +605,7 @@ def get_lecturer_timeline():
         # ── 1. Lấy thông tin cơ bản của GV ───────────────────────────────────
         gv_res = conn.query_single("""
             MATCH (g:GiangVien) WHERE g.id = $id
-            OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (g)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (g)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
             RETURN g.ho_va_ten AS ten, g.hoc_vi AS hoc_vi,
                    bm.ten_bo_mon AS bo_mon,
@@ -775,7 +775,7 @@ def get_project_detail(dt_id):
             MATCH (tv:GiangVien)-[r:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
             WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
                OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
-            OPTIONAL MATCH (tv)-[:THUOC_BO_MON]->(bm:BoMon)
+            OPTIONAL MATCH (tv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             RETURN tv.id AS id,
                    tv.ho_va_ten AS ho_va_ten,
                    tv.hoc_vi AS hoc_vi,
