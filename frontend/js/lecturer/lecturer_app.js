@@ -3039,12 +3039,19 @@ async function handleAddExternalAuthorSubmit(e) {
         });
         const data = await res.json();
         if (data.status === 'ok') {
+            const isAlreadyExisting = data.message === 'Tác giả ngoài đã tồn tại';
             closeAddExternalAuthorModal();
+
+            if (isAlreadyExisting) {
+                alert(`Tác giả "${name}" đã có trong hệ thống (${data.trang_thai || 'Đã duyệt'}). Tác giả này sẽ được tự động chọn.`);
+            } else {
+                alert('Thêm tác giả ngoài thành công (Chờ duyệt)!');
+            }
             
             // Tải lại danh sách tác giả ngoài
             await loadAllExternalAuthors();
             
-            // Vẽ lại danh sách checkbox và tự động check tác giả mới cùng các tác giả đã chọn trước đó
+            // Vẽ lại danh sách checkbox và tự động check tác giả (mới hoặc đã tồn tại)
             const container = document.getElementById(`field_${fieldName}`);
             if (container) {
                 const checkedIds = Array.from(container.querySelectorAll('input.tgn-checkbox:checked')).map(cb => cb.value);

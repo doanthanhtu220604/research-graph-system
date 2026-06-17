@@ -1,4 +1,5 @@
 import logging
+import unicodedata
 from flask import Blueprint, request, jsonify
 from backend.services.neo4j_connection import get_neo4j_connection, generate_slug
 
@@ -1183,13 +1184,26 @@ def lecturer_create_tac_gia_ngoai():
         if not ho_va_ten:
             return jsonify({"status": "error", "message": "Thiếu họ và tên tác giả"}), 400
 
-        # Check if already exists (approved or pending)
-        existing = conn.query_single("""
+        # Normalize: loại bỏ dấu để so sánh (chống trùng dù người dùng gõ có dấu hay không dấu)
+        def normalize_name(s):
+            s = unicodedata.normalize('NFD', s)
+            s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+            s = s.replace('đ', 'd').replace('Đ', 'D')
+            return s.lower().strip()
+
+        ho_va_ten_normalized = normalize_name(ho_va_ten)
+
+        # Check if already exists (approved or pending) - so sánh cả có dấu và không dấu
+        all_tgn = conn.query("""
             MATCH (tgn:TacGiaNgoai)
-            WHERE toLower(tgn.ho_va_ten) = toLower($ho_va_ten)
-              AND coalesce(tgn.is_deleted, false) = false
-            RETURN tgn.id AS id, tgn.trang_thai AS trang_thai
-        """, {"ho_va_ten": ho_va_ten})
+            WHERE coalesce(tgn.is_deleted, false) = false
+            RETURN tgn.id AS id, tgn.ho_va_ten AS ho_va_ten, tgn.trang_thai AS trang_thai
+        """)
+        existing = None
+        for r in all_tgn:
+            if normalize_name(r.get('ho_va_ten', '')) == ho_va_ten_normalized:
+                existing = r
+                break
         
         if existing:
             return jsonify({

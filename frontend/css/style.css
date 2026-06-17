@@ -1200,7 +1200,9 @@ body::before {
     width: 90%;
     max-width: 700px;
     max-height: 80vh;
-    overflow-y: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     box-shadow: var(--shadow);
     animation: modalIn 0.3s ease;
 }
@@ -1239,6 +1241,8 @@ body::before {
 
 .modal-body {
     padding: 24px;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .modal-section {
