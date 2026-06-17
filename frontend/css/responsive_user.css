@@ -487,6 +487,12 @@
    TABLET — max-width: 1024px
    ============================================================ */
 @media (max-width: 1024px) {
+    /* Hide login buttons on mobile and tablet */
+    #authContainer,
+    .mobile-nav-drawer-footer {
+        display: none !important;
+    }
+
     /* Nav: hide some text labels to save space */
     .nav-link span {
         display: none;

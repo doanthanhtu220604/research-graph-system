@@ -2318,7 +2318,7 @@ body:has(.sidebar) .card {
 
 .footer-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 2fr;
+    grid-template-columns: 2fr 1.2fr 2fr;
     gap: 40px;
     margin-bottom: 40px;
 }
