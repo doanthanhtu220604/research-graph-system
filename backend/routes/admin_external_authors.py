@@ -26,22 +26,52 @@ def get_all_tac_gia_ngoai():
 
 @admin_external_authors_bp.route("/tac-gia-ngoai", methods=["POST"])
 def create_tac_gia_ngoai():
-    data = request.json
+    data = request.json or {}
+    ho_va_ten = data.get("ho_va_ten", "").strip().upper()
+    don_vi_cong_tac = data.get("don_vi_cong_tac", "").strip().upper()
+
+    if not ho_va_ten:
+        return jsonify({"status": "error", "message": "Họ và tên không được để trống"}), 400
+
     conn = get_neo4j_connection()
     try:
+        # Check duplicate
+        existing = conn.query_single("""
+            MATCH (tgn:TacGiaNgoai)
+            WHERE toUpper(tgn.ho_va_ten) = $ho_va_ten
+              AND toUpper(coalesce(tgn.don_vi_cong_tac, '')) = $don_vi_cong_tac
+              AND coalesce(tgn.is_deleted, false) = false
+            RETURN tgn.id AS id
+        """, {"ho_va_ten": ho_va_ten, "don_vi_cong_tac": don_vi_cong_tac})
+
+        if existing:
+            org_msg = f" thuộc đơn vị '{don_vi_cong_tac}'" if don_vi_cong_tac else ""
+            return jsonify({
+                "status": "error",
+                "message": f"Tác giả ngoài '{ho_va_ten}'{org_msg} đã tồn tại trong hệ thống."
+            }), 400
+
         result = conn.write("""
             CREATE (tgn:TacGiaNgoai {
                 ho_va_ten: toUpper($ho_va_ten),
                 don_vi_cong_tac: toUpper($don_vi_cong_tac),
                 hoc_vi: toUpper($hoc_vi),
                 chuc_danh: toUpper($chuc_danh),
+                chuc_vu: toUpper($chuc_vu),
                 email: $email,
                 trang_thai: 'Đã duyệt',
                 is_deleted: false
             })
             SET tgn.id = 'tgn_' + toString(id(tgn))
             RETURN tgn.id AS id
-        """, data)
+        """, {
+            "ho_va_ten": data.get("ho_va_ten", "").strip(),
+            "don_vi_cong_tac": data.get("don_vi_cong_tac", "").strip(),
+            "hoc_vi": data.get("hoc_vi", "").strip(),
+            "chuc_danh": data.get("chuc_danh", "").strip(),
+            "chuc_vu": data.get("chuc_vu", "").strip(),
+            "email": data.get("email", "").strip()
+        })
         new_id = result[0]["id"]
         return jsonify({"status": "ok", "message": "Thêm tác giả ngoài thành công", "id": new_id})
     except Exception as e:
@@ -49,17 +79,49 @@ def create_tac_gia_ngoai():
 
 @admin_external_authors_bp.route("/tac-gia-ngoai/<id>", methods=["PUT"])
 def update_tac_gia_ngoai(id):
-    data = request.json
+    data = request.json or {}
+    ho_va_ten = data.get("ho_va_ten", "").strip().upper()
+    don_vi_cong_tac = data.get("don_vi_cong_tac", "").strip().upper()
+
+    if not ho_va_ten:
+        return jsonify({"status": "error", "message": "Họ và tên không được để trống"}), 400
+
     conn = get_neo4j_connection()
     try:
+        # Check duplicate
+        existing = conn.query_single("""
+            MATCH (tgn:TacGiaNgoai)
+            WHERE toUpper(tgn.ho_va_ten) = $ho_va_ten
+              AND toUpper(coalesce(tgn.don_vi_cong_tac, '')) = $don_vi_cong_tac
+              AND coalesce(tgn.is_deleted, false) = false
+              AND tgn.id <> $id
+            RETURN tgn.id AS id
+        """, {"ho_va_ten": ho_va_ten, "don_vi_cong_tac": don_vi_cong_tac, "id": id})
+
+        if existing:
+            org_msg = f" thuộc đơn vị '{don_vi_cong_tac}'" if don_vi_cong_tac else ""
+            return jsonify({
+                "status": "error",
+                "message": f"Tác giả ngoài '{ho_va_ten}'{org_msg} đã tồn tại trong hệ thống."
+            }), 400
+
         conn.write("""
             MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id
             SET tgn.ho_va_ten = toUpper($ho_va_ten),
                 tgn.don_vi_cong_tac = toUpper($don_vi_cong_tac),
                 tgn.hoc_vi = toUpper($hoc_vi),
                 tgn.chuc_danh = toUpper($chuc_danh),
+                tgn.chuc_vu = toUpper($chuc_vu),
                 tgn.email = $email
-        """, {"id": id, **data})
+        """, {
+            "id": id,
+            "ho_va_ten": data.get("ho_va_ten", "").strip(),
+            "don_vi_cong_tac": data.get("don_vi_cong_tac", "").strip(),
+            "hoc_vi": data.get("hoc_vi", "").strip(),
+            "chuc_danh": data.get("chuc_danh", "").strip(),
+            "chuc_vu": data.get("chuc_vu", "").strip(),
+            "email": data.get("email", "").strip()
+        })
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

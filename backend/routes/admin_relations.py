@@ -29,6 +29,9 @@ def update_tac_gia_cong_trinh(ct_id):
     tac_gia_chinh_ids = data.get("tac_gia_chinh_ids", [])
     cong_su_ids = data.get("cong_su_ids", [])
     
+    # Loại bỏ trùng lặp: nếu giảng viên là tác giả chính thì không làm cộng sự
+    cong_su_ids = [x for x in cong_su_ids if x not in tac_gia_chinh_ids]
+    
     conn = get_neo4j_connection()
     try:
         # 1. Xóa các quan hệ cũ (bao gồm cả quan hệ cũ LA_TAC_GIA_CUA)
@@ -88,6 +91,9 @@ def update_thanh_vien_de_tai(dt_id):
     chu_nhiem_ids = data.get("chu_nhiem_ids", [])
     tham_gia_ids = data.get("tham_gia_ids", [])
     
+    # Loại bỏ trùng lặp: nếu giảng viên là chủ nhiệm thì không làm thành viên tham gia
+    tham_gia_ids = [x for x in tham_gia_ids if x not in chu_nhiem_ids]
+    
     conn = get_neo4j_connection()
     try:
         # Xóa các edge cũ
@@ -142,6 +148,10 @@ def update_tac_gia_ngoai_cong_trinh(ct_id):
     cong_su_ngoai_ids = data.get("cong_su_ngoai_ids")
     tgn_ids = data.get("tac_gia_ngoai_ids")
     
+    # Lọc trùng lặp: nếu tác giả ngoài là tác giả chính thì không làm cộng sự ngoài
+    if tac_gia_chinh_ngoai_ids is not None and cong_su_ngoai_ids is not None:
+        cong_su_ngoai_ids = [x for x in cong_su_ngoai_ids if x not in tac_gia_chinh_ngoai_ids]
+        
     conn = get_neo4j_connection()
     try:
         # Xóa các quan hệ cũ (bao gồm cả DONG_TAC_GIA cũ)
@@ -208,6 +218,9 @@ def update_tac_gia_ngoai_de_tai(dt_id):
     data = request.json
     chu_nhiem_ids = data.get("chu_nhiem_ngoai_ids", [])
     tham_gia_ids = data.get("tham_gia_ngoai_ids", [])
+    
+    # Lọc trùng lặp: nếu tác giả ngoài là chủ nhiệm thì không làm thành viên tham gia ngoài
+    tham_gia_ids = [x for x in tham_gia_ids if x not in chu_nhiem_ids]
     
     conn = get_neo4j_connection()
     try:

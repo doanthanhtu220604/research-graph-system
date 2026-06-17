@@ -183,7 +183,7 @@ async function openAdminModal(type, id = null, index = null) {
                 const rowsHtml = (name) => allGVs.map(gv => `
                     <div style="margin-bottom:8px;">
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
-                            <input type="checkbox" name="${name}" value="${gv.id}">
+                            <input type="checkbox" name="${name}" value="${gv.id}" onchange="syncNewRoleCheckbox('${gv.id}', '${name}')">
                             <span style="font-size:13px;">${gv.ho_va_ten}${gv.bo_mon ? '<br><span style="color:var(--text-muted);font-size:11px;">' + gv.bo_mon + '</span>' : ''}</span>
                         </label>
                     </div>`).join('');
@@ -265,7 +265,7 @@ async function openAdminModal(type, id = null, index = null) {
                 const rowsHtml = (name) => allGVs.map(gv => `
                     <div style="margin-bottom:8px;">
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-primary);">
-                            <input type="checkbox" name="${name}" value="${gv.id}">
+                            <input type="checkbox" name="${name}" value="${gv.id}" onchange="syncNewRoleCheckbox('${gv.id}', '${name}')">
                             <span style="font-size:13px;">${gv.ho_va_ten}${gv.bo_mon ? '<br><span style="color:var(--text-muted);font-size:11px;">' + gv.bo_mon + '</span>' : ''}</span>
                         </label>
                     </div>`).join('');
@@ -421,3 +421,30 @@ async function handleFormSubmit(e) {
         alert('Có lỗi xảy ra khi lưu dữ liệu.');
     }
 }
+
+
+/* ─── Sync role helpers for creation ─────────────────────────── */
+
+window.syncNewRoleCheckbox = function(gvId, name) {
+    if (name === 'gv_tac_gia_chinh_new') {
+        const other = document.querySelector(`input[name="gv_cong_su_new"][value="${gvId}"]`);
+        if (other && other.checked) {
+            other.checked = false;
+        }
+    } else if (name === 'gv_cong_su_new') {
+        const other = document.querySelector(`input[name="gv_tac_gia_chinh_new"][value="${gvId}"]`);
+        if (other && other.checked) {
+            other.checked = false;
+        }
+    } else if (name === 'gv_chu_nhiem_new') {
+        const other = document.querySelector(`input[name="gv_tham_gia_new"][value="${gvId}"]`);
+        if (other && other.checked) {
+            other.checked = false;
+        }
+    } else if (name === 'gv_tham_gia_new') {
+        const other = document.querySelector(`input[name="gv_chu_nhiem_new"][value="${gvId}"]`);
+        if (other && other.checked) {
+            other.checked = false;
+        }
+    }
+};

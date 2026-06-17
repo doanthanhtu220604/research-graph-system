@@ -270,6 +270,13 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
                     MERGE (tgn)-[:DONG_TAC_GIA]->(ct)
                 """, {"ten": ten_tgn, "ct_id": ct_id})
 
+            # Dọn dẹp quan hệ trùng lặp: nếu vừa là tác giả chính vừa là cộng sự/đồng tác giả
+            conn.write("""
+                MATCH (gv:GiangVien)-[:TAC_GIA_CHINH]->(ct:CongTrinhNghienCuu {id: $ct_id})
+                MATCH (gv)-[r:CONG_SU|LA_TAC_GIA_CUA]->(ct)
+                DELETE r
+            """, {"ct_id": ct_id})
+
         except Exception as e:
             errors.append(f"Dòng {idx} ({ten}): {str(e)}")
 
@@ -370,6 +377,13 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
                     MATCH (dt:DeTaiNghienCuu {id: $dt_id})
                     MERGE (tgn)-[:DONG_TAC_GIA]->(dt)
                 """, {"ten": ten_tgn, "dt_id": dt_id})
+
+            # Dọn dẹp quan hệ trùng lặp: nếu vừa là chủ nhiệm vừa là thành viên tham gia
+            conn.write("""
+                MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt:DeTaiNghienCuu {id: $dt_id})
+                MATCH (gv)-[r:THAM_GIA]->(dt)
+                DELETE r
+            """, {"dt_id": dt_id})
 
         except Exception as e:
             errors.append(f"Dòng {idx} ({ten}): {str(e)}")

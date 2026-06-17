@@ -225,6 +225,8 @@ def add_my_publication():
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
         thanh_vien_ids = []
+    # Loại bỏ trùng lặp: tác giả chính không làm cộng sự
+    thanh_vien_ids = [x for x in thanh_vien_ids if x != gv_id]
 
     tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids', [])
     if not isinstance(tac_gia_ngoai_ids, list):
@@ -460,12 +462,14 @@ def update_my_publication(ct_id):
                 """, {'ct_id': ct_id, 'gv_id': gv_id})
                 # Tạo lại
                 if thanh_vien_ids:
-                    conn.write("""
-                        UNWIND $ids AS tv_id
-                        MATCH (tv:GiangVien), (ct:CongTrinhNghienCuu)
-                        WHERE tv.id = tv_id AND ct.id = $ct_id
-                        MERGE (tv)-[:CONG_SU]->(ct)
-                    """, {'ct_id': ct_id, 'ids': thanh_vien_ids})
+                    thanh_vien_ids = [x for x in thanh_vien_ids if x != gv_id]
+                    if thanh_vien_ids:
+                        conn.write("""
+                            UNWIND $ids AS tv_id
+                            MATCH (tv:GiangVien), (ct:CongTrinhNghienCuu)
+                            WHERE tv.id = tv_id AND ct.id = $ct_id
+                            MERGE (tv)-[:CONG_SU]->(ct)
+                        """, {'ct_id': ct_id, 'ids': thanh_vien_ids})
 
             # Cập nhật tác giả ngoài
             tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids')
@@ -532,6 +536,8 @@ def add_my_project():
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
         thanh_vien_ids = []
+    # Loại bỏ trùng lặp: chủ nhiệm không làm thành viên tham gia
+    thanh_vien_ids = [x for x in thanh_vien_ids if x != gv_id]
 
     tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids', [])
     if not isinstance(tac_gia_ngoai_ids, list):
@@ -948,12 +954,14 @@ def update_my_project(dt_id):
                 """, {'dt_id': dt_id, 'gv_id': gv_id})
                 # Tạo lại
                 if thanh_vien_ids:
-                    conn.write("""
-                        UNWIND $ids AS tv_id
-                        MATCH (tv:GiangVien), (dt:DeTaiNghienCuu)
-                        WHERE tv.id = tv_id AND (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
-                        MERGE (tv)-[:THAM_GIA]->(dt)
-                    """, {'dt_id': dt_id, 'ids': thanh_vien_ids})
+                    thanh_vien_ids = [x for x in thanh_vien_ids if x != gv_id]
+                    if thanh_vien_ids:
+                        conn.write("""
+                            UNWIND $ids AS tv_id
+                            MATCH (tv:GiangVien), (dt:DeTaiNghienCuu)
+                            WHERE tv.id = tv_id AND (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id))
+                            MERGE (tv)-[:THAM_GIA]->(dt)
+                        """, {'dt_id': dt_id, 'ids': thanh_vien_ids})
 
             # Cập nhật tác giả ngoài
             tac_gia_ngoai_ids = data.get('tac_gia_ngoai_ids')

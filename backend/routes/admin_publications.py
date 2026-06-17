@@ -12,6 +12,8 @@ def create_cong_trinh():
     data = request.json
     tac_gia_chinh_ids = data.pop("tac_gia_chinh_ids", [])
     cong_su_ids = data.pop("cong_su_ids", [])
+    # Loại bỏ trùng lặp: nếu là tác giả chính thì không làm cộng sự
+    cong_su_ids = [x for x in cong_su_ids if x not in tac_gia_chinh_ids]
     tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
     conn = get_neo4j_connection()
     try:

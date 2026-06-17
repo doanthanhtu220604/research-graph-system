@@ -12,6 +12,8 @@ def create_de_tai():
     data = request.json
     chu_nhiem_ids = data.pop("chu_nhiem_ids", [])
     tham_gia_ids  = data.pop("tham_gia_ids", [])
+    # Loại bỏ trùng lặp: nếu là chủ nhiệm thì không làm thành viên tham gia
+    tham_gia_ids  = [x for x in tham_gia_ids if x not in chu_nhiem_ids]
     tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
     nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
     data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
