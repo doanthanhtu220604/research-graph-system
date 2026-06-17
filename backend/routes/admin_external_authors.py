@@ -35,21 +35,24 @@ def create_tac_gia_ngoai():
 
     conn = get_neo4j_connection()
     try:
-        # Check duplicate
-        existing = conn.query_single("""
+        # Check duplicate using slug
+        from backend.services.neo4j_connection import generate_slug
+        slug_name = generate_slug(ho_va_ten)
+        slug_org = generate_slug(don_vi_cong_tac)
+        
+        all_tgn = conn.query("""
             MATCH (tgn:TacGiaNgoai)
-            WHERE toUpper(tgn.ho_va_ten) = $ho_va_ten
-              AND toUpper(coalesce(tgn.don_vi_cong_tac, '')) = $don_vi_cong_tac
-              AND coalesce(tgn.is_deleted, false) = false
-            RETURN tgn.id AS id
-        """, {"ho_va_ten": ho_va_ten, "don_vi_cong_tac": don_vi_cong_tac})
-
-        if existing:
-            org_msg = f" thuộc đơn vị '{don_vi_cong_tac}'" if don_vi_cong_tac else ""
-            return jsonify({
-                "status": "error",
-                "message": f"Tác giả ngoài '{ho_va_ten}'{org_msg} đã tồn tại trong hệ thống."
-            }), 400
+            WHERE coalesce(tgn.is_deleted, false) = false
+            RETURN tgn.id AS id, tgn.ho_va_ten AS ho_va_ten, tgn.don_vi_cong_tac AS don_vi_cong_tac
+        """)
+        
+        for t in all_tgn:
+            if generate_slug(t["ho_va_ten"]) == slug_name and generate_slug(t.get("don_vi_cong_tac") or "") == slug_org:
+                org_msg = f" thuộc đơn vị '{don_vi_cong_tac}'" if don_vi_cong_tac else ""
+                return jsonify({
+                    "status": "error",
+                    "message": f"Tác giả ngoài '{ho_va_ten}'{org_msg} đã tồn tại trong hệ thống (trùng lặp tên không dấu)."
+                }), 400
 
         result = conn.write("""
             CREATE (tgn:TacGiaNgoai {
@@ -88,22 +91,24 @@ def update_tac_gia_ngoai(id):
 
     conn = get_neo4j_connection()
     try:
-        # Check duplicate
-        existing = conn.query_single("""
+        # Check duplicate using slug (excluding self)
+        from backend.services.neo4j_connection import generate_slug
+        slug_name = generate_slug(ho_va_ten)
+        slug_org = generate_slug(don_vi_cong_tac)
+        
+        all_tgn = conn.query("""
             MATCH (tgn:TacGiaNgoai)
-            WHERE toUpper(tgn.ho_va_ten) = $ho_va_ten
-              AND toUpper(coalesce(tgn.don_vi_cong_tac, '')) = $don_vi_cong_tac
-              AND coalesce(tgn.is_deleted, false) = false
-              AND tgn.id <> $id
-            RETURN tgn.id AS id
-        """, {"ho_va_ten": ho_va_ten, "don_vi_cong_tac": don_vi_cong_tac, "id": id})
-
-        if existing:
-            org_msg = f" thuộc đơn vị '{don_vi_cong_tac}'" if don_vi_cong_tac else ""
-            return jsonify({
-                "status": "error",
-                "message": f"Tác giả ngoài '{ho_va_ten}'{org_msg} đã tồn tại trong hệ thống."
-            }), 400
+            WHERE coalesce(tgn.is_deleted, false) = false AND tgn.id <> $id
+            RETURN tgn.id AS id, tgn.ho_va_ten AS ho_va_ten, tgn.don_vi_cong_tac AS don_vi_cong_tac
+        """, {"id": id})
+        
+        for t in all_tgn:
+            if generate_slug(t["ho_va_ten"]) == slug_name and generate_slug(t.get("don_vi_cong_tac") or "") == slug_org:
+                org_msg = f" thuộc đơn vị '{don_vi_cong_tac}'" if don_vi_cong_tac else ""
+                return jsonify({
+                    "status": "error",
+                    "message": f"Tác giả ngoài '{ho_va_ten}'{org_msg} đã tồn tại trong hệ thống (trùng lặp tên không dấu)."
+                }), 400
 
         conn.write("""
             MATCH (tgn:TacGiaNgoai) WHERE tgn.id = $id

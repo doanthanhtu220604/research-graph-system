@@ -16,7 +16,16 @@ def create_de_tai():
     tham_gia_ids  = [x for x in tham_gia_ids if x not in chu_nhiem_ids]
     tac_gia_ngoai_ids = data.pop("tac_gia_ngoai_ids", [])
     nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
-    data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
+    if nam_val is not None and str(nam_val).strip() != "":
+        try:
+            nam_val = int(nam_val)
+            if not (1900 <= nam_val <= 3000):
+                return jsonify({"status": "error", "message": "Năm thực hiện phải từ 1900 đến 3000"}), 400
+            data["nam"] = nam_val
+        except ValueError:
+            return jsonify({"status": "error", "message": "Năm thực hiện không hợp lệ"}), 400
+    else:
+        data["nam"] = None
     
     conn = get_neo4j_connection()
     try:
@@ -85,7 +94,16 @@ def create_de_tai():
 def update_de_tai(id):
     data = dict(request.json)
     nam_val = data.pop("nam", None) or data.pop("nam_bat_dau", None) or data.pop("nam_ket_thuc", None)
-    data["nam"] = int(nam_val) if nam_val is not None and str(nam_val).isdigit() else None
+    if nam_val is not None and str(nam_val).strip() != "":
+        try:
+            nam_val = int(nam_val)
+            if not (1900 <= nam_val <= 3000):
+                return jsonify({"status": "error", "message": "Năm thực hiện phải từ 1900 đến 3000"}), 400
+            data["nam"] = nam_val
+        except ValueError:
+            return jsonify({"status": "error", "message": "Năm thực hiện không hợp lệ"}), 400
+    else:
+        data["nam"] = None
     ten_de_tai = data.get("ten_de_tai", "")
     ten_de_tai = " ".join(ten_de_tai.split())
     data["ten_de_tai"] = ten_de_tai

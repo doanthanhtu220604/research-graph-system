@@ -99,6 +99,23 @@ def create_bo_mon():
     data = request.json
     conn = get_neo4j_connection()
     try:
+        ten_bo_mon = data.get("ten_bo_mon", "").strip()
+        if not ten_bo_mon:
+            return jsonify({"status": "error", "message": "Tên bộ môn không được để trống"}), 400
+
+        # Kiểm tra trùng tên bộ môn (bỏ dấu và khoảng trắng)
+        from backend.services.neo4j_connection import generate_slug
+        slug_name = generate_slug(ten_bo_mon)
+        
+        all_bm = conn.query("""
+            MATCH (bm:BoMon)
+            WHERE coalesce(bm.is_deleted, false) = false
+            RETURN bm.id AS id, bm.ten_bo_mon AS ten_bo_mon
+        """)
+        for b in all_bm:
+            if generate_slug(b["ten_bo_mon"]) == slug_name:
+                return jsonify({"status": "error", "message": "Bộ môn này đã tồn tại trong hệ thống (trùng lặp tên không dấu)"}), 400
+
         result = conn.write("""
             CREATE (bm:BoMon {
                 ten_bo_mon: toUpper($ten_bo_mon)
@@ -106,7 +123,7 @@ def create_bo_mon():
             SET bm.id = 'bm_' + toString(id(bm)),
                 bm.created_at = timestamp()
             RETURN bm.id AS id
-        """, data)
+        """, {"ten_bo_mon": ten_bo_mon})
         bm_id = result[0]["id"] if result else None
         return jsonify({"status": "ok", "message": "Thêm bộ môn thành công", "id": bm_id})
     except Exception as e:
@@ -117,16 +134,37 @@ def update_bo_mon(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
+        ten_bo_mon = data.get("ten_bo_mon", "").strip()
+        if not ten_bo_mon:
+            return jsonify({"status": "error", "message": "Tên bộ môn không được để trống"}), 400
+
         # Nếu id là integer (id nội bộ) hoặc id chuỗi (bm_...)
         query_match = "WHERE bm.id = $id"
         if id.isdigit():
             query_match = "WHERE id(bm) = toInteger($id)"
-            
+
+        # Lấy ID chuẩn của bộ môn đang sửa
+        current_bm = conn.query_single(f"MATCH (bm:BoMon) {query_match} RETURN bm.id AS id", {"id": id})
+        current_id = current_bm.get("id") if current_bm else None
+
+        # Kiểm tra trùng với bộ môn khác (bỏ dấu và khoảng trắng)
+        from backend.services.neo4j_connection import generate_slug
+        slug_name = generate_slug(ten_bo_mon)
+        
+        all_bm = conn.query("""
+            MATCH (bm:BoMon)
+            WHERE coalesce(bm.is_deleted, false) = false AND bm.id <> $current_id
+            RETURN bm.id AS id, bm.ten_bo_mon AS ten_bo_mon
+        """, {"current_id": current_id})
+        for b in all_bm:
+            if generate_slug(b["ten_bo_mon"]) == slug_name:
+                return jsonify({"status": "error", "message": "Bộ môn này đã tồn tại trong hệ thống (trùng lặp tên không dấu)"}), 400
+
         conn.write(f"""
             MATCH (bm:BoMon) {query_match}
             SET bm.ten_bo_mon = toUpper($ten_bo_mon),
                 bm.updated_at = timestamp()
-        """, {"id": id, **data})
+        """, {"id": id, "ten_bo_mon": ten_bo_mon})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

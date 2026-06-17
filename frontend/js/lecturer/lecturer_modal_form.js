@@ -183,9 +183,11 @@ function openLecturerModal(type, id = null) {
             `;
 
         } else {
-
-            inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}>`;
-
+            let extraAttrs = '';
+            if (f.type === 'number' && (f.name === 'nam' || f.name === 'nam_xuat_ban' || f.name === 'nam_bat_dau' || f.name === 'nam_ket_thuc')) {
+                extraAttrs = ' min="1900" max="3000"';
+            }
+            inputHtml = `<input type="${f.type}" id="field_${f.name}" name="${f.name}" ${f.required ? 'required' : ''}${extraAttrs}>`;
         }
 
         return `

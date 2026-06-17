@@ -221,6 +221,15 @@ def add_my_publication():
     gv_id = data.get('giang_vien_id')
     if not gv_id:
         return jsonify({'status': 'error', 'message': 'Thiếu giang_vien_id'}), 400
+
+    nam_xb = data.get('nam_xuat_ban')
+    if nam_xb is not None and str(nam_xb).strip() != "":
+        try:
+            nam_xb = int(nam_xb)
+            if not (1900 <= nam_xb <= 3000):
+                return jsonify({'status': 'error', 'message': 'Năm xuất bản phải từ 1900 đến 3000'}), 400
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'Năm xuất bản không hợp lệ'}), 400
         
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
@@ -378,6 +387,14 @@ def update_my_publication(ct_id):
             
         elif request.method == 'PUT':
             data = request.get_json()
+            nam_xb = data.get('nam_xuat_ban')
+            if nam_xb is not None and str(nam_xb).strip() != "":
+                try:
+                    nam_xb = int(nam_xb)
+                    if not (1900 <= nam_xb <= 3000):
+                        return jsonify({'status': 'error', 'message': 'Năm xuất bản phải từ 1900 đến 3000'}), 400
+                except ValueError:
+                    return jsonify({'status': 'error', 'message': 'Năm xuất bản không hợp lệ'}), 400
             ten_ct = data.get('ten_cong_trinh', '')
             if ten_ct:
                 ten_ct = " ".join(ten_ct.split())
@@ -532,6 +549,15 @@ def add_my_project():
     gv_id = data.get('giang_vien_id')
     if not gv_id:
         return jsonify({'status': 'error', 'message': 'Thiếu giang_vien_id'}), 400
+
+    nam = data.get('nam')
+    if nam is not None and str(nam).strip() != "":
+        try:
+            nam = int(nam)
+            if not (1900 <= nam <= 3000):
+                return jsonify({'status': 'error', 'message': 'Năm thực hiện phải từ 1900 đến 3000'}), 400
+        except ValueError:
+            return jsonify({'status': 'error', 'message': 'Năm thực hiện không hợp lệ'}), 400
         
     thanh_vien_ids = data.get('thanh_vien_ids', [])
     if not isinstance(thanh_vien_ids, list):
@@ -886,6 +912,14 @@ def update_my_project(dt_id):
             
         elif request.method == 'PUT':
             data = request.get_json()
+            nam = data.get('nam')
+            if nam is not None and str(nam).strip() != "":
+                try:
+                    nam = int(nam)
+                    if not (1900 <= nam <= 3000):
+                        return jsonify({'status': 'error', 'message': 'Năm thực hiện phải từ 1900 đến 3000'}), 400
+                except ValueError:
+                    return jsonify({'status': 'error', 'message': 'Năm thực hiện không hợp lệ'}), 400
             vai_tro = data.get('vai_tro')
             ten_dt = data.get('ten_de_tai', '')
             ten_dt = " ".join(ten_dt.split())

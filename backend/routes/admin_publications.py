@@ -30,6 +30,16 @@ def create_cong_trinh():
         if not ten_cong_trinh and not ten_cong_trinh_vi:
             return jsonify({"status": "error", "message": "Phải điền ít nhất Tên công trình (tiếng Anh) hoặc Tên công trình (tiếng Việt)"}), 400
 
+        nam_xuat_ban = data.get("nam_xuat_ban")
+        if nam_xuat_ban is not None and str(nam_xuat_ban).strip() != "":
+            try:
+                nam_xuat_ban = int(nam_xuat_ban)
+                if not (1900 <= nam_xuat_ban <= 3000):
+                    return jsonify({"status": "error", "message": "Năm xuất bản phải từ 1900 đến 3000"}), 400
+                data["nam_xuat_ban"] = nam_xuat_ban
+            except ValueError:
+                return jsonify({"status": "error", "message": "Năm xuất bản không hợp lệ"}), 400
+
         slug = generate_slug(ten_cong_trinh) if ten_cong_trinh else None
         if slug:
             exists_en = conn.query_single("""
@@ -145,6 +155,16 @@ def update_cong_trinh(id):
             """, {"slug_vi": slug_vi, "id": id})
             if exists_vi:
                 return jsonify({"status": "error", "message": "Công trình nghiên cứu với tên tiếng Việt này đã tồn tại trong hệ thống (trùng tên tiếng Anh hoặc tiếng Việt)"}), 400
+
+        nam_xuat_ban = data.get("nam_xuat_ban")
+        if nam_xuat_ban is not None and str(nam_xuat_ban).strip() != "":
+            try:
+                nam_xuat_ban = int(nam_xuat_ban)
+                if not (1900 <= nam_xuat_ban <= 3000):
+                    return jsonify({"status": "error", "message": "Năm xuất bản phải từ 1900 đến 3000"}), 400
+                data["nam_xuat_ban"] = nam_xuat_ban
+            except ValueError:
+                return jsonify({"status": "error", "message": "Năm xuất bản không hợp lệ"}), 400
 
         params = {
             "id": id,

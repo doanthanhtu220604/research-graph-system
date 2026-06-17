@@ -12,13 +12,30 @@ def create_linh_vuc():
     data = request.json
     conn = get_neo4j_connection()
     try:
+        ten_linh_vuc = data.get("ten_linh_vuc", "").strip()
+        if not ten_linh_vuc:
+            return jsonify({"status": "error", "message": "Tên lĩnh vực không được để trống"}), 400
+
+        # Kiểm tra trùng tên lĩnh vực nghiên cứu (bỏ dấu và khoảng trắng)
+        from backend.services.neo4j_connection import generate_slug
+        slug_name = generate_slug(ten_linh_vuc)
+        
+        all_lv = conn.query("""
+            MATCH (lv:LinhVucNghienCuu)
+            WHERE coalesce(lv.is_deleted, false) = false
+            RETURN lv.id AS id, lv.ten_linh_vuc AS ten_linh_vuc
+        """)
+        for l in all_lv:
+            if generate_slug(l["ten_linh_vuc"]) == slug_name:
+                return jsonify({"status": "error", "message": "Lĩnh vực nghiên cứu này đã tồn tại trong hệ thống (trùng lặp tên không dấu)"}), 400
+
         result = conn.write("""
             CREATE (lv:LinhVucNghienCuu {
                 ten_linh_vuc: toUpper($ten_linh_vuc)
             })
             SET lv.id = 'lv_' + toString(id(lv))
             RETURN lv.id AS id
-        """, data)
+        """, {"ten_linh_vuc": ten_linh_vuc})
         lv_id = result[0]["id"] if result else None
         return jsonify({"status": "ok", "message": "Thêm lĩnh vực nghiên cứu thành công", "id": lv_id})
     except Exception as e:
@@ -29,10 +46,36 @@ def update_linh_vuc(id):
     data = request.json
     conn = get_neo4j_connection()
     try:
-        conn.write("""
-            MATCH (lv:LinhVucNghienCuu) WHERE lv.id = $id
+        ten_linh_vuc = data.get("ten_linh_vuc", "").strip()
+        if not ten_linh_vuc:
+            return jsonify({"status": "error", "message": "Tên lĩnh vực không được để trống"}), 400
+
+        # Nếu id là integer (id nội bộ) hoặc id chuỗi (lv_...)
+        query_match = "WHERE lv.id = $id"
+        if id.isdigit():
+            query_match = "WHERE id(lv) = toInteger($id)"
+
+        # Lấy ID chuẩn của lĩnh vực nghiên cứu đang sửa
+        current_lv = conn.query_single(f"MATCH (lv:LinhVucNghienCuu) {query_match} RETURN lv.id AS id", {"id": id})
+        current_id = current_lv.get("id") if current_lv else None
+
+        # Kiểm tra trùng với lĩnh vực khác (bỏ dấu và khoảng trắng)
+        from backend.services.neo4j_connection import generate_slug
+        slug_name = generate_slug(ten_linh_vuc)
+        
+        all_lv = conn.query("""
+            MATCH (lv:LinhVucNghienCuu)
+            WHERE coalesce(lv.is_deleted, false) = false AND lv.id <> $current_id
+            RETURN lv.id AS id, lv.ten_linh_vuc AS ten_linh_vuc
+        """, {"current_id": current_id})
+        for l in all_lv:
+            if generate_slug(l["ten_linh_vuc"]) == slug_name:
+                return jsonify({"status": "error", "message": "Lĩnh vực nghiên cứu này đã tồn tại trong hệ thống (trùng lặp tên không dấu)"}), 400
+
+        conn.write(f"""
+            MATCH (lv:LinhVucNghienCuu) {query_match}
             SET lv.ten_linh_vuc = toUpper($ten_linh_vuc)
-        """, {"id": id, **data})
+        """, {"id": id, "ten_linh_vuc": ten_linh_vuc})
         return jsonify({"status": "ok", "message": "Cập nhật thành công"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
