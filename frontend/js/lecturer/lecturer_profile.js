@@ -157,7 +157,7 @@ window.initLecturerProfile = function() {
                                 </div>
                                 <div>
                                     <label for="profileTitle">Chức danh</label>
-                                    <input type="text" id="profileTitle" placeholder="Giáo sư / Phó Giáo sư" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
+                                    <input type="text" id="profileTitle" placeholder="Giảng viên" style="width:100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-family: inherit;">
                                 </div>
                             </div>
                             <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
