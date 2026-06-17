@@ -191,14 +191,16 @@ def extract_name(question: str) -> str:
             highest_score = 0
             for ten in names:
                 ten_lower = ten.lower()
-                # Thử tìm trực tiếp chuỗi họ tên con trong câu
-                if ten_lower in q_lower:
+                # Thử tìm trực tiếp chuỗi họ tên con trong câu với ranh giới từ để tránh khớp phụ đề, bộ môn, v.v.
+                if re.search(r'\b' + re.escape(ten_lower) + r'\b', q_lower):
                     return ten
                 
-                score = fuzz.partial_ratio(ten_lower, q_lower)
-                if score > 85 and score > highest_score:
-                    highest_score = score
-                    best_match = ten
+                # Chỉ thực hiện fuzzy match nếu chiều dài câu hỏi đủ lớn (>= 4 ký tự)
+                if len(q_lower) >= 4:
+                    score = fuzz.partial_ratio(ten_lower, q_lower)
+                    if score > 85 and score > highest_score:
+                        highest_score = score
+                        best_match = ten
                     
             if best_match:
                 return best_match
@@ -228,10 +230,13 @@ def extract_name(question: str) -> str:
                 else:
                     if name_parts:
                         break
-            if name_parts and len(" ".join(name_parts)) > 1:
-                return " ".join(name_parts)
+            if name_parts:
+                full_extracted = " ".join(name_parts)
+                if len(full_extracted) >= 1:
+                    return full_extracted
 
     return ""
+
 
 
 def extract_year(question: str) -> str:
@@ -251,8 +256,25 @@ def extract_field(question: str) -> str:
     
     tech_kws = CHAT_CONFIG["keywords"].get("tech_kws", [])
     for kw in tech_kws:
-        if kw in q or fuzz.partial_ratio(kw, q) > 85:
+        kw_lower = kw.lower()
+        if kw_lower == "ai":
+            # Phân biệt từ hỏi "ai" (who) tiếng Việt và lĩnh vực "AI" (Artificial Intelligence)
+            # 1. Từ "AI" viết hoa độc lập trong câu hỏi gốc
+            if re.search(r'\bAI\b', question):
+                return kw
+            # 2. Đi kèm các từ khóa chỉ rõ lĩnh vực khoa học/công nghệ/chuyên ngành/môn học
+            if re.search(r'\b(lĩnh vực|nghiên cứu|mảng|dạy|học|ngành|công nghệ|chuyên|môn)\s+ai\b', q):
+                return kw
+            continue
+
+        # Khớp chính xác với ranh giới từ để tránh so khớp chuỗi con bừa bãi
+        if re.search(r'\b' + re.escape(kw_lower) + r'\b', q):
             return kw
+            
+        # Chỉ thực hiện fuzzy match nếu từ khóa dài (> 4 ký tự) để tránh false positives
+        if len(kw_lower) > 4:
+            if fuzz.partial_ratio(kw_lower, q) > 85:
+                return kw
 
     triggers = ["nghiên cứu về", "chuyên về", "lĩnh vực", "về lĩnh vực", "thuộc lĩnh vực", "mảng", "hỏi về", "tìm về"]
     for t in triggers:
@@ -326,7 +348,10 @@ def extract_journal(question: str) -> str:
             
     journal_kws = CHAT_CONFIG["keywords"].get("journal_kws", [])
     for kw in journal_kws:
-        if kw in q or fuzz.partial_ratio(kw, q) > 85:
+        kw_lower = kw.lower()
+        if re.search(r'\b' + re.escape(kw_lower) + r'\b', q):
+            return kw
+        if len(kw_lower) > 4 and fuzz.partial_ratio(kw_lower, q) > 85:
             return kw
     return ""
 
@@ -463,16 +488,21 @@ def handle_search_lecturer(question: str, entities: Optional[dict] = None):
                 return f"Có **{count} giảng viên** với học vị **{label}**:\n" + "\n".join(f"- {n}" for n in names) + suffix
             return f"Không tìm thấy giảng viên nào với học vị **{label}** trong hệ thống."
 
-    # Fallback: top giảng viên theo công trình
-    results = conn.query("""
-        MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+    # Fallback: top giảng viên theo công trình (hoặc ít công trình nhất)
+    is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng", "ít nhất"])
+    order_dir = "ASC" if is_asc else "DESC"
+    results = conn.query(f"""
+        MATCH (gv:GiangVien)
+        WHERE coalesce(gv.is_deleted, false) = false
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, count(ct) AS so_cong_trinh
-        ORDER BY so_cong_trinh DESC
+        ORDER BY so_cong_trinh {order_dir}
         LIMIT 5
     """)
     if results:
+        title = "Danh sách giảng viên ít công trình nhất:\n" if is_asc else "Top 5 giảng viên có nhiều công trình nhất:\n"
         parts = [f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))** ({r['so_cong_trinh']} công trình)" for r in results]
-        return "Top 5 giảng viên có nhiều công trình nhất:\n" + "\n".join(f"- {p}" for p in parts)
+        return title + "\n".join(f"- {p}" for p in parts)
 
     return "Vui lòng cung cấp thêm thông tin (tên, học vị...) để tôi tìm kiếm chính xác hơn."
 
@@ -856,16 +886,21 @@ def handle_department(question: str, entities: Optional[dict] = None):
 
 
 def handle_top_lecturers(question: str, entities: Optional[dict] = None):
-    """Top giảng viên nổi bật theo công trình."""
+    """Top giảng viên nổi bật theo công trình (hoặc ít nổi bật nhất)."""
     conn = get_neo4j_connection()
-    results = conn.query("""
+    q = question.lower()
+    is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng", "ít nhất"])
+    order_dir = "ASC" if is_asc else "DESC"
+
+    results = conn.query(f"""
         MATCH (gv:GiangVien)
-        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
-        OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+        WHERE coalesce(gv.is_deleted, false) = false
+        OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
+        OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
                count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt
-        ORDER BY so_ct DESC, so_dt DESC
+        ORDER BY so_ct {order_dir}, so_dt {order_dir}
         LIMIT 10
     """)
     if results:
@@ -876,19 +911,26 @@ def handle_top_lecturers(question: str, entities: Optional[dict] = None):
             line += f"\n  📄 {r['so_ct']} công trình | 🔬 {r['so_dt']} đề tài"
             if r.get("bo_mon"): line += f" | 🏢 {r['bo_mon']}"
             parts.append(line)
-        return "🏆 **Top 10 giảng viên nổi bật:**\n" + "\n".join(f"- {p}" for p in parts)
+        title = "📉 **Danh sách giảng viên ít công trình/đề tài nhất:**\n" if is_asc else "🏆 **Top 10 giảng viên nổi bật:**\n"
+        return title + "\n".join(f"- {p}" for p in parts)
     return "Không có dữ liệu."
 
 
 def handle_top_by_projects(question: str, entities: Optional[dict] = None):
-    """Top giảng viên theo số đề tài."""
+    """Top giảng viên theo số đề tài (hoặc ít đề tài nhất)."""
     conn = get_neo4j_connection()
-    results = conn.query("""
-        MATCH (gv:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+    q = question.lower()
+    is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng", "ít nhất"])
+    order_dir = "ASC" if is_asc else "DESC"
+
+    results = conn.query(f"""
+        MATCH (gv:GiangVien)
+        WHERE coalesce(gv.is_deleted, false) = false
+        OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
         OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                count(DISTINCT dt) AS so_de_tai, bm.ten_bo_mon AS bo_mon
-        ORDER BY so_de_tai DESC
+        ORDER BY so_de_tai {order_dir}
         LIMIT 8
     """)
     if results:
@@ -899,7 +941,8 @@ def handle_top_by_projects(question: str, entities: Optional[dict] = None):
             line += f" — **{r['so_de_tai']} đề tài**"
             if r.get("bo_mon"): line += f" ({r['bo_mon']})"
             parts.append(line)
-        return "🔬 **Top giảng viên có nhiều đề tài nhất:**\n" + "\n".join(f"- {p}" for p in parts)
+        title = "🔬 **Danh sách giảng viên có ít đề tài nhất:**\n" if is_asc else "🔬 **Top giảng viên có nhiều đề tài nhất:**\n"
+        return title + "\n".join(f"- {p}" for p in parts)
     return "Không có dữ liệu về đề tài."
 
 
@@ -1204,6 +1247,16 @@ def ask():
             "status": "error",
             "message": "Vui lòng nhập câu hỏi."
         }), 400
+
+    # Tránh câu hỏi quá ngắn hoặc chỉ gồm 1 ký tự (như chữ 'A') để tiết kiệm token/quota
+    clean_q = re.sub(r'[?.,\/#!$%\^&\*;:{}=\-_`~()"\']', '', question).strip()
+    if len(clean_q) < 2:
+        return jsonify({
+            "status": "ok",
+            "answer": "Câu hỏi quá ngắn hoặc không hợp lệ. Vui lòng nhập câu hỏi chi tiết hơn để tôi có thể hỗ trợ bạn.",
+            "intent": "unknown",
+            "graph": None
+        })
 
     try:
         # 1. Ưu tiên phân tích bằng Rule-based cục bộ trước (rất nhanh, < 10ms)

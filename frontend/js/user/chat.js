@@ -197,6 +197,15 @@
     text = (text || "").trim();
     if (!text || isLoading) return;
 
+    // Tránh câu hỏi quá ngắn hoặc chỉ gồm 1 ký tự (như chữ 'A') để tiết kiệm token/quota
+    const cleanText = text.replace(/[?.,\/#!$%\^&\*;:{}=\-_`~()"'’“]/g, "").trim();
+    if (cleanText.length < 2) {
+      appendMessage("user", text);
+      appendMessage("bot", "Câu hỏi quá ngắn hoặc không hợp lệ. Vui lòng nhập câu hỏi chi tiết hơn để tôi có thể hỗ trợ bạn.");
+      clearInput();
+      return;
+    }
+
     // Hide quick questions
     if (els.quickWrap) els.quickWrap.style.display = "none";
 

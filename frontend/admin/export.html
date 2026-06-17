@@ -679,25 +679,38 @@
 
         // Populate Year dropdown lists dynamically
         function populateYearDropdowns(overviewData) {
-            const allYears = new Set();
+            const ctYears = new Set();
             if (overviewData.cong_trinh_theo_nam) {
-                overviewData.cong_trinh_theo_nam.forEach(r => { if (r.nam) allYears.add(r.nam); });
-            }
-            if (overviewData.de_tai_theo_nam) {
-                overviewData.de_tai_theo_nam.forEach(r => { if (r.nam) allYears.add(r.nam); });
+                overviewData.cong_trinh_theo_nam.forEach(r => { if (r.nam) ctYears.add(r.nam); });
             }
 
-            const sortedYears = Array.from(allYears).sort((a, b) => b - a); // Newest first
+            const dtYears = new Set();
+            if (overviewData.de_tai_theo_nam) {
+                overviewData.de_tai_theo_nam.forEach(r => { if (r.nam) dtYears.add(r.nam); });
+            }
+
+            const sortedCtYears = Array.from(ctYears).sort((a, b) => b - a); // Newest first
+            const sortedDtYears = Array.from(dtYears).sort((a, b) => b - a); // Newest first
 
             const ctSelect = document.getElementById('filter-year-cong-trinh');
             const dtSelect = document.getElementById('filter-year-de-tai');
 
-            sortedYears.forEach(y => {
+            // Clear previous options except "Tất cả các năm"
+            while (ctSelect.options.length > 1) {
+                ctSelect.remove(1);
+            }
+            while (dtSelect.options.length > 1) {
+                dtSelect.remove(1);
+            }
+
+            sortedCtYears.forEach(y => {
                 const optCT = document.createElement('option');
                 optCT.value = y;
                 optCT.textContent = 'Năm ' + y;
                 ctSelect.appendChild(optCT);
+            });
 
+            sortedDtYears.forEach(y => {
                 const optDT = document.createElement('option');
                 optDT.value = y;
                 optDT.textContent = 'Năm ' + y;

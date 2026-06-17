@@ -97,8 +97,9 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
             if email or ma_gv:
                 existing = conn.query_single("""
                     MATCH (gv:GiangVien)
-                    WHERE (gv.email = $email AND $email <> "")
-                       OR (gv.ma_gv = $ma_gv AND $ma_gv <> "")
+                    WHERE ((gv.email = $email AND $email <> "")
+                       OR (gv.ma_gv = $ma_gv AND $ma_gv <> ""))
+                      AND coalesce(gv.is_deleted, false) = false
                     RETURN gv.id AS gv_id
                 """, {"email": email, "ma_gv": ma_gv})
 
@@ -106,31 +107,24 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
                 existing = conn.query_single("""
                     MATCH (gv:GiangVien)
                     WHERE toUpper(gv.ho_va_ten) = toUpper($ho_va_ten)
+                      AND coalesce(gv.is_deleted, false) = false
                     RETURN gv.id AS gv_id
                 """, {"ho_va_ten": ho_va_ten})
 
             if existing:
-                gv_id = existing["gv_id"]
-                conn.write("""
-                    MATCH (gv:GiangVien {id: $gv_id})
-                    SET gv += $props
-                """, {"gv_id": gv_id, "props": props})
-                action = "updated"
-            else:
-                result = conn.write("""
-                    CREATE (gv:GiangVien)
-                    SET gv.id = 'gv_' + toString(id(gv)),
-                        gv.created_at = timestamp(),
-                        gv += $props
-                    RETURN gv.id AS gv_id
-                """, {"props": props})
-                gv_id = result[0]["gv_id"]
-                action = "created"
+                errors.append(f"Dòng {idx}: Giảng viên '{ho_va_ten}' đã tồn tại trong hệ thống (trùng lặp).")
+                continue
 
-            if action == "created":
-                created += 1
-            else:
-                updated += 1
+            result = conn.write("""
+                CREATE (gv:GiangVien)
+                SET gv.id = 'gv_' + toString(id(gv)),
+                    gv.created_at = timestamp(),
+                    gv.is_deleted = false,
+                    gv += $props
+                RETURN gv.id AS gv_id
+            """, {"props": props})
+            gv_id = result[0]["gv_id"]
+            created += 1
 
             # Trạng thái chuyển công tác -> Chuyển thành Tác giả ngoài
             if props.get("trang_thai_cong_tac") == "Chuyển công tác" and gv_id:
@@ -157,7 +151,7 @@ def import_giang_vien(df: pd.DataFrame, conn) -> dict:
                 conn.write("""
                     MATCH (gv:GiangVien) WHERE gv.id = $gv_id
                     MERGE (bm:BoMon {ten_bo_mon: $bo_mon})
-                    ON CREATE SET bm.id = 'bm_' + toString(id(bm))
+                    ON CREATE SET bm.id = 'bm_' + toString(id(bm)), bm.is_deleted = false
                     MERGE (gv)-[:THUOC_BO_MON]->(bm)
                 """, {"gv_id": gv_id, "bo_mon": bo_mon})
 
@@ -224,21 +218,18 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
             """, {"slug": slug, "slug_vi": slug_vi})
 
             if existing:
-                ct_id = existing["ct_id"]
-                conn.write("""
-                    MATCH (ct:CongTrinhNghienCuu {id: $ct_id})
-                    SET ct += $props
-                """, {"ct_id": ct_id, "props": props})
-            else:
-                result = conn.write("""
-                    CREATE (ct:CongTrinhNghienCuu)
-                    SET ct.id = 'ct_' + toString(id(ct)),
-                        ct.created_at = timestamp(),
-                        ct += $props
-                    RETURN ct.id AS ct_id
-                """, {"props": props})
-                ct_id = result[0]["ct_id"]
+                errors.append(f"Dòng {idx}: Công trình '{ten}' đã tồn tại trong hệ thống (trùng lặp).")
+                continue
 
+            result = conn.write("""
+                CREATE (ct:CongTrinhNghienCuu)
+                SET ct.id = 'ct_' + toString(id(ct)),
+                    ct.created_at = timestamp(),
+                    ct.is_deleted = false,
+                    ct += $props
+                RETURN ct.id AS ct_id
+            """, {"props": props})
+            ct_id = result[0]["ct_id"]
             created += 1
 
             # Tác giả là Giảng viên
@@ -250,12 +241,14 @@ def import_cong_trinh(df: pd.DataFrame, conn) -> dict:
                     conn.write(f"""
                         MATCH (gv:GiangVien {{email: $key}}),
                               (ct:CongTrinhNghienCuu {{id: $ct_id}})
+                        WHERE coalesce(gv.is_deleted, false) = false
                         MERGE (gv)-[:{rel_type}]->(ct)
                     """, {"key": tg, "ct_id": ct_id})
                 else:
                     conn.write(f"""
                         MATCH (gv:GiangVien), (ct:CongTrinhNghienCuu {{id: $ct_id}})
                         WHERE toUpper(gv.ho_va_ten) = toUpper($key)
+                          AND coalesce(gv.is_deleted, false) = false
                         MERGE (gv)-[:{rel_type}]->(ct)
                     """, {"key": tg, "ct_id": ct_id})
 
@@ -316,15 +309,28 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
         }
 
         try:
-            result = conn.write("""
-                MERGE (dt:DeTaiNghienCuu {ten_de_tai: $ten_de_tai})
-                ON CREATE SET
-                    dt.id = 'dt_' + toString(id(dt)),
-                    dt.slug = $slug,
-                    dt += $props
-                ON MATCH SET dt += $props
+            # Kiểm tra trùng đề tài
+            slug = props["slug"]
+            existing = conn.query_single("""
+                MATCH (dt:DeTaiNghienCuu)
+                WHERE (dt.slug = $slug OR toUpper(dt.ten_de_tai) = toUpper($ten_de_tai))
+                  AND coalesce(dt.is_deleted, false) = false
                 RETURN dt.id AS dt_id
-            """, {"ten_de_tai": ten, "slug": props["slug"], "props": props})
+            """, {"slug": slug, "ten_de_tai": ten})
+
+            if existing:
+                errors.append(f"Dòng {idx}: Đề tài '{ten}' đã tồn tại trong hệ thống (trùng lặp).")
+                continue
+
+            result = conn.write("""
+                CREATE (dt:DeTaiNghienCuu)
+                SET dt.id = 'dt_' + toString(id(dt)),
+                    dt.slug = $slug,
+                    dt.created_at = timestamp(),
+                    dt.is_deleted = false,
+                    dt += $props
+                RETURN dt.id AS dt_id
+            """, {"slug": slug, "props": props})
 
             dt_id = result[0]["dt_id"]
             created += 1
@@ -335,12 +341,14 @@ def import_de_tai(df: pd.DataFrame, conn) -> dict:
                         conn.write(f"""
                             MATCH (gv:GiangVien {{email: $key}}),
                                   (dt:DeTaiNghienCuu {{id: $dt_id}})
+                            WHERE coalesce(gv.is_deleted, false) = false
                             MERGE (gv)-[:{rel}]->(dt)
                         """, {"key": tg, "dt_id": dt_id})
                     else:
                         conn.write(f"""
                             MATCH (gv:GiangVien), (dt:DeTaiNghienCuu {{id: $dt_id}})
                             WHERE toUpper(gv.ho_va_ten) = toUpper($key)
+                              AND coalesce(gv.is_deleted, false) = false
                             MERGE (gv)-[:{rel}]->(dt)
                         """, {"key": tg, "dt_id": dt_id})
 
@@ -390,15 +398,26 @@ def import_bo_mon(df: pd.DataFrame, conn) -> dict:
         }
 
         try:
-            result = conn.write("""
-                MERGE (bm:BoMon {ten_bo_mon: $ten_bo_mon})
-                ON CREATE SET
-                    bm.id = 'bm_' + toString(id(bm)),
-                    bm.created_at = timestamp(),
-                    bm += $props
-                ON MATCH SET bm += $props
+            # Kiểm tra trùng bộ môn
+            existing = conn.query_single("""
+                MATCH (bm:BoMon)
+                WHERE toUpper(bm.ten_bo_mon) = toUpper($ten_bo_mon)
+                  AND coalesce(bm.is_deleted, false) = false
                 RETURN bm.id AS bm_id
-            """, {"ten_bo_mon": ten, "props": props})
+            """, {"ten_bo_mon": ten})
+
+            if existing:
+                errors.append(f"Dòng {idx}: Bộ môn '{ten}' đã tồn tại trong hệ thống (trùng lặp).")
+                continue
+
+            result = conn.write("""
+                CREATE (bm:BoMon)
+                SET bm.id = 'bm_' + toString(id(bm)),
+                    bm.created_at = timestamp(),
+                    bm.is_deleted = false,
+                    bm += $props
+                RETURN bm.id AS bm_id
+            """, {"props": props})
 
             bm_id = result[0]["bm_id"]
             created += 1
@@ -409,12 +428,14 @@ def import_bo_mon(df: pd.DataFrame, conn) -> dict:
                     conn.write(f"""
                         MATCH (gv:GiangVien {{email: $key}}),
                               (bm:BoMon {{id: $bm_id}})
+                        WHERE coalesce(gv.is_deleted, false) = false
                         MERGE (gv)-[:TRUONG_BO_MON]->(bm)
                     """, {"key": truong, "bm_id": bm_id})
                 else:
                     conn.write(f"""
                         MATCH (gv:GiangVien), (bm:BoMon {{id: $bm_id}})
                         WHERE toUpper(gv.ho_va_ten) = toUpper($key)
+                          AND coalesce(gv.is_deleted, false) = false
                         MERGE (gv)-[:TRUONG_BO_MON]->(bm)
                     """, {"key": truong, "bm_id": bm_id})
 
@@ -475,6 +496,18 @@ def import_upload():
         total_rows = len(df)
         conn = get_neo4j_connection()
         result = IMPORT_HANDLERS[data_type](df, conn)
+
+        # Nếu không có dòng nào mới được tạo/cập nhật (tất cả bị trùng hoặc lỗi), status nên là error
+        if result["created"] == 0 and result.get("updated", 0) == 0:
+            return jsonify({
+                "status": "error",
+                "message": "Dữ liệu đã tồn tại trong hệ thống (trùng lặp).",
+                "total_rows": total_rows,
+                "created":    0,
+                "updated":    0,
+                "error_count": len(result["errors"]),
+                "errors":     result["errors"][:50],
+            })
 
         return jsonify({
             "status": "ok",
