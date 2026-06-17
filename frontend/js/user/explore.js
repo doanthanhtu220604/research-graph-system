@@ -8,11 +8,11 @@ let originalExploreEdges = [];
 let exploreVisNodes = null;
 let exploreVisEdges = null;
 
-const searchSuggestionPool = [
-    { type: 'giang_vien', text: 'Giảng viên', icon: 'fa-user-tie', queries: ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Trưởng khoa', 'Tiến sĩ', 'Phó Giáo sư', 'Khoa CNTT'] },
-    { type: 'linh_vuc', text: 'Lĩnh vực', icon: 'fa-microscope', queries: ['Trí tuệ nhân tạo', 'Học máy', 'Khai phá dữ liệu', 'Thị giác máy tính', 'Mạng máy tính', 'Phần mềm', 'IoT'] },
-    { type: 'cong_trinh', text: 'Công trình', icon: 'fa-file-alt', queries: ['Hệ thống', 'Mô hình', 'Ứng dụng', 'Nghiên cứu', 'Phân tích', 'Xây dựng', 'Giải pháp'] },
-    { type: 'de_tai', text: 'Đề tài', icon: 'fa-flask', queries: ['Nghiên cứu', 'Phát triển', 'Ứng dụng', 'Thiết kế', 'Xây dựng', 'Thử nghiệm', 'Hệ thống'] }
+const searchSuggestionKeywords = [
+    'Trí tuệ nhân tạo', 'Học máy', 'Khai phá dữ liệu', 'Thị giác máy tính',
+    'Mạng máy tính', 'Phần mềm', 'IoT', 'Hệ thống nhúng', 'An toàn thông tin',
+    'Xử lý ngôn ngữ tự nhiên', 'Deep Learning', 'Big Data', 'Cloud Computing',
+    'Điện toán đám mây', 'Robotics', 'Sinh học tính toán', 'Thống kê ứng dụng'
 ];
 
 function initExploreGraph() {
@@ -58,13 +58,15 @@ function renderRandomSuggestions() {
     const container = document.getElementById('dynamicSuggestions');
     if (!container) return;
 
-    let html = '';
-    searchSuggestionPool.forEach(category => {
-        const randomQuery = category.queries[Math.floor(Math.random() * category.queries.length)];
-        html += `<button class="suggestion-tag" onclick="setSearchQuery('${randomQuery}')">
-                    <i class="fas ${category.icon}"></i> ${category.text}: ${randomQuery}
-                 </button>`;
-    });
+    // Chọn ngẫu nhiên 5 từ khóa để hiển thị
+    const shuffled = [...searchSuggestionKeywords].sort(() => Math.random() - 0.5);
+    const picked = shuffled.slice(0, 5);
+
+    const html = picked.map(kw =>
+        `<button class="suggestion-tag" onclick="setSearchQuery('${kw}')">
+            <i class="fas fa-search"></i> ${kw}
+         </button>`
+    ).join('');
     container.innerHTML = html;
 }
 
