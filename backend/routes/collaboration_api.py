@@ -45,14 +45,19 @@ def get_collaboration_overview():
             RETURN count(DISTINCT [gv1.id, gv2.id]) AS total
         """)
 
-        # Số GV tham gia ít nhất 1 hợp tác
+        # Số GV tham gia ít nhất 1 hợp tác (qua công trình hoặc đề tài)
         active_collab = conn.query_single("""
-            MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
-            WHERE gv1 <> gv2 AND coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
+            WHERE gv1 <> gv2 AND coalesce(gv1.is_deleted, false) = false AND coalesce(gv2.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
               AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
-            WITH collect(DISTINCT gv1) + collect(DISTINCT gv2) AS gvs
-            UNWIND gvs AS gv
-            RETURN count(DISTINCT gv) AS total
+            WITH collect(DISTINCT gv1.id) + collect(DISTINCT gv2.id) AS gvs_ct
+            OPTIONAL MATCH (gv3:GiangVien)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv4:GiangVien)
+            WHERE gv3 <> gv4 AND coalesce(gv3.is_deleted, false) = false AND coalesce(gv4.is_deleted, false) = false AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
+            WITH gvs_ct, collect(DISTINCT gv3.id) + collect(DISTINCT gv4.id) AS gvs_dt
+            WITH gvs_ct + gvs_dt AS all_gvs
+            UNWIND all_gvs AS gv_id
+            RETURN count(DISTINCT gv_id) AS total
         """)
 
         # Công trình có nhiều tác giả nhất
