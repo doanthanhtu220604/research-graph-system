@@ -58,7 +58,7 @@ def get_all_giang_vien():
             WHERE coalesce(lv.is_deleted, false) = false
         RETURN gv, bm.ten_bo_mon AS bo_mon,
                collect(DISTINCT lv.ten_linh_vuc) AS linh_vuc
-        ORDER BY gv.ho_va_ten
+        ORDER BY CASE WHEN gv.profile_edit_status = 'Chờ duyệt' THEN 0 ELSE 1 END ASC, gv.ho_va_ten ASC
     """)
     giang_vien_list = []
     for r in results:

@@ -160,6 +160,13 @@ function filterLecturers() {
         return matchName && matchDept && matchDegree;
     });
 
+    _filteredAdminLecturers.sort((a, b) => {
+        const aPending = a.profile_edit_status === 'Chờ duyệt' ? 0 : 1;
+        const bPending = b.profile_edit_status === 'Chờ duyệt' ? 0 : 1;
+        if (aPending !== bPending) return aPending - bPending;
+        return (a.ho_va_ten || '').localeCompare(b.ho_va_ten || '', 'vi');
+    });
+
     renderLecturersPage(1);
 }
 
