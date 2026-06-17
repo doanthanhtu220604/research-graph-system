@@ -2,6 +2,12 @@
    ADMIN OTHER ENTITIES — Lĩnh vực, Tác giả ngoài, Bộ môn
    ============================================================ */
 
+const PAGE_SIZE = 15;
+let lvCurrentPage = 1;
+let tgnCurrentPage = 1;
+let lvFilteredCache = [];
+let tgnFilteredCache = [];
+
 /* ─── Lĩnh vực nghiên cứu ─────────────────────────────────── */
 
 async function loadResearchFields() {
@@ -18,16 +24,20 @@ async function loadResearchFields() {
     }
 }
 
-function renderResearchFieldsTable(dataList) {
+function renderResearchFieldsTable(dataList, page) {
     const tbody = document.getElementById('adminResearchFieldsBody');
     if (!tbody) return;
 
     if (dataList.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy lĩnh vực nghiên cứu phù hợp.</td></tr>';
+        renderPagination('lvPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
 
-    tbody.innerHTML = dataList.map((lv) => {
+    const start = (page - 1) * PAGE_SIZE;
+    const pageData = dataList.slice(start, start + PAGE_SIZE);
+
+    tbody.innerHTML = pageData.map((lv) => {
         const originalIndex = currentEntitiesData['linh-vuc'].indexOf(lv);
         return `
             <tr>
@@ -42,6 +52,11 @@ function renderResearchFieldsTable(dataList) {
             </tr>
         `;
     }).join('');
+
+    renderPagination('lvPagination', dataList.length, page, PAGE_SIZE, (newPage) => {
+        lvCurrentPage = newPage;
+        renderResearchFieldsTable(lvFilteredCache, lvCurrentPage);
+    });
 }
 
 function filterResearchFields() {
@@ -66,7 +81,9 @@ function filterResearchFields() {
         return 0;
     });
 
-    renderResearchFieldsTable(filtered);
+    lvFilteredCache = filtered;
+    lvCurrentPage = 1;
+    renderResearchFieldsTable(lvFilteredCache, lvCurrentPage);
 }
 
 
@@ -87,16 +104,20 @@ async function loadExternalAuthors() {
 }
 
 
-function renderExternalAuthorsTable(dataList) {
+function renderExternalAuthorsTable(dataList, page) {
     const tbody = document.getElementById('adminExternalAuthorsBody');
     if (!tbody) return;
 
     if (dataList.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Không tìm thấy tác giả ngoài phù hợp.</td></tr>';
+        renderPagination('tgnPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
 
-    tbody.innerHTML = dataList.map((tgn) => {
+    const start = (page - 1) * PAGE_SIZE;
+    const pageData = dataList.slice(start, start + PAGE_SIZE);
+
+    tbody.innerHTML = pageData.map((tgn) => {
         const originalIndex = currentEntitiesData['tac-gia-ngoai'].indexOf(tgn);
         const statusBadge = tgn.trang_thai === 'Chờ duyệt'
             ? `<span class="badge" style="background: rgba(243,156,18,0.1); color: #f39c12; border: 1px solid rgba(243,156,18,0.2); padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px;"><i class="fas fa-clock"></i> Chờ duyệt</span>`
@@ -125,6 +146,11 @@ function renderExternalAuthorsTable(dataList) {
             </td>
         </tr>
     `}).join('');
+
+    renderPagination('tgnPagination', dataList.length, page, PAGE_SIZE, (newPage) => {
+        tgnCurrentPage = newPage;
+        renderExternalAuthorsTable(tgnFilteredCache, tgnCurrentPage);
+    });
 }
 
 
@@ -136,7 +162,9 @@ function filterExternalAuthors() {
         return (tgn.ho_va_ten || '').toLowerCase().includes(nameFilter);
     });
 
-    renderExternalAuthorsTable(filtered);
+    tgnFilteredCache = filtered;
+    tgnCurrentPage = 1;
+    renderExternalAuthorsTable(tgnFilteredCache, tgnCurrentPage);
 }
 
 async function approveExternalAuthor(tgnId) {

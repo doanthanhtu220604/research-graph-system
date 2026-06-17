@@ -2,6 +2,10 @@
    ADMIN ACCOUNTS — Quản lý tài khoản giảng viên
    ============================================================ */
 
+const ACC_PAGE_SIZE = 15;
+let accCurrentPage = 1;
+let accFilteredCache = [];
+
 let allAccounts = [];
 
 async function loadAccounts() {
@@ -11,22 +15,28 @@ async function loadAccounts() {
         if (data.status === 'ok') {
             allAccounts = data.data || [];
             updateAccountStats();
-            renderAccountsTable(allAccounts);
+            accFilteredCache = allAccounts;
+            accCurrentPage = 1;
+            renderAccountsTable(accFilteredCache, accCurrentPage);
         }
     } catch (e) { console.error('Error loadAccounts', e); }
 }
 
 
-function renderAccountsTable(list) {
+function renderAccountsTable(list, page) {
     const tbody = document.getElementById('adminAccountsBody');
     if (!tbody) return;
 
     if (list.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">Không có dữ liệu tài khoản</td></tr>';
+        renderPagination('accPagination', 0, 1, ACC_PAGE_SIZE, () => {});
         return;
     }
 
-    tbody.innerHTML = list.map(acc => {
+    const start = (page - 1) * ACC_PAGE_SIZE;
+    const pageData = list.slice(start, start + ACC_PAGE_SIZE);
+
+    tbody.innerHTML = pageData.map(acc => {
         let statusBadge = '';
         if (!acc.co_tai_khoan)                          statusBadge = '<span class="account-badge badge-no-acct"><i class="fas fa-exclamation-circle"></i> Chưa tạo</span>';
         else if (acc.trang_thai_tk === 'Hoạt động')     statusBadge = '<span class="account-badge badge-active"><i class="fas fa-check-circle"></i> Hoạt động</span>';
@@ -64,6 +74,11 @@ function renderAccountsTable(list) {
             <td>${actions}</td>
         </tr>`;
     }).join('');
+
+    renderPagination('accPagination', list.length, page, ACC_PAGE_SIZE, (newPage) => {
+        accCurrentPage = newPage;
+        renderAccountsTable(accFilteredCache, accCurrentPage);
+    });
 }
 
 
@@ -99,7 +114,9 @@ function filterAccounts() {
         return matchSearch && matchStatus;
     });
 
-    renderAccountsTable(filtered);
+    accFilteredCache = filtered;
+    accCurrentPage = 1;
+    renderAccountsTable(accFilteredCache, accCurrentPage);
 }
 
 

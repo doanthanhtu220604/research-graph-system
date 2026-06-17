@@ -128,6 +128,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(updateClock, 1000);
 
+
+    // Sidebar toggle (ẩn/hiện sidebar)
+    const menuToggle  = document.getElementById('menuToggle');
+    const sidebar     = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent?.classList.toggle('expanded');
+        });
+    }
+
 });
 
 
