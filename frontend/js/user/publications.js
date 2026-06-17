@@ -324,7 +324,16 @@ async function showPublicationDetail(ctId) {
                 renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
                     window.detailGraph = network;
                 });
-                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
+                if (dataGraph.legend) {
+                    const presentGroups = new Set(dataGraph.nodes.map(n => n.group));
+                    const activeLegend = {};
+                    Object.entries(dataGraph.legend).forEach(([key, value]) => {
+                        if (presentGroups.has(key)) {
+                            activeLegend[key] = value;
+                        }
+                    });
+                    renderLegend(activeLegend, 'detailGraphLegend');
+                }
             }, 50);
         }
     } catch (err) { console.error(err); }

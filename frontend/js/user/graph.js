@@ -77,7 +77,7 @@ function buildTooltip(node) {
     const groupNames = {
         'GiangVien': 'Giảng viên', 'CongTrinhNghienCuu': 'Công trình NC',
         'DeTaiNghienCuu': 'Đề tài NC', 'BoMon': 'Bộ môn', 'Khoa': 'Khoa',
-        'LinhVucNghienCuu': 'Lĩnh vực NC', 'NhomNghienCuu': 'Nhóm NC'
+        'LinhVucNghienCuu': 'Lĩnh vực NC'
     };
 
     const keyNames = {
@@ -120,7 +120,6 @@ function renderLegend(legendConfig, containerId = 'graphLegend') {
         'BoMon': 'Bộ môn',
         'Khoa': 'Khoa',
         'LinhVucNghienCuu': 'Lĩnh vực',
-        'NhomNghienCuu': 'Nhóm NC',
     };
 
     container.innerHTML = Object.entries(legendConfig).map(([key, cfg]) => `

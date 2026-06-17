@@ -301,7 +301,16 @@ async function showProjectDetail(dtId) {
                 renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
                     window.detailGraph = network;
                 });
-                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
+                if (dataGraph.legend) {
+                    const presentGroups = new Set(dataGraph.nodes.map(n => n.group));
+                    const activeLegend = {};
+                    Object.entries(dataGraph.legend).forEach(([key, value]) => {
+                        if (presentGroups.has(key)) {
+                            activeLegend[key] = value;
+                        }
+                    });
+                    renderLegend(activeLegend, 'detailGraphLegend');
+                }
             }, 50);
         }
     } catch (err) { console.error(err); }
@@ -317,17 +326,16 @@ async function showGenericEntityDetail(nodeId, label, name) {
                 'GiangVien': 'Giảng viên', 'CongTrinhNghienCuu': 'Công trình nghiên cứu',
                 'DeTaiNghienCuu': 'Đề tài nghiên cứu', 'BoMon': 'Bộ môn', 'Khoa': 'Khoa',
                 'TacGiaNgoai': 'Tác giả ngoài', 'LinhVucNghienCuu': 'Lĩnh vực nghiên cứu',
-                'NhomNghienCuu': 'Nhóm nghiên cứu',
             };
             const labelIcons = {
                 'GiangVien': 'fa-user-tie', 'CongTrinhNghienCuu': 'fa-file-alt',
                 'DeTaiNghienCuu': 'fa-flask', 'BoMon': 'fa-building', 'Khoa': 'fa-university',
-                'TacGiaNgoai': 'fa-user', 'LinhVucNghienCuu': 'fa-tags', 'NhomNghienCuu': 'fa-users',
+                'TacGiaNgoai': 'fa-user', 'LinhVucNghienCuu': 'fa-tags',
             };
             const labelColors = {
                 'GiangVien': '#4F8EF7', 'CongTrinhNghienCuu': '#2ECC71', 'DeTaiNghienCuu': '#F39C12',
                 'BoMon': '#E74C3C', 'Khoa': '#9B59B6', 'LinhVucNghienCuu': '#1ABC9C',
-                'NhomNghienCuu': '#E67E22', 'TacGiaNgoai': '#95A5A6',
+                'TacGiaNgoai': '#95A5A6',
             };
 
             const typeName = labelNames[label] || label;
@@ -393,7 +401,16 @@ async function showGenericEntityDetail(nodeId, label, name) {
                 renderGraph('detail-graph-container', dataGraph.nodes, dataGraph.edges, (network) => {
                     window.detailGraph = network;
                 });
-                if (dataGraph.legend) renderLegend(dataGraph.legend, 'detailGraphLegend');
+                if (dataGraph.legend) {
+                    const presentGroups = new Set(dataGraph.nodes.map(n => n.group));
+                    const activeLegend = {};
+                    Object.entries(dataGraph.legend).forEach(([key, value]) => {
+                        if (presentGroups.has(key)) {
+                            activeLegend[key] = value;
+                        }
+                    });
+                    renderLegend(activeLegend, 'detailGraphLegend');
+                }
             }, 50);
         }
     } catch (err) {

@@ -491,7 +491,6 @@ def get_full_graph():
         "DeTaiNghienCuu": {"color": "#F39C12", "shape": "triangle", "size": 20},
         "BoMon": {"color": "#E74C3C", "shape": "square", "size": 22},
         "LinhVucNghienCuu": {"color": "#1ABC9C", "shape": "hexagon", "size": 22},
-        "NhomNghienCuu": {"color": "#E67E22", "shape": "triangle", "size": 20},
     }
 
     nodes = []
@@ -567,7 +566,6 @@ def get_node_graph(node_id):
         "DeTaiNghienCuu": {"color": "#F39C12", "shape": "triangle", "size": 20},
         "BoMon": {"color": "#E74C3C", "shape": "square", "size": 22},
         "LinhVucNghienCuu": {"color": "#1ABC9C", "shape": "hexagon", "size": 22},
-        "NhomNghienCuu": {"color": "#E67E22", "shape": "triangle", "size": 20},
     }
 
     nodes_map = {}
@@ -687,16 +685,18 @@ def get_overview_stats():
             ORDER BY nam ASC
         """)
 
-        # ── Đề tài đang thực hiện ──────────────────────────────────────────
+        # ── Đề tài trong 2 năm gần đây (2025 và 2026) ──────────────────────
         dt_dang_thuc_hien = conn.query("""
             MATCH (dt:DeTaiNghienCuu)
-            WHERE dt.trang_thai = 'Đang thực hiện' AND coalesce(dt.is_deleted, false) = false
+            WHERE toInteger(dt.nam) IN [2025, 2026] AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             OPTIONAL MATCH (gv:GiangVien)-[:CHU_NHIEM]->(dt)
             RETURN dt.id AS id,
                    dt.ten_de_tai AS ten_de_tai,
                    dt.cap_de_tai AS cap_de_tai,
                    dt.nam AS nam_bat_dau,
                    dt.nam AS nam_ket_thuc,
+                   dt.trang_thai AS trang_thai,
                    collect(gv.ho_va_ten)[0] AS chu_nhiem
             ORDER BY dt.nam DESC
             LIMIT 6
@@ -763,6 +763,7 @@ def get_overview_stats():
                     "cap_de_tai": r["cap_de_tai"],
                     "nam_bat_dau": r["nam_bat_dau"],
                     "nam_ket_thuc": r["nam_ket_thuc"],
+                    "trang_thai": r["trang_thai"],
                     "chu_nhiem": r["chu_nhiem"],
                 }
                 for r in dt_dang_thuc_hien
@@ -793,140 +794,35 @@ def get_stats_trends():
     try:
         conn = get_neo4j_connection()
         
-        # 1. Phân tích xu hướng theo lĩnh vực nghiên cứu (LinhVucNghienCuu)
-        # Lấy tất cả lĩnh vực
-        lv_nodes = conn.query("""
+        # 1. Thống kê lĩnh vực nghiên cứu tiêu biểu theo số lượng công trình
+        trends_result = conn.query("""
             MATCH (lv:LinhVucNghienCuu)
             WHERE coalesce(lv.is_deleted, false) = false
-            RETURN lv.id AS id, lv.ten_linh_vuc AS ten_linh_vuc
-        """)
-        
-        # Lấy tất cả giảng viên và quan hệ nghiên cứu
-        gv_lv_relations = conn.query("""
-            MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv:LinhVucNghienCuu)
-            WHERE coalesce(gv.is_deleted, false) = false AND coalesce(lv.is_deleted, false) = false
-            RETURN gv.ho_va_ten AS gv_ten, lv.ten_linh_vuc AS lv_ten
-        """)
-        
-        # Lấy tất cả bài báo cùng tác giả (chỉ đã duyệt)
-        ct_nodes = conn.query("""
-            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
-            WHERE coalesce(gv.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv:GiangVien)-[:NGHIEN_CUU]->(lv)
+            WHERE coalesce(gv.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+            WHERE coalesce(ct.is_deleted, false) = false
               AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
-            RETURN ct.id AS id, ct.ten_cong_trinh AS title, ct.tom_tat AS summary, ct.nam_xuat_ban AS nam, gv.ho_va_ten AS gv_ten
+            WITH lv, count(DISTINCT ct) AS tong_so_bai, collect(DISTINCT gv.ho_va_ten) AS giang_vien_list
+            WHERE tong_so_bai > 0
+            RETURN lv.id AS id, lv.ten_linh_vuc AS ten_linh_vuc, tong_so_bai, giang_vien_list
+            ORDER BY tong_so_bai DESC
         """)
-
-        # Xây dựng danh sách lĩnh vực của từng giảng viên
-        gv_fields = {}
-        for r in gv_lv_relations:
-            gv = r["gv_ten"]
-            lv = r["lv_ten"]
-            if gv not in gv_fields:
-                gv_fields[gv] = []
-            gv_fields[gv].append(lv)
-
-        # Tạo cấu trúc lưu trữ công trình theo lĩnh vực
-        field_papers = {lv["ten_linh_vuc"]: {"total": set(), "recent": set(), "lecturers": set(), "id": lv["id"]} for lv in lv_nodes}
-
-        def to_int(v):
-            try:
-                return int(v)
-            except:
-                return 0
-
-
-        # Hàm kiểm tra trùng khớp từ khóa (bản cũ cho trang thống kê)
-        import re
-        def check_match_stats(title, summary, field_name):
-            text = f"{title or ''} {summary or ''}"
-            text_norm = remove_accents(text.lower())
-            field_norm = remove_accents(field_name.lower())
-            
-            if field_norm in text_norm:
-                return True
-                
-            mappings_old = {
-                "machine learning": ["hoc may", "machine learning", "ml", "classification", "deep learning", "neural network", "svm", "knn", "random forest"],
-                "data science": ["khoa hoc du lieu", "data science", "analytics", "prediction", "du bao", "statistical"],
-                "business intelligence": ["tri tue kinh doanh", "business intelligence", "dashboard", "kho du lieu", "data warehouse", "bi "],
-                "data mining": ["khai pha du lieu", "data mining", "clustering", "association rule", "apriori", "phan cum"],
-                "big data": ["du lieu lon", "big data", "hadoop", "spark", "mapreduce", "nosql", "cloud computing"],
-                "system analysis and design": ["thiet ke he thong", "system analysis", "uml", "use case", "diagram", "analysing", "software design"]
-            }
-            
-            for key, terms in mappings_old.items():
-                if key in field_norm:
-                    for term in terms:
-                        if term in text_norm:
-                            return True
-            
-            ignore_words = {"and", "or", "design", "analysis", "system", "phan", "tich", "thiet", "ke", "he", "thong", "cua", "trong", "cho"}
-            field_words = [w for w in re.findall(r'\b\w+\b', field_norm) if w not in ignore_words and len(w) > 2]
-            for w in field_words:
-                if w in text_norm:
-                    return True
-                    
-            return False
-
-        # Phân phối bài báo vào lĩnh vực tương ứng của giảng viên dựa trên từ khóa tiêu đề/tóm tắt
-        for ct in ct_nodes:
-            ct_id = ct["id"]
-            title = ct["title"]
-            summary = ct["summary"]
-            nam = ct["nam"]
-            gv = ct["gv_ten"]
-            
-            fields_of_gv = gv_fields.get(gv, [])
-            if not fields_of_gv:
-                continue
-                
-            matched_any = False
-            for field in fields_of_gv:
-                if field in field_papers:
-                    if check_match_stats(title, summary, field):
-                        field_papers[field]["total"].add(ct_id)
-                        if nam and to_int(nam) >= 2023:
-                            field_papers[field]["recent"].add(ct_id)
-                        field_papers[field]["lecturers"].add(gv)
-                        matched_any = True
-            
-            # Fallback: Nếu không khớp từ khóa đặc trưng nào, gán tạm vào lĩnh vực đầu tiên của giảng viên
-            if not matched_any and fields_of_gv:
-                first_field = fields_of_gv[0]
-                if first_field in field_papers:
-                    field_papers[first_field]["total"].add(ct_id)
-                    if nam and to_int(nam) >= 2023:
-                        field_papers[first_field]["recent"].add(ct_id)
-                    field_papers[first_field]["lecturers"].add(gv)
-
+        
         trends = []
-        for field, stats in field_papers.items():
-            tong = len(stats["total"])
-            ganday = len(stats["recent"])
-            cugiang = tong - ganday
-            
-            # Tính toán tỷ lệ tăng trưởng và điểm xu hướng
-            growth_rate = round((ganday / (cugiang + 1)) * 100, 1)
-            trend_score = round((ganday * 2.0) + (growth_rate * 0.05), 1)
-            
-            if tong > 0:
-                trends.append({
-                    "id": stats["id"],
-                    "ten_linh_vuc": field,
-                    "tong_so_bai": tong,
-                    "so_bai_gan_day": ganday,
-                    "growth_rate": growth_rate,
-                    "trend_score": trend_score,
-                    "giang_vien_chot": list(stats["lecturers"])[:3]
-                })
-            
-        # Sắp xếp theo điểm xu hướng giảm dần
-        trends = sorted(trends, key=lambda x: x["trend_score"], reverse=True)
+        for r in trends_result:
+            trends.append({
+                "id": r["id"],
+                "ten_linh_vuc": r["ten_linh_vuc"],
+                "tong_so_bai": int(r["tong_so_bai"]),
+                "giang_vien_chot": [t for t in (r["giang_vien_list"] or []) if t][:3]
+            })
         
         # 2. Phân tích trích xuất từ khóa mới nổi từ tiêu đề và tóm tắt bài báo
         pubs = conn.query("""
             MATCH (ct:CongTrinhNghienCuu)
             WHERE coalesce(ct.is_deleted, false) = false AND ct.nam_xuat_ban IS NOT NULL
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN ct.ten_cong_trinh AS title, ct.tom_tat AS summary, toInteger(ct.nam_xuat_ban) AS nam
         """)
         

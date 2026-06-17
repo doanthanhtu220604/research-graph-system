@@ -199,20 +199,27 @@ function renderOngoingActivities(projects, publications) {
     const projEl = document.getElementById('statsOngoingProjects');
     if (projEl) {
         if (!projects || projects.length === 0) {
-            projEl.innerHTML = '<div class="list-empty"><i class="fas fa-inbox"></i>Không có đề tài đang thực hiện</div>';
+            projEl.innerHTML = '<div class="list-empty"><i class="fas fa-inbox"></i>Không có đề tài trong 2 năm gần đây</div>';
         } else {
             projEl.innerHTML = projects.map(dt => {
                 const title = String(dt.ten_de_tai || 'N/A').replace(/</g, '&lt;');
                 const cap   = dt.cap_de_tai || 'Chưa xác định';
                 const nam   = dt.nam_bat_dau ? `${dt.nam_bat_dau} – ${dt.nam_ket_thuc || 'nay'}` : '';
                 const chu   = dt.chu_nhiem ? `<i class="fas fa-user"></i> ${dt.chu_nhiem}` : '';
+                
+                const status = dt.trang_thai || 'Đang thực hiện';
+                const isCompleted = status === 'Hoàn thành';
+                const badgeText = isCompleted ? 'Hoàn thành' : 'Đang thực hiện';
+                const badgeStyle = isCompleted 
+                    ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6;' 
+                    : 'background: rgba(16, 185, 129, 0.1); color: #10b981;';
                 return `
                     <div class="activity-item" onclick="showProjectDetail('${dt.id || ''}')">
                         <div class="activity-item-icon activity-icon-project"><i class="fas fa-flask"></i></div>
                         <div class="activity-item-body">
                             <div class="activity-item-title" title="${title}">${title}</div>
                             <div class="activity-item-meta">
-                                <span class="badge-ongoing">Đang thực hiện</span>
+                                <span style="border-radius: 20px; padding: 2px 8px; font-size: 11px; font-weight: 600; ${badgeStyle}">${badgeText}</span>
                                 ${cap ? `<span>${cap}</span>` : ''}
                                 ${nam ? `<span><i class="fas fa-calendar"></i> ${nam}</span>` : ''}
                                 ${chu ? `<span>${chu}</span>` : ''}
@@ -280,10 +287,9 @@ async function loadResearchTrends() {
         // Render Trends list
         const trends = data.trends || [];
         if (trends.length === 0) {
-            trendsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding: 20px;">Chưa có dữ liệu xu hướng.</div>';
+            trendsContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding: 20px;">Chưa có dữ liệu lĩnh vực.</div>';
         } else {
             trendsContainer.innerHTML = trends.map((item, idx) => {
-                const badgeClass = item.growth_rate > 50 ? 'badge-red' : (item.growth_rate > 20 ? 'badge-orange' : 'badge-blue');
                 const lecturersHtml = item.giang_vien_chot && item.giang_vien_chot.length > 0
                     ? `<span style="font-size: 11px; color: var(--text-muted); margin-left: 10px;"><i class="fas fa-user-tie"></i> Giảng viên tiêu biểu: ${item.giang_vien_chot.join(', ')}</span>`
                     : '';
@@ -298,13 +304,8 @@ async function loadResearchTrends() {
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
                                 <span style="font-size: 11.5px; color: var(--text-secondary);"><i class="fas fa-file-alt"></i> ${item.tong_so_bai} công trình</span>
-                                <span style="font-size: 11.5px; color: var(--text-secondary);"><i class="fas fa-history"></i> ${item.so_bai_gan_day} bài mới (2023+)</span>
                                 ${lecturersHtml}
                             </div>
-                        </div>
-                        <div style="text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                            <span class="badge ${badgeClass}" style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">+${item.growth_rate}% tăng trưởng</span>
-                            <span style="font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">Điểm xu hướng: <b>${item.trend_score}</b></span>
                         </div>
                     </div>
                 `;

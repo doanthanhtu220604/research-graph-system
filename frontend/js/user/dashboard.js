@@ -200,7 +200,16 @@ async function loadKnowledgeGraph() {
             renderGraph('knowledge-graph', data.nodes, data.edges, (network) => {
                 dashboardGraph = network;
             });
-            renderLegend(data.legend);
+            if (data.legend) {
+                const presentGroups = new Set(data.nodes.map(n => n.group));
+                const activeLegend = {};
+                Object.entries(data.legend).forEach(([key, value]) => {
+                    if (presentGroups.has(key)) {
+                        activeLegend[key] = value;
+                    }
+                });
+                renderLegend(activeLegend);
+            }
         }
     } catch (err) {
         console.error('Graph error:', err);

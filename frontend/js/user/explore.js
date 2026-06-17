@@ -83,8 +83,15 @@ async function loadKnowledgeGraphForExplore() {
                 exploreVisEdges = visEdges;
             });
             if (data.legend) {
-                renderLegend(data.legend, 'exploreGraphLegend');
-                renderExploreGraphFilters(data.legend);
+                const presentGroups = new Set(data.nodes.map(n => n.group));
+                const activeLegend = {};
+                Object.entries(data.legend).forEach(([key, value]) => {
+                    if (presentGroups.has(key)) {
+                        activeLegend[key] = value;
+                    }
+                });
+                renderLegend(activeLegend, 'exploreGraphLegend');
+                renderExploreGraphFilters(activeLegend);
             }
         }
     } catch (err) {
@@ -160,7 +167,6 @@ const _labelIcons = {
     'Khoa': 'fa-university',
     'TacGiaNgoai': 'fa-user',
     'LinhVucNghienCuu': 'fa-tags',
-    'NhomNghienCuu': 'fa-users',
 };
 
 const _labelNames = {
@@ -171,7 +177,6 @@ const _labelNames = {
     'Khoa': 'Khoa',
     'TacGiaNgoai': 'Tác giả ngoài',
     'LinhVucNghienCuu': 'Lĩnh vực',
-    'NhomNghienCuu': 'Nhóm NC',
 };
 
 function _resolveItemName(item) {
@@ -274,7 +279,6 @@ function renderExploreGraphFilters(legendConfig) {
         'BoMon': 'Bộ môn',
         'Khoa': 'Khoa',
         'LinhVucNghienCuu': 'Lĩnh vực',
-        'NhomNghienCuu': 'Nhóm NC',
     };
 
     let html = `<span style="font-size:12px; font-weight:700; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-right:8px;"><i class="fas fa-filter" style="color:var(--accent-blue);"></i> Lọc đồ thị:</span>`;
