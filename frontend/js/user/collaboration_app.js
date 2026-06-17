@@ -142,6 +142,7 @@ async function loadBridgeConnectors() {
         const res = await fetch(`${COLLAB_API}/bridge-connectors`);
         const data = await res.json();
         const container = document.getElementById('tab-bridges');
+        if (!container) return;
 
         if (data.status !== 'ok' || !data.data.length) {
             container.innerHTML = '<div class="loading-block">Chưa có dữ liệu cầu nối.</div>';

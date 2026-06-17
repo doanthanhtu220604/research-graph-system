@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="../css/responsive_user.css">
 
     <style>
-        /* ─── Layout ─── */
         .collab-layout {
             display: grid;
             grid-template-columns: 320px 1fr;
@@ -286,7 +285,6 @@
             font-weight: 600;
         }
 
-        /* ─── Graph Area ─── */
         .graph-area-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -344,7 +342,7 @@
 
         #collaborationGraph {
             width: 100%;
-            height: 560px;
+            height: 950px;
             background: rgba(0,0,0,0.01);
             position: relative;
         }
@@ -478,9 +476,6 @@
                             <button class="rank-tab active" onclick="switchRankTab('connectors', this)">
                                 <i class="fas fa-link"></i> Kết nối nhiều nhất
                             </button>
-                            <button class="rank-tab" onclick="switchRankTab('bridges', this)">
-                                <i class="fas fa-bridge"></i> Cầu nối Bộ môn
-                            </button>
                             <button class="rank-tab" onclick="switchRankTab('pairs', this)">
                                 <i class="fas fa-user-friends"></i> Cặp đôi
                             </button>
@@ -489,13 +484,6 @@
                         <!-- Tab: Top kết nối -->
                         <div class="rank-tab-panel active" id="tab-connectors">
                             <div class="loading-block" id="loadingConnectors">
-                                <i class="fas fa-spinner fa-spin"></i> Đang tải...
-                            </div>
-                        </div>
-
-                        <!-- Tab: Bridge connectors -->
-                        <div class="rank-tab-panel" id="tab-bridges">
-                            <div class="loading-block" id="loadingBridges">
                                 <i class="fas fa-spinner fa-spin"></i> Đang tải...
                             </div>
                         </div>
