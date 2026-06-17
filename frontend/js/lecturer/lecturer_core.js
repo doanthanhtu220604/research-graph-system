@@ -23,39 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const role = localStorage.getItem('userRole');
 
-    if (role !== 'lecturer' && role !== 'admin') {
+    if (role !== 'lecturer') {
 
         window.location.href = '/user/login.html';
 
         return;
 
     }
-
-    // Thêm link quay lại Admin nếu vai trò là admin
-    if (role === 'admin') {
-        const navMenu = document.querySelector('.nav-menu');
-        if (navMenu) {
-            const li = document.createElement('li');
-            li.className = 'nav-item';
-            li.style.borderTop = '1px dashed rgba(255,255,255,0.15)';
-            li.style.marginTop = '10px';
-            li.style.paddingTop = '10px';
-            li.innerHTML = `
-                <a href="/admin/index.html" class="nav-link" style="color: #3b82f6;">
-                    <i class="fas fa-user-shield"></i>
-                    <span>Khu vực Admin</span>
-                </a>
-            `;
-            const logoutItem = navMenu.querySelector('li:last-child');
-            if (logoutItem) {
-                navMenu.insertBefore(li, logoutItem);
-            } else {
-                navMenu.appendChild(li);
-            }
-        }
-    }
-
-    
 
     try {
 

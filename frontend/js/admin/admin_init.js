@@ -11,31 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Nếu admin là giảng viên được phân quyền, hiển thị link chuyển sang khu vực giảng viên
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.id && userInfo.id !== 'admin') {
-        const navMenu = document.querySelector('.nav-menu');
-        if (navMenu) {
-            const li = document.createElement('li');
-            li.className = 'nav-item';
-            li.style.borderTop = '1px dashed rgba(255,255,255,0.15)';
-            li.style.marginTop = '10px';
-            li.style.paddingTop = '10px';
-            li.innerHTML = `
-                <a href="/lecturer/index.html" class="nav-link" style="color: #3b82f6;">
-                    <i class="fas fa-user-circle"></i>
-                    <span>Khu vực Giảng viên</span>
-                </a>
-            `;
-            const logoutItem = navMenu.querySelector('li:last-child');
-            if (logoutItem) {
-                navMenu.insertBefore(li, logoutItem);
-            } else {
-                navMenu.appendChild(li);
-            }
-        }
-    }
-
     if (typeof initAdminProfile === 'function') {
         initAdminProfile();
     }
@@ -51,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadResearchFields();
     } else if (document.getElementById('page-admin-accounts')) {
         loadAccounts();
+        loadAdminAccounts();
     } else if (document.getElementById('page-admin-external-authors')) {
         loadExternalAuthors();
     } else if (document.getElementById('page-admin-overview')) {

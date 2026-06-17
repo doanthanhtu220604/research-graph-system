@@ -268,18 +268,41 @@
                                     <th>ID</th>
                                     <th>Họ và tên</th>
                                     <th>Tên đăng nhập / Email</th>
-                                    <th>Bộ môn</th>
-                                    <th>Vai trò</th>
                                     <th>Trạng thái TK</th>
                                     <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="adminAccountsBody">
-                                <tr><td colspan="7" class="loading-cell">Đang tải...</td></tr>
+                                <tr><td colspan="5" class="loading-cell">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>
                     <div id="accPagination"></div>
+                </div>
+            </div>
+
+            <!-- Admin Accounts Section -->
+            <div class="card" style="margin-top: 28px;">
+                <div class="card-header" style="display:flex; align-items:center; justify-content:space-between;">
+                    <h2><i class="fas fa-user-shield"></i> Tài khoản Quản trị viên (Admin)</h2>
+                    <button class="btn btn-primary" onclick="openCreateAdminModal()" style="gap:6px;"><i class="fas fa-plus"></i> Tạo Admin mới</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Họ và tên</th>
+                                    <th>Tên đăng nhập</th>
+                                    <th>Email</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAdminBody">
+                                <tr><td colspan="4" class="loading-cell">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -311,6 +334,59 @@
             <div class="actions">
                 <button class="btn" onclick="closePwModal()">Huỷ</button>
                 <button class="btn btn-primary" onclick="savePwModal()"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Admin Modal -->
+    <div class="pw-modal-overlay" id="createAdminOverlay">
+        <div class="pw-modal" style="width:460px;">
+            <h3><i class="fas fa-user-shield"></i> Tạo tài khoản Admin mới</h3>
+            <div style="margin-bottom:14px;">
+                <label for="adminHoVaTen">Họ và tên</label>
+                <input type="text" id="adminHoVaTen" placeholder="Nhập họ và tên...">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label for="adminUsername">Tên đăng nhập <span style="color:red">*</span></label>
+                <input type="text" id="adminUsername" placeholder="Nhập tên đăng nhập (không dấu, không khoảng trắng)..." autocomplete="off">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label for="adminEmail">Email</label>
+                <input type="text" id="adminEmail" placeholder="Nhập địa chỉ email..." autocomplete="off">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label for="adminPw">Mật khẩu <span style="color:red">*</span></label>
+                <input type="password" id="adminPw" placeholder="Mật khẩu (tối thiểu 6 ký tự)..." autocomplete="new-password">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label for="adminPwConfirm">Xác nhận mật khẩu <span style="color:red">*</span></label>
+                <input type="password" id="adminPwConfirm" placeholder="Nhập lại mật khẩu..." autocomplete="new-password">
+            </div>
+            <div id="createAdminMsg" style="display:none;font-size:13px;margin-bottom:10px;"></div>
+            <div class="actions">
+                <button class="btn" onclick="closeCreateAdminModal()">Huỷ</button>
+                <button class="btn btn-primary" onclick="saveCreateAdmin()"><i class="fas fa-save"></i> Tạo Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Reset Password Modal -->
+    <div class="pw-modal-overlay" id="adminResetPwOverlay">
+        <div class="pw-modal">
+            <h3><i class="fas fa-redo"></i> Đặt lại mật khẩu Admin</h3>
+            <input type="hidden" id="adminResetTargetId">
+            <div style="margin-bottom:14px;">
+                <label for="adminResetPw">Mật khẩu mới <span style="color:red">*</span></label>
+                <input type="password" id="adminResetPw" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)..." autocomplete="new-password">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label for="adminResetPwConfirm">Xác nhận mật khẩu <span style="color:red">*</span></label>
+                <input type="password" id="adminResetPwConfirm" placeholder="Nhập lại mật khẩu..." autocomplete="new-password">
+            </div>
+            <div id="adminResetMsg" style="display:none;font-size:13px;margin-bottom:10px;"></div>
+            <div class="actions">
+                <button class="btn" onclick="closeAdminResetPwModal()">Huỷ</button>
+                <button class="btn btn-primary" onclick="saveAdminResetPw()"><i class="fas fa-save"></i> Lưu</button>
             </div>
         </div>
     </div>
@@ -440,6 +516,100 @@
         }
         document.getElementById('infoModalOverlay').addEventListener('click', function(e) {
             if (e.target === this) closeInfoModal();
+        });
+
+        // ── Create Admin Modal ──────────────────────────────────
+        function openCreateAdminModal() {
+            ['adminHoVaTen','adminUsername','adminEmail','adminPw','adminPwConfirm'].forEach(id => document.getElementById(id).value = '');
+            const msg = document.getElementById('createAdminMsg');
+            msg.style.display = 'none';
+            document.getElementById('createAdminOverlay').classList.add('active');
+            setTimeout(() => document.getElementById('adminHoVaTen').focus(), 50);
+        }
+        function closeCreateAdminModal() {
+            document.getElementById('createAdminOverlay').classList.remove('active');
+        }
+        async function saveCreateAdmin() {
+            const ho_va_ten = document.getElementById('adminHoVaTen').value.trim();
+            const username  = document.getElementById('adminUsername').value.trim();
+            const email     = document.getElementById('adminEmail').value.trim();
+            const pw        = document.getElementById('adminPw').value.trim();
+            const cf        = document.getElementById('adminPwConfirm').value.trim();
+            const msg       = document.getElementById('createAdminMsg');
+
+            const showMsg = (text, ok) => {
+                msg.textContent = text;
+                msg.style.color = ok ? '#10b981' : '#ef4444';
+                msg.style.display = 'block';
+            };
+
+            if (!username)  { showMsg('Vui lòng nhập tên đăng nhập.', false); return; }
+            if (!pw)        { showMsg('Vui lòng nhập mật khẩu.', false); return; }
+            if (pw.length < 6) { showMsg('Mật khẩu phải từ 6 ký tự.', false); return; }
+            if (pw !== cf)  { showMsg('Mật khẩu xác nhận không khớp.', false); return; }
+
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}') || {};
+                const res  = await fetch(`${ADMIN_API_BASE}/accounts/admins?requester_id=${encodeURIComponent(currentUser.id || '')}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ho_va_ten, username, email, password: pw })
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    showMsg('Tạo tài khoản Admin thành công!', true);
+                    await loadAdminAccounts();
+                    setTimeout(closeCreateAdminModal, 1200);
+                } else { showMsg('Lỗi: ' + data.message, false); }
+            } catch(e) { showMsg('Lỗi kết nối máy chủ.', false); }
+        }
+        document.getElementById('createAdminOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCreateAdminModal();
+        });
+
+        // ── Admin Reset Password Modal ──────────────────────────
+        function openAdminResetPwModal(id) {
+            document.getElementById('adminResetTargetId').value = id;
+            document.getElementById('adminResetPw').value = '';
+            document.getElementById('adminResetPwConfirm').value = '';
+            const msg = document.getElementById('adminResetMsg');
+            msg.style.display = 'none';
+            document.getElementById('adminResetPwOverlay').classList.add('active');
+            setTimeout(() => document.getElementById('adminResetPw').focus(), 50);
+        }
+        function closeAdminResetPwModal() {
+            document.getElementById('adminResetPwOverlay').classList.remove('active');
+        }
+        async function saveAdminResetPw() {
+            const id  = document.getElementById('adminResetTargetId').value;
+            const pw  = document.getElementById('adminResetPw').value.trim();
+            const cf  = document.getElementById('adminResetPwConfirm').value.trim();
+            const msg = document.getElementById('adminResetMsg');
+
+            const showMsg = (text, ok) => {
+                msg.textContent = text;
+                msg.style.color = ok ? '#10b981' : '#ef4444';
+                msg.style.display = 'block';
+            };
+
+            if (!pw || pw.length < 6) { showMsg('Mật khẩu phải từ 6 ký tự.', false); return; }
+            if (pw !== cf) { showMsg('Mật khẩu xác nhận không khớp.', false); return; }
+
+            try {
+                const res  = await fetch(`${ADMIN_API_BASE}/accounts/admins/${id}/reset-password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_password: pw })
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    showMsg('Đặt lại mật khẩu thành công!', true);
+                    setTimeout(closeAdminResetPwModal, 1200);
+                } else { showMsg('Lỗi: ' + data.message, false); }
+            } catch(e) { showMsg('Lỗi kết nối máy chủ.', false); }
+        }
+        document.getElementById('adminResetPwOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeAdminResetPwModal();
         });
     </script>
 </body>

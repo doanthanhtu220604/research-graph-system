@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
 
         const role = localStorage.getItem('userRole');
-        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}') || {};
         const authContainer = document.getElementById('authContainer');
 
         if (authContainer && role) {

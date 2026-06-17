@@ -67,17 +67,22 @@ def login():
         # 2. Kiểm tra tài khoản Giảng viên (trên Neo4j)
         query = """
         MATCH (g:GiangVien)
-        WHERE (g.username = $username OR g.email = $username OR g.id = $username) AND g.password = $password
-        RETURN g.id AS id, g.ho_va_ten AS ten, g.email AS email, g.bo_mon AS bo_mon, g.anh_dai_dien AS avatar, g.vai_tro AS vai_tro
+        WHERE (g.username = $username OR g.email = $username OR g.id = $username) 
+          AND g.password = $password
+          AND coalesce(g.is_deleted, false) = false
+        RETURN g.id AS id, g.ho_va_ten AS ten, g.email AS email, g.bo_mon AS bo_mon, 
+               g.anh_dai_dien AS avatar, g.vai_tro AS vai_tro, g.trang_thai_tk AS trang_thai_tk
         """
         result = conn.query_single(query, parameters={'username': username, 'password': password})
         
         if result:
-            user_role = 'admin' if result.get('vai_tro') == 'admin' else 'lecturer'
+            if result.get('trang_thai_tk') == 'Bị khoá':
+                return jsonify({'status': 'error', 'message': 'Tài khoản của bạn đã bị khoá. Vui lòng liên hệ Quản trị viên.'}), 403
+
             return jsonify({
                 'status': 'ok',
                 'data': {
-                    'role': user_role,
+                    'role': 'lecturer',
                     'user': {
                         'id': result['id'],
                         'name': result['ten'],
@@ -455,7 +460,7 @@ def update_profile():
                         'avatar': result[0]['avatar'] or ''
                     }
                 })
-            
+
         elif role == 'lecturer':
             # Check if there is already a pending edit request
             pending_check = conn.query_single("""

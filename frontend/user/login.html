@@ -218,6 +218,7 @@
 
                     // Redirect
                     if (data.data.role === 'admin') {
+                        localStorage.setItem('isAdmin', 'true');
                         window.location.href = '/admin/index.html';
                     } else if (data.data.role === 'lecturer') {
                         window.location.href = '/lecturer/index.html';

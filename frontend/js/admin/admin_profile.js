@@ -5,29 +5,16 @@
 let uploadedAvatarUrl = '';
 
 window.initAdminProfile = function () {
-    let userRole     = localStorage.getItem('userRole');
-    let userInfoRaw  = localStorage.getItem('userInfo');
-    let needsFallback = false;
+    let parsed = null;
+    try { parsed = JSON.parse(localStorage.getItem('userInfo')); } catch (e) {}
 
-    if (localStorage.getItem('isAdmin') === 'true') {
-        if (!userRole || !userInfoRaw) {
-            needsFallback = true;
-        } else {
-            try {
-                const parsed = JSON.parse(userInfoRaw);
-                if (!parsed.id || parsed.id === 'admin_default') needsFallback = true;
-            } catch (e) { needsFallback = true; }
-        }
-    }
-
-    if (needsFallback) {
+    if (!parsed || !parsed.id) {
+        parsed = { id: 'admin', name: 'Administrator', email: 'admin@system', avatar: '' };
         localStorage.setItem('userRole', 'admin');
-        localStorage.setItem('userInfo', JSON.stringify({ id: 'admin', name: 'Administrator', email: 'admin@system', avatar: '' }));
-        userRole    = 'admin';
-        userInfoRaw = localStorage.getItem('userInfo');
+        localStorage.setItem('userInfo', JSON.stringify(parsed));
     }
 
-    const userInfo     = JSON.parse(userInfoRaw || '{}');
+    const userInfo = parsed;
     const headerActions = document.querySelector('.header-actions');
     if (headerActions) {
         const helloSpan = Array.from(headerActions.querySelectorAll('span')).find(s => s.textContent.includes('Xin chào'));
