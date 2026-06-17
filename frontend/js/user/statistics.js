@@ -204,7 +204,11 @@ function renderOngoingActivities(projects, publications) {
             projEl.innerHTML = projects.map(dt => {
                 const title = String(dt.ten_de_tai || 'N/A').replace(/</g, '&lt;');
                 const cap   = dt.cap_de_tai || 'Chưa xác định';
-                const nam   = dt.nam_bat_dau ? `${dt.nam_bat_dau} – ${dt.nam_ket_thuc || 'nay'}` : '';
+                const startYear = dt.nam_bat_dau;
+                const endYear = dt.nam_ket_thuc;
+                const nam = (startYear && endYear && startYear !== endYear)
+                    ? `${startYear} – ${endYear}`
+                    : (startYear ? (startYear === endYear ? `${startYear}` : `${startYear} – nay`) : '');
                 const chu   = dt.chu_nhiem ? `<i class="fas fa-user"></i> ${dt.chu_nhiem}` : '';
                 
                 const status = dt.trang_thai || 'Đang thực hiện';
