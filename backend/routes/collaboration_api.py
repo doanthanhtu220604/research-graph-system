@@ -27,6 +27,7 @@ def get_collaboration_overview():
         collab_ct = conn.query_single("""
             MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
             WHERE coalesce(gv1.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv1, ct
             MATCH (ct)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
             WHERE id(gv1) < id(gv2) AND coalesce(gv2.is_deleted, false) = false
@@ -40,13 +41,15 @@ def get_collaboration_overview():
               AND coalesce(gv1.is_deleted, false) = false 
               AND coalesce(gv2.is_deleted, false) = false
               AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN count(DISTINCT [gv1.id, gv2.id]) AS total
         """)
 
         # Số GV tham gia ít nhất 1 hợp tác
         active_collab = conn.query_single("""
             MATCH (gv1:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
-            WHERE gv1 <> gv2
+            WHERE gv1 <> gv2 AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH collect(DISTINCT gv1) + collect(DISTINCT gv2) AS gvs
             UNWIND gvs AS gv
             RETURN count(DISTINCT gv) AS total
@@ -90,9 +93,10 @@ def get_top_pairs():
               AND coalesce(gv1.is_deleted, false) = false 
               AND coalesce(gv2.is_deleted, false) = false
               AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv1, gv2, count(DISTINCT ct) AS so_ct
             OPTIONAL MATCH (gv1)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv2)
-            WHERE coalesce(dt.is_deleted, false) = false
+            WHERE coalesce(dt.is_deleted, false) = false AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv1, gv2, so_ct, count(DISTINCT dt) AS so_dt
             WITH gv1, gv2, so_ct, so_dt, (so_ct + so_dt) AS tong_hop_tac
             ORDER BY tong_hop_tac DESC
@@ -144,11 +148,13 @@ def get_top_connectors():
             // Lấy danh sách cộng sự qua công trình
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)
             WHERE gv <> gv2 AND coalesce(gv2.is_deleted, false) = false AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv, collect(DISTINCT gv2) AS list_ct
             
             // Lấy danh sách cộng sự qua đề tài
             OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)<-[:CHU_NHIEM|THAM_GIA]-(gv3:GiangVien)
             WHERE gv <> gv3 AND coalesce(gv3.is_deleted, false) = false AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv, list_ct, collect(DISTINCT gv3) AS list_dt
             
             // Tính tổng số cộng sự duy nhất (Unique)
@@ -162,7 +168,7 @@ def get_top_connectors():
             
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct2:CongTrinhNghienCuu)
-            WHERE coalesce(ct2.is_deleted, false) = false
+            WHERE coalesce(ct2.is_deleted, false) = false AND ct2.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    gv.anh_dai_dien AS avatar, bm.ten_bo_mon AS bo_mon,
                    cong_su_ct, cong_su_dt, tong_cong_su,
@@ -202,12 +208,15 @@ def get_bridge_connectors():
             MATCH (gv:GiangVien)-[:THUOC_BO_MON]->(bm_own:BoMon) WHERE coalesce(bm_own.is_deleted, false) = false
             MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)<-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]-(gv2:GiangVien)-[:THUOC_BO_MON]->(bm2:BoMon)
             WHERE gv <> gv2 AND bm_own <> bm2 AND coalesce(bm2.is_deleted, false) = false
+              AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv, bm_own, collect(DISTINCT bm2.ten_bo_mon) AS bo_mon_ket_noi,
                  count(DISTINCT gv2) AS so_cong_su_khac_bm
             WHERE so_cong_su_khac_bm > 0
             ORDER BY size(bo_mon_ket_noi) DESC, so_cong_su_khac_bm DESC
             LIMIT 10
             OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct2:CongTrinhNghienCuu)
+            WHERE coalesce(ct2.is_deleted, false) = false AND ct2.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    gv.anh_dai_dien AS avatar, bm_own.ten_bo_mon AS bo_mon_chinh,
                    bo_mon_ket_noi, so_cong_su_khac_bm,
@@ -258,6 +267,7 @@ def get_collaboration_graph():
               AND coalesce(gv1.is_deleted, false) = false
               AND coalesce(gv2.is_deleted, false) = false
               AND coalesce(ct.is_deleted, false) = false
+              AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv1, gv2, count(DISTINCT ct) AS so_ct, collect(DISTINCT ct.ten_cong_trinh) AS ds_ct
             WHERE so_ct >= $min_collab
             RETURN gv1.id AS id1, gv2.id AS id2, so_ct, ds_ct, 0 AS so_dt, [] AS ds_dt
@@ -270,6 +280,7 @@ def get_collaboration_graph():
               AND coalesce(gv1.is_deleted, false) = false
               AND coalesce(gv2.is_deleted, false) = false
               AND coalesce(dt.is_deleted, false) = false
+              AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             WITH gv1, gv2, count(DISTINCT dt) AS so_dt, collect(DISTINCT dt.ten_de_tai) AS ds_dt
             WHERE so_dt >= 1
             RETURN gv1.id AS id1, gv2.id AS id2, 0 AS so_ct, [] AS ds_ct, so_dt, ds_dt
@@ -324,8 +335,10 @@ def get_collaboration_graph():
             MATCH (gv:GiangVien)
             WHERE gv.id IN $ids
             OPTIONAL MATCH (gv)-[:THUOC_BO_MON]->(bm:BoMon) WHERE coalesce(bm.is_deleted, false) = false
-            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu) WHERE coalesce(ct.is_deleted, false) = false
-            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu) WHERE coalesce(dt.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+            WHERE coalesce(ct.is_deleted, false) = false AND ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
+            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+            WHERE coalesce(dt.is_deleted, false) = false AND dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành']
             RETURN gv.id AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                    bm.ten_bo_mon AS bo_mon,
                    count(DISTINCT ct) AS tong_ct,

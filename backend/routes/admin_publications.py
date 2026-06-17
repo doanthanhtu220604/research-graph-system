@@ -178,7 +178,10 @@ def approve_cong_trinh(id):
     try:
         conn.write("""
             MATCH (ct:CongTrinhNghienCuu) WHERE ct.id = $id
-            SET ct.trang_thai = coalesce(ct.old_status, 'Đang thực hiện')
+            SET ct.trang_thai = CASE
+                WHEN ct.old_status IS NOT NULL AND trim(ct.old_status) <> '' THEN ct.old_status
+                ELSE 'Đang thực hiện'
+            END
             REMOVE ct.old_status
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Duyệt công trình thành công"})

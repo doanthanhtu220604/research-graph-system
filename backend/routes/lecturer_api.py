@@ -198,7 +198,7 @@ def get_my_publications():
         WHERE g.id = $id AND coalesce(ct.is_deleted, false) = false
         OPTIONAL MATCH (tv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct) WHERE tv.id <> $id
         WITH ct, r, collect(DISTINCT tv.id) AS thanh_vien_ids
-        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CONG_SU]->(ct)
+        OPTIONAL MATCH (tgn:TacGiaNgoai)-[:CONG_SU|DONG_TAC_GIA]->(ct)
         RETURN ct {.*, vai_tro: type(r)} AS cong_trinh,
                thanh_vien_ids,
                collect(DISTINCT tgn.id) AS tac_gia_ngoai_ids
@@ -417,7 +417,12 @@ def update_my_publication(ct_id):
 
             query = f"""
             MATCH (ct:CongTrinhNghienCuu) WHERE (ct.id IS NOT NULL AND toString(ct.id) = toString($ct_id)) OR (ct.id IS NULL AND toString(id(ct)) = toString($ct_id))
-            SET ct.old_status = coalesce($trang_thai, CASE WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai ELSE ct.old_status END, 'Đang thực hiện'),
+            SET ct.old_status = CASE
+                    WHEN $trang_thai IS NOT NULL AND trim($trang_thai) <> '' THEN $trang_thai
+                    WHEN ct.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN ct.trang_thai
+                    WHEN ct.old_status IS NOT NULL AND trim(ct.old_status) <> '' THEN ct.old_status
+                    ELSE 'Đang thực hiện'
+                END,
                 ct.ten_cong_trinh = toUpper($ten_ct),
                 ct.ten_cong_trinh_vi = toUpper($ten_ct_vi),
                 ct.slug = $slug,
@@ -892,7 +897,12 @@ def update_my_project(dt_id):
             # Cập nhật thông tin cơ bản
             query = f"""
             MATCH (dt:DeTaiNghienCuu) WHERE (dt.id IS NOT NULL AND toString(dt.id) = toString($dt_id)) OR (dt.id IS NULL AND toString(id(dt)) = toString($dt_id))
-            SET dt.old_status = coalesce($trang_thai, CASE WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai ELSE dt.old_status END, 'Đang thực hiện'),
+            SET dt.old_status = CASE
+                    WHEN $trang_thai IS NOT NULL AND trim($trang_thai) <> '' THEN $trang_thai
+                    WHEN dt.trang_thai IN ['Đang thực hiện', 'Hoàn thành'] THEN dt.trang_thai
+                    WHEN dt.old_status IS NOT NULL AND trim(dt.old_status) <> '' THEN dt.old_status
+                    ELSE 'Đang thực hiện'
+                END,
                 dt.ten_de_tai = toUpper($ten_dt),
                 dt.slug = $slug,
                 dt.cap_de_tai = toUpper($cap),

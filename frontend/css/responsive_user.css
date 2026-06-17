@@ -824,6 +824,86 @@
         grid-template-columns: 1fr !important;
     }
 
+    /* Statistics: ongoing activities section */
+    .ongoing-activities-section {
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    .activity-section-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .activity-tabs {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .activity-tab {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    /* Statistics: top lecturers section */
+    .top-lecturers-section {
+        padding: 16px;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    .section-header {
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    /* Podium grid: 3 cols still fit on mobile (they are small) */
+    .podium-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    .podium-card {
+        padding: 14px 8px;
+    }
+    .podium-name {
+        font-size: 11px;
+        min-height: unset;
+    }
+    .podium-count {
+        font-size: 16px;
+    }
+
+    /* Rank list: tighter on mobile */
+    .rank-bar-wrap {
+        width: 80px;
+    }
+    .rank-list-item {
+        padding: 8px 10px;
+        gap: 10px;
+    }
+    .rank-name {
+        font-size: 13px;
+    }
+
+    /* Trends grid: stack on mobile */
+    .trends-grid-layout {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+
+    /* Charts grid: stack on mobile */
+    .charts-grid-layout {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    /* Chart container on mobile */
+    .chart-container {
+        padding: 16px;
+    }
+
     /* Toolbar */
     .data-toolbar {
         flex-wrap: wrap;
@@ -1041,6 +1121,17 @@
     /* Podium grid: single col on small phones */
     .podium-grid {
         grid-template-columns: 1fr !important;
+    }
+
+    /* Top lecturers section: tighter padding */
+    .top-lecturers-section {
+        padding: 12px;
+    }
+
+    /* Trends and charts grid: full width single col */
+    .trends-grid-layout,
+    .charts-grid-layout {
+        gap: 12px;
     }
 
     /* Rank bar wrap: smaller on small phones */

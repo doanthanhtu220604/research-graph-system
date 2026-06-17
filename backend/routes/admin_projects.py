@@ -111,7 +111,10 @@ def approve_de_tai(id):
     try:
         conn.write("""
             MATCH (dt:DeTaiNghienCuu) WHERE dt.id = $id
-            SET dt.trang_thai = coalesce(dt.old_status, 'Đang thực hiện')
+            SET dt.trang_thai = CASE
+                WHEN dt.old_status IS NOT NULL AND trim(dt.old_status) <> '' THEN dt.old_status
+                ELSE 'Đang thực hiện'
+            END
             REMOVE dt.old_status
         """, {"id": id})
         return jsonify({"status": "ok", "message": "Duyệt đề tài thành công"})
