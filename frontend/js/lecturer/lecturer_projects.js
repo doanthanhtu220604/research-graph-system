@@ -22,6 +22,28 @@ async function loadProjects() {
 
             currentEntitiesData['de-tai'] = data.data;
 
+            // Populate project level filter dropdown dynamically
+            const levelSelect = document.getElementById('filterProjLevel');
+            if (levelSelect) {
+                const levels = Array.from(new Set(data.data.map(dt => dt.cap_de_tai).filter(l => l)))
+                    .map(l => l.trim())
+                    .filter((value, index, self) => self.indexOf(value) === index)
+                    .sort();
+                levelSelect.innerHTML = '<option value="">-- Cấp đề tài --</option>' + 
+                    levels.map(l => `<option value="${l}">${l}</option>`).join('');
+            }
+
+            // Populate project status filter dropdown dynamically
+            const statusSelect = document.getElementById('filterProjStatus');
+            if (statusSelect) {
+                const statuses = Array.from(new Set(data.data.map(dt => dt.trang_thai).filter(s => s)))
+                    .map(s => s.trim())
+                    .filter((value, index, self) => self.indexOf(value) === index)
+                    .sort();
+                statusSelect.innerHTML = '<option value="">-- Trạng thái --</option>' + 
+                    statuses.map(s => `<option value="${s}">${s}</option>`).join('');
+            }
+
             if(data.data.length === 0) {
 
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa tham gia đề tài nào.</td></tr>';

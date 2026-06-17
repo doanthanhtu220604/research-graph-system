@@ -22,9 +22,18 @@ async function loadPublications() {
 
             currentEntitiesData['cong-trinh'] = data.data;
 
+            // Populate publication year filter dropdown dynamically
+            const yearSelect = document.getElementById('filterPubYear');
+            if (yearSelect) {
+                const years = Array.from(new Set(data.data.map(ct => ct.nam_xuat_ban).filter(y => y)))
+                    .sort((a, b) => Number(b) - Number(a));
+                yearSelect.innerHTML = '<option value="">-- Năm xuất bản --</option>' + 
+                    years.map(y => `<option value="${y}">${y}</option>`).join('');
+            }
+
             if(data.data.length === 0) {
 
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa có công trình nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Bạn chưa có công trình nào.</td></tr>';
 
                 return;
 
