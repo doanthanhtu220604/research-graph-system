@@ -1,34 +1,34 @@
-﻿neo4j_id,id,ho_va_ten,password,dien_thoai,chuc_danh,hoc_vi,chuc_vu,anh_dai_dien,email,chuyen_nganh
-3,gv_3,Nguyễn Thanh Quỳnh Châu,123456,0905218343,GV HDTH,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/297,ntqchau@ntu.edu.vn,
-4,gv_4,Lê Thị Bích Hằng,123456,0987899140,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/306,hangltb@ntu.edu.vn,
-5,gv_5,Nguyễn Đình Hưng,123456,0974000233,Giảng viên,Tiến sĩ,Trưởng Bộ môn,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/302,hungnd@ntu.edu.vn,
-6,gv_6,Bùi Thị Hồng Minh,123456,0983000604,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/307,minhbth@ntu.edu.vn,
-7,gv_7,Phạm Thị Kim Ngoan,123456,0985102114,Giảng viên chính,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/303,ngoanptk@ntu.edu.vn,
-8,gv_8,Bùi Chí Thành,123456,0989639211,Giảng viên,Thạc sĩ,Phó trưởng khoa,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/308,thanhbc@ntu.edu.vn,
-9,gv_9,Đoàn Vũ Thịnh,123456,0914949195,GVTH,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/356,thinhdv@ntu.edu.vn,
-10,gv_10,Nguyễn Hải Triều,123456,0397129071,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3952,trieunh@ntu.edu.vn,
-11,gv_11,Nguyễn Khắc Cường,123456,0948460007,Giảng viên,Tiến sĩ,Trưởng Bộ môn,,cuongnk@ntu.edu.vn,
-12,gv_12,Nguyễn Thị Hương Lý,123456,0966883889,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3955,lynth@ntu.edu.vn,
-13,gv_13,Hà Thị Thanh Ngà,123456,0935401517,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/318,ngahtt@ntu.edu.vn,
-14,gv_14,Nguyễn Đình Hoàng Sơn,123456,0838705124,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/313,sonndh@ntu.edu.vn,
-15,gv_15,Nguyễn Thủy Đoan Trang,123456,,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/325,nguyenthuydoantrang@ntu.edu.vn,
-16,gv_16,Phạm Thị Thu Thúy,123456,0901905679,Giảng viên chính,Tiến sĩ,Trưởng Khoa CNTT,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/305,thuthuy@ntu.edu.vn,
-17,gv_17,Huỳnh Tuấn Anh,123456,0945505449,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/316,anhht@ntu.edu.vn,
-18,gv_18,Nguyễn Mạnh Cương,123456,0944440991,Giảng viên,Tiến sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/298,cuongnm@ntu.edu.vn,
-19,gv_19,Nguyễn Huỳnh Huy,123456,0772567899,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3976,huynh@ntu.edu.vn,
-20,gv_20,Phạm Văn Nam,123456,0343698586,Giảng viên,Tiến sĩ,Trưởng Bộ môn,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/299,nampv@ntu.edu.vn,
-21,gv_21,Cấn Thị Phượng,123456,0975845772,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3951,phuongct@ntu.edu.vn,
-22,gv_22,Mai Cường Thọ,123456,0915311008,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/310,thomc@ntu.edu.vn,
-23,gv_23,Đinh Đồng Lưỡng,,,Giảng viên chính,Tiến sĩ,Giảng viên kiêm nhiệm Trưởng phòng Đảm bảo chất lượng & Khảo thí,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/304,,
-41,gv_41,Trần Minh Văn,,,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/314,,
-42,gv_42,Đỗ Như An,,,,Tiến sĩ,,,,
-43,gv_43,Phạm Gia Hưng,,,,,,,,
-44,gv_44,Nguyễn Hữu Trọng,,,,,,,,
-45,gv_45,Nguyễn Đức Thuần,,,,,,,,
-54,gv_54,Vũ Đình Hòa,,,,,,,,
-55,gv_55,Nguyễn Hữu Xuân Trường,,,,,,,,
-67,gv_67,Nguyễn Đình Cường,,,Giảng viên,Thạc sĩ,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/320,,
-226,gv_226,Nguyễn Văn B,,,Giảng viên,Tiến Sĩ,,,,
-250,gv_250,Nguyễn Văn Rạng,,,Chưa xác định,Chưa xác định,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/4098,,
-257,gv_257,Ngô Nguyễn Tường Nghi,,,Chưa xác định,Chưa xác định,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/4086,,
-279,gv_279,Lê Thị Chi Mai,,,Giảng viên,Chưa xác định,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/4115,,
+﻿username,openalex_id,deleted_at,id,password,profile_edit_status,is_deleted,anh_dai_dien,email,hoc_vi,trang_thai_tk,chuyen_nganh,trang_thai_cong_tac,ma_gv,deleted_note,chuc_danh,vai_tro,dien_thoai,chuc_vu,google_scholar_id,neo4j_id,created_at,ho_va_ten
+,,,gv_3,newsecurepassword123,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/297,ntqchau@ntu.edu.vn,THẠC SĨ,,TIN HỌC,Đang công tác,1998003,,GV HDTH,,0905218343,,,3,,NGUYỄN THANH QUỲNH CHÂU
+,,,gv_4,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/306,hangltb@ntu.edu.vn,THẠC SĨ,,QUẢN LÝ THÔNG TIN,Đang công tác,2002006,,GIẢNG VIÊN,,0987899140,,,4,,LÊ THỊ BÍCH HẰNG
+,A5101704792,,gv_5,123456,Phê duyệt,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/302,hungnd@ntu.edu.vn,TIẾN SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2001011,,GIẢNG VIÊN CHÍNH,,0974000233,TRƯỞNG BỘ MÔN,,5,,NGUYỄN ĐÌNH HƯNG
+,,,gv_6,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/307,minhbth@ntu.edu.vn,THẠC SĨ,,TIN HỌC,Đang công tác,2002010,,GIẢNG VIÊN,,0983000604,,,6,,BÙI THỊ HỒNG MINH
+,,,gv_7,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/303,ngoanptk@ntu.edu.vn,THẠC SĨ,,,Đang công tác,2001023,,GIẢNG VIÊN CHÍNH,,0985102114,,,7,,PHẠM THỊ KIM NGOAN
+,,,gv_8,123456,Từ chối,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/308,thanhbc@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2003011,,GIẢNG VIÊN,giang_vien,0989639211,PHÓ TRƯỞNG KHOA,,8,,BÙI CHÍ THÀNH
+,,,gv_9,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/356,thinhdv@ntu.edu.vn,THẠC SĨ,,,Đang công tác,2008022,,GVTH,,0914949195,,,9,,ĐOÀN VŨ THỊNH
+,,,gv_10,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3952,trieunh@ntu.edu.vn,THẠC SĨ,,CƠ HỌC VÀ MÔ HÌNH TOÁN HỌC,Đang công tác,2019023,,GIẢNG VIÊN,,0397129071,,,10,,NGUYỄN HẢI TRIỀU
+,,,gv_12,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3955,lynth@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2019024,,GIẢNG VIÊN,,0966883889,,,12,,NGUYỄN THỊ HƯƠNG LÝ
+,,,gv_13,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/318,ngahtt@ntu.edu.vn,THẠC SĨ,,QUẢN LÝ THÔNG TIN,Đang công tác,2004009,,GIẢNG VIÊN,,0935401517,,,13,,HÀ THỊ THANH NGÀ
+,,,gv_14,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/313,sonndh@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2007031,,GIẢNG VIÊN,,0838705124,,,14,,NGUYỄN ĐÌNH HOÀNG SƠN
+,,,gv_15,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/325,nguyenthuydoantrang@ntu.edu.vn,THẠC SĨ,,,Đang công tác,2005002,,GIẢNG VIÊN,,,,,15,,NGUYỄN THỦY ĐOAN TRANG
+,,,gv_16,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/305,thuthuy@ntu.edu.vn,TIẾN SĨ,,KỸ THUẬT MÁY TÍNH,Đang công tác,2001025,,GIẢNG VIÊN CHÍNH,,0901905679,TRƯỞNG KHOA CNTT,,16,,PHẠM THỊ THU THÚY
+,,,gv_17,123456,Phê duyệt,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/316,anhht@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2008005,,GIẢNG VIÊN,giang_vien,0945505449,,,17,,HUỲNH TUẤN ANH
+,,,gv_18,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/298,cuongnm@ntu.edu.vn,TIẾN SĨ,,KHOA HỌC MÁY TÍNH,Đang công tác,1999009,,GIẢNG VIÊN,,0944440991,,,18,,NGUYỄN MẠNH CƯƠNG
+,,,gv_19,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3976,huynh@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2019025,,GIẢNG VIÊN,,0772567899,,,19,,NGUYỄN HUỲNH HUY
+,,,gv_20,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/299,nampv@ntu.edu.vn,TIẾN SĨ,,KỸ THUẬT MÁY TÍNH,Đang công tác,1999010,,GIẢNG VIÊN,,0343698586,TRƯỞNG BỘ MÔN,,20,,PHẠM VĂN NAM
+,,,gv_21,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3951,phuongct@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2019026,,GIẢNG VIÊN,,0975845772,,,21,,CẤN THỊ PHƯỢNG
+,,,gv_22,123456,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/310,thomc@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2004010,,GIẢNG VIÊN,,0915311008,,,22,,MAI CƯỜNG THỌ
+,,,gv_23,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/304,luongdd@ntu.edu.vn,TIẾN SĨ,,KỸ THUẬT MÁY TÍNH,Đang công tác,2001022,,GIẢNG VIÊN CHÍNH,,,GIÁM ĐỐC,,23,,ĐINH ĐỒNG LƯỠNG
+,,,gv_41,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/314,minhvan@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2007039,,GIẢNG VIÊN,,,PHÓ TRƯỞNG PHÒNG,,41,,TRẦN MINH VĂN
+,,,gv_42,,,,,andn@ntu.edu.vn,TIẾN SĨ,,,Nghỉ hưu, ,,,,,,,42,,ĐỖ NHƯ AN
+tu.dt.64cntt@ntu.edu.vn,,,gv_43,123456,,,http://localhost:5000/uploads/avatars/09036e1b-142e-4b28-9a32-d9201081219f_bece90518ef8a6182ced43bfddadc876.jpg,tu.dt.64cntt@ntu.edu.vn,,Hoạt động,,Đang công tác,123456,,,,,,,43,,ĐOÀN THANH TÚ
+,,,gv_45,,,,,,,,,Nghỉ hưu, ,,,,,,,45,,NGUYỄN ĐỨC THUẦN
+,,,gv_67,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/320,cuongnd@ntu.edu.vn,THẠC SĨ,,KỸ THUẬT THÔNG TIN VÀ TRUYỀN THÔNG,Đang công tác,2004006,,GIẢNG VIÊN,,,,,67,,NGUYỄN ĐÌNH CƯỜNG
+,,,gv_158,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3932,hieunh@ntu.edu.vn,,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2019015,,CHUYÊN VIÊN,,,,,158,,NGUYỄN HỮU HIẾU
+,,,gv_250,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/4098,rangnv@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2025007,,CHƯA XÁC ĐỊNH,,,GIẢNG VIÊN,,250,,NGUYỄN VĂN RẠNG
+,,,gv_257,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/4086,nghinnt@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2024024,,GIẢNG VIÊN,,,,,257,,NGÔ NGUYỄN TƯỜNG NGHI
+,,,gv_279,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/4115,mailtc@ntu.edu.vn,CHƯA XÁC ĐỊNH,,HỆ THỐNG THÔNG TIN QUẢN LÝ,Đang công tác,2025022,,GIẢNG VIÊN,,,,,279,,LÊ THỊ CHI MAI
+,,,gv_304,,,,https://chuyengia.ntu.edu.vn/chuyengia/timkiem/PersonelImage/3938,nguyendpc@ntu.edu.vn,THẠC SĨ,,CÔNG NGHỆ THÔNG TIN,Đang công tác,2019216,,GIẢNG VIÊN,,,,,304,,ĐINH PHAN CAO NGUYÊN
+,,1781662564084,gv_322,,,True,,test1@ntu.edu.vn,TIẾN SĨ,,CÔNG NGHỆ PHẦN MỀM,Đang công tác,GV_TEST001,,GIẢNG VIÊN,,0987654321,GIẢNG VIÊN,,322,1781661146583,TEST1
+,,1781662556531,gv_335,,,True,,test001@ntu.edu.vn,TIẾN SĨ,,,Đang công tác,TEST001,,,,0123456789,GIẢNG VIÊN,,335,1781661199551,GIẢNG VIÊN THỬ NGHIỆM 1
+,,1781662558757,gv_336,,,True,,test002@ntu.edu.vn,THẠC SĨ,,,Đang công tác,TEST002,,,,0987654321,GIẢNG VIÊN,,336,1781661199651,GIẢNG VIÊN THỬ NGHIỆM 2

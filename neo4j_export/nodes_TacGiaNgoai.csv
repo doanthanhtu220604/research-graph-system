@@ -1,54 +1,65 @@
-﻿neo4j_id,ho_va_ten
-159,Young-Koo Lee
-160,Sungyoung Lee
-161,Byeong-Soo Jeong
-162,Guanghu Shen
-163,Ho-Youl Jung
-164,Hyun-Yeol Chung
-165,Bùi Đức Dương
-166,Brian J. d'Auriol
-167,Tuyen Nguyen
-168,Guangho Shen
-169,Jae-Won Cho
-170,Ju Hyun Park
-171,Nguyen Xuan Huy
-172,Ju H. Park
-173,Nguyễn Xuân Đạt
-174,Hàng Nguyên Huy
-175,Hoa V. Dinh
-176,Đỗ Minh Tuấn
-177,Vu Anh
-178,The Hien Pham
-179,Hyun Yeol Chung
-180,Suk Nam Choi
-181,Nguyễn Hoài Nam
-182,Văn Thế Thành
-183,Nguyễn Đình Ái
-184,Nguyen Hung Quoc
-185,Bui Van Dinh
-187,Le Dung Muu
-188,Thanh Le Hoang
-189,Huynh Minh Tri
-190,Đặng Thúy Bình
-191,Ly T. H. Nguyen
-192,Cuong Q. Nguyen
-193,Le Huu Binh
-194,Tu T. Vo
-196,Nguyễn Quốc Cường
-197,Lê Hữu Bình
-198,Võ Thanh Tú
-199,Vu Viet VU
-200,Byeongnam Yoon
-201,Đỗ Văn Tuấn
-203,Lê Văn Hảo
-204,"Hossain, M.D."
-205,"Lee, G.-W."
-206,"Huh, E.-N."
-207,T. D. T. Nguyen
-208,V. Nguyen
-209,L. N. T. Huynh
-210,M. D. Hossain
-211,E. -N. Huh
-212,"Nguyen, V."
-213,"Nguyen, T.D.T."
-214,"Huh, EN."
+﻿trang_thai,is_deleted,anh_dai_dien,email,neo4j_id,created_at,id,hoc_vi,created_by,ho_va_ten,chuc_danh,chuyen_nganh,don_vi_cong_tac
+Đã duyệt,False,,cuongnk@ntu.edu.vn,11,,tgn_gv_11,TIẾN SĨ,,NGUYỄN KHẮC CƯỜNG,GIẢNG VIÊN,,GIẢNG VIÊN ĐÃ CHUYỂN ĐI CỦA TRƯỜNG ĐẠI HỌC NHA TRANG
+Đã duyệt,False,,nguyenhuutrong@ntu.ed.vn,44,,tgn_gv_44,,,NGUYỄN HỮU TRỌNG,,,GIẢNG VIÊN ĐÃ CHUYỂN ĐI CỦA TRƯỜNG ĐẠI HỌC NHA TRANG
+Đã duyệt,False,,,55,1781653191521,tgn_55,,gv_43,NGUYỄN ĐỨC THÔNG,,,
+Đã duyệt,False,,,159,,tgn_159,,,YOUNG-KOO LEE,,,
+Đã duyệt,False,,,160,,tgn_160,,,SUNGYOUNG LEE,,,
+Đã duyệt,False,,,161,,tgn_161,,,BYEONG-SOO JEONG,,,
+Đã duyệt,False,,,162,,tgn_162,,,GUANGHU SHEN,,,
+Đã duyệt,False,,,163,,tgn_163,,,HO-YOUL JUNG,,,
+Đã duyệt,False,,,164,,tgn_164,,,HYUN-YEOL CHUNG,,,
+Đã duyệt,False,,,165,,tgn_165,,,BÙI ĐỨC DƯƠNG,,,
+Đã duyệt,False,,,166,,tgn_166,,,BRIAN J. D'AURIOL,,,
+Đã duyệt,False,,,167,,tgn_167,,,TUYEN NGUYEN,,,
+Đã duyệt,False,,,168,,tgn_168,,,GUANGHO SHEN,,,
+Đã duyệt,False,,,169,,tgn_169,,,JAE-WON CHO,,,
+Đã duyệt,False,,,170,,tgn_170,,,JU HYUN PARK,,,
+Đã duyệt,False,,,171,,tgn_171,,,NGUYEN XUAN HUY,,,
+Đã duyệt,False,,,172,,tgn_172,,,JU H. PARK,,,
+Đã duyệt,False,,,173,,tgn_173,,,NGUYỄN XUÂN ĐẠT,,,
+Đã duyệt,False,,,174,,tgn_174,,,HÀNG NGUYÊN HUY,,,
+Đã duyệt,False,,,176,,tgn_176,,,ĐỖ MINH TUẤN,,,
+Đã duyệt,False,,,177,,tgn_177,,,VU ANH,,,
+Đã duyệt,False,,,178,,tgn_178,,,THE HIEN PHAM,,,
+Đã duyệt,False,,,179,,tgn_179,,,HYUN YEOL CHUNG,,,
+Đã duyệt,False,,,180,,tgn_180,,,SUK NAM CHOI,,,
+Đã duyệt,False,,,181,,tgn_181,,,NGUYỄN HOÀI NAM,,,
+Đã duyệt,False,,,182,,tgn_182,,,VĂN THẾ THÀNH,,,
+Đã duyệt,False,,,183,,tgn_183,,,NGUYỄN ĐÌNH ÁI,,,
+Đã duyệt,False,,,184,,tgn_184,,,NGUYEN HUNG QUOC,,,
+Đã duyệt,False,,,185,,tgn_185,,,BUI VAN DINH,,,
+Đã duyệt,False,,,187,,tgn_187,,,LE DUNG MUU,,,
+Đã duyệt,False,,,188,,tgn_188,,,THANH LE HOANG,,,
+Đã duyệt,False,,,189,,tgn_189,,,HUYNH MINH TRI,,,
+Đã duyệt,False,,,190,,tgn_190,,,ĐẶNG THÚY BÌNH,,,
+Đã duyệt,False,,,191,,tgn_191,,,LY T. H. NGUYEN,,,
+Đã duyệt,False,,,192,,tgn_192,,,CUONG Q. NGUYEN,,,
+Đã duyệt,False,,,193,,tgn_193,,,LE HUU BINH,,,
+Đã duyệt,False,,,194,,tgn_194,,,TU T. VO,,,
+Đã duyệt,False,,,196,,tgn_196,,,NGUYỄN QUỐC CƯỜNG,,,
+Đã duyệt,False,,,197,,tgn_197,,,LÊ HỮU BÌNH,,,
+Đã duyệt,False,,,198,,tgn_198,,,VÕ THANH TÚ,,,
+Đã duyệt,False,,,199,,tgn_199,,,VU VIET VU,,,
+Đã duyệt,False,,,200,,tgn_200,,,BYEONGNAM YOON,,,
+Đã duyệt,False,,,201,,tgn_201,,,ĐỖ VĂN TUẤN,,,
+Đã duyệt,False,,,203,,tgn_203,,,LÊ VĂN HẢO,,,
+Đã duyệt,False,,,204,,tgn_204,,,MD. DELWAR HOSSAIN,,,
+Đã duyệt,False,,,205,,tgn_205,,,GI-WON LEE,,,
+Đã duyệt,False,,,206,,tgn_206,,,EUI-NAM HUH,,,
+Đã duyệt,False,,,207,,tgn_207,,,T. D. T. NGUYEN,,,
+Đã duyệt,False,,,208,,tgn_208,,,V. NGUYEN,,,
+Đã duyệt,False,,,209,,tgn_209,,,L. N. T. HUYNH,,,
+Đã duyệt,False,,,210,,tgn_210,,,M. D. HOSSAIN,,,
+Đã duyệt,False,,,211,,tgn_211,,,E. -N. HUH,,,
+Đã duyệt,False,,,212,,tgn_212,,,"NGUYEN, V.",,,
+Đã duyệt,False,,,213,,tgn_213,,,"NGUYEN, T.D.T.",,,
+Đã duyệt,False,,,214,,tgn_214,,,"HUH, EN.",,,
+Đã duyệt,False,,,293,,tgn_293,,,PHẠM QUANG TÙNG,,,
+Đã duyệt,False,,,305,,tgn_305,,,VŨ ĐÌNH HÒA,,,
+Đã duyệt,False,,,306,,tgn_306,,,NGUYỄN HỮU XUÂN TRƯỜNG,,,ĐẠI HỌC NHA TRANG (CỰU GIẢNG VIÊN)
+Đã duyệt,False,,,309,,tgn_309,,,PHẠM THỊ TUYẾT HOA,,,
+Đã duyệt,False,,,312,,tgn_312,,,VĂN HỒNG CẦM,,,
+Đã duyệt,False,,,313,,tgn_313,,,KHÚC THỊ AN,,,
+Đã duyệt,False,,,320,,tgn_320,,,TRẦN VĨ HÍCH,,,
+Đã duyệt,False,,,321,,tgn_321,,,LƯƠNG CÔNG BÌNH,,,
+Đã duyệt,False,,,325,,tgn_325,,,NGUYỄN THỊ NHẬT THẢO,,,

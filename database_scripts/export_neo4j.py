@@ -72,6 +72,8 @@ def export_data():
         print("Đã hoàn tất xuất dữ liệu!")
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"Error: {e}")
     finally:
         conn.close()

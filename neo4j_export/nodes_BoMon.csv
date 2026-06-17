@@ -1,5 +1,6 @@
-﻿neo4j_id,ten_bo_mon,id
-0,Bộ môn Công nghệ phần mềm,bm_0
-1,Bộ môn Hệ thống thông tin,bm_1
-2,Bộ môn Mạng máy tính và truyền thông,bm_2
-157,Hệ thống thông tin quản lý,bm_157
+﻿updated_at,is_deleted,neo4j_id,id,ten_bo_mon
+,,0,bm_0,BỘ MÔN CÔNG NGHỆ PHẦN MỀM
+,,1,bm_1,BỘ MÔN HỆ THỐNG THÔNG TIN
+1780887901763,,2,bm_2,BỘ MÔN MẠNG MÁY TÍNH VÀ TRUYỀN THÔNG
+,False,323,bm_323,CÔNG NGHỆ PHẦN MỀM
+,False,333,bm_333,HỆ THỐNG THÔNG TIN

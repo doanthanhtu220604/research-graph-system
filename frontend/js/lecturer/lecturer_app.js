@@ -1442,6 +1442,10 @@ async function handleFormSubmit(e) {
 
                 alert('Đã nộp lại thành công! Công trình/Đề tài sẽ chuyển về trạng thái "Chờ duyệt" để Admin xem xét.');
 
+            } else {
+
+                alert(id ? 'Cập nhật thành công!' : 'Thêm thành công!');
+
             }
 
             if (type === 'cong-trinh') loadPublications();

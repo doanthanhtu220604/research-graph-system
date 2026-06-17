@@ -1,2 +1,4 @@
-﻿neo4j_id,ten_khoa,id,truong
-46,Khoa Công nghệ thông tin,kh_46,Đại học Nha Trang
+﻿id,truong,neo4j_id,ten_khoa
+kh_46,Đại học Nha Trang,46,KHOA CÔNG NGHỆ THÔNG TIN
+kh_khxh_nhan_van,,327,KHOA KHOA HỌC XÃ HỘI VÀ NHÂN VĂN
+kh_ngoai_ngu,,328,KHOA NGOẠI NGỮ

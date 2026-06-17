@@ -401,6 +401,7 @@ async function handleFormSubmit(e) {
 
         if (data.status === 'ok') {
             closeAdminModal();
+            alert(id ? 'Cập nhật thành công!' : 'Thêm thành công!');
             // Tải lại đúng trang đang đứng
             if (type === 'giang-vien')      await loadLecturers();
             else if (type === 'cong-trinh') await loadPublications();

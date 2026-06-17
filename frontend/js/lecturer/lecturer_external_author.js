@@ -126,6 +126,7 @@ async function handleAddExternalAuthorSubmit(e) {
         const data = await res.json();
         if (data.status === 'ok') {
             closeAddExternalAuthorModal();
+            alert('Thêm tác giả ngoài thành công (Chờ duyệt)!');
             
             // Tải lại danh sách tác giả ngoài
             await loadAllExternalAuthors();
