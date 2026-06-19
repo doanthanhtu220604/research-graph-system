@@ -405,7 +405,39 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
     conn = get_neo4j_connection()
     q = question.lower()
     year = (entities.get("year") if entities else None) or extract_year(question)
+    name = (entities.get("name") if entities else None) or extract_name(question)
 
+    # ── Thống kê theo người cụ thể ──────────────────────────────────────
+    # VD: "Lê Thị Bích Hằng có bao nhiêu công trình?"
+    if name:
+        results = conn.query(
+            """
+            MATCH (gv:GiangVien)
+            WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
+              AND coalesce(gv.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+              WHERE coalesce(ct.is_deleted, false) = false
+            OPTIONAL MATCH (gv)-[:CHU_NHIEM|THAM_GIA]->(dt:DeTaiNghienCuu)
+              WHERE coalesce(dt.is_deleted, false) = false
+            RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id,
+                   gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
+                   count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt
+            LIMIT 3
+            """,
+            {"name": name}
+        )
+        if results:
+            parts = []
+            for r in results:
+                line = f"**[{r['ten']}](javascript:showLecturerDetail('{r['id']}'))**"
+                if r.get("hoc_vi"):
+                    line += f" ({r['hoc_vi']})"
+                line += f"\n  📄 **{r['so_ct']} công trình** | 🔬 **{r['so_dt']} đề tài**"
+                parts.append(line)
+            return f"Thống kê của giảng viên **{name}**:\n" + "\n".join(f"- {p}" for p in parts)
+        return f"Không tìm thấy giảng viên nào với tên **\"{name}\"** trong hệ thống."
+
+    # ── Thống kê tổng quát theo loại ────────────────────────────────────
     if "giảng viên" in q or "gv" in q or "giáo viên" in q:
         r = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
         count = int(r["count"]) if r else 0
@@ -935,11 +967,24 @@ def handle_department(question: str, entities: Optional[dict] = None):
 
 
 def handle_top_lecturers(question: str, entities: Optional[dict] = None):
-    """Top giảng viên nổi bật theo công trình (hoặc ít nổi bật nhất)."""
+    """Top giảng viên nổi bật theo công trình (hoặc ít nổi bật nhất). Đọc order/limit từ entities Gemini."""
     conn = get_neo4j_connection()
     q = question.lower()
-    is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng", "ít nhất"])
+
+    # Đọc order từ entities Gemini trước, fallback về rule-based nếu cần
+    order_entity = (entities or {}).get("order")
+    if order_entity == "asc":
+        is_asc = True
+    elif order_entity == "desc":
+        is_asc = False
+    else:
+        # Fallback rule-based
+        is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng"])
     order_dir = "ASC" if is_asc else "DESC"
+
+    # Đọc limit từ entities, mặc định 10
+    limit = int((entities or {}).get("limit") or 10)
+    limit = max(1, min(limit, 20))  # Giới hạn 1-20
 
     results = conn.query(f"""
         MATCH (gv:GiangVien)
@@ -950,7 +995,7 @@ def handle_top_lecturers(question: str, entities: Optional[dict] = None):
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi, bm.ten_bo_mon AS bo_mon,
                count(DISTINCT ct) AS so_ct, count(DISTINCT dt) AS so_dt
         ORDER BY so_ct {order_dir}, so_dt {order_dir}
-        LIMIT 10
+        LIMIT {limit}
     """)
     if results:
         parts = []
@@ -960,17 +1005,31 @@ def handle_top_lecturers(question: str, entities: Optional[dict] = None):
             line += f"\n  📄 {r['so_ct']} công trình | 🔬 {r['so_dt']} đề tài"
             if r.get("bo_mon"): line += f" | 🏢 {r['bo_mon']}"
             parts.append(line)
-        title = "📉 **Danh sách giảng viên ít công trình/đề tài nhất:**\n" if is_asc else "🏆 **Top 10 giảng viên nổi bật:**\n"
+        if is_asc:
+            title = f"📉 **Top {limit} giảng viên có ÍT công trình nhất:**\n"
+        else:
+            title = f"🏆 **Top {limit} giảng viên nổi bật (nhiều công trình nhất):**\n"
         return title + "\n".join(f"- {p}" for p in parts)
     return "Không có dữ liệu."
 
 
 def handle_top_by_projects(question: str, entities: Optional[dict] = None):
-    """Top giảng viên theo số đề tài (hoặc ít đề tài nhất)."""
+    """Top giảng viên theo số đề tài (hoặc ít đề tài nhất). Đọc order/limit từ entities Gemini."""
     conn = get_neo4j_connection()
     q = question.lower()
-    is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng", "ít nhất"])
+
+    # Đọc order từ entities Gemini trước, fallback về rule-based nếu cần
+    order_entity = (entities or {}).get("order")
+    if order_entity == "asc":
+        is_asc = True
+    elif order_entity == "desc":
+        is_asc = False
+    else:
+        is_asc = any(kw in q for kw in ["thấp nhất", "ít nhất", "tối thiểu", "kém nhất", "sau cùng", "cuối cùng"])
     order_dir = "ASC" if is_asc else "DESC"
+
+    limit = int((entities or {}).get("limit") or 10)
+    limit = max(1, min(limit, 20))
 
     results = conn.query(f"""
         MATCH (gv:GiangVien)
@@ -980,7 +1039,7 @@ def handle_top_by_projects(question: str, entities: Optional[dict] = None):
         RETURN coalesce(gv.id, 'gv_' + toString(id(gv))) AS id, gv.ho_va_ten AS ten, gv.hoc_vi AS hoc_vi,
                count(DISTINCT dt) AS so_de_tai, bm.ten_bo_mon AS bo_mon
         ORDER BY so_de_tai {order_dir}
-        LIMIT 8
+        LIMIT {limit}
     """)
     if results:
         parts = []
@@ -990,7 +1049,10 @@ def handle_top_by_projects(question: str, entities: Optional[dict] = None):
             line += f" — **{r['so_de_tai']} đề tài**"
             if r.get("bo_mon"): line += f" ({r['bo_mon']})"
             parts.append(line)
-        title = "🔬 **Danh sách giảng viên có ít đề tài nhất:**\n" if is_asc else "🔬 **Top giảng viên có nhiều đề tài nhất:**\n"
+        if is_asc:
+            title = f"🔬 **Top {limit} giảng viên có ÍT đề tài nhất:**\n"
+        else:
+            title = f"🔬 **Top {limit} giảng viên có NHIỀU đề tài nhất:**\n"
         return title + "\n".join(f"- {p}" for p in parts)
     return "Không có dữ liệu về đề tài."
 
@@ -1259,7 +1321,6 @@ def handle_unknown(question: str, entities: Optional[dict] = None):
             + "\n\n".join(parts)
         )
 
-    # Không tìm được gì → hướng dẫn
     return (
         "Xin lỗi, tôi chưa hiểu câu hỏi của bạn 😅\n\n"
         "Tôi có thể giúp bạn:\n"
@@ -1275,21 +1336,28 @@ def handle_unknown(question: str, entities: Optional[dict] = None):
         "- 👤 **Chủ nhiệm** (vd: _\"Ai chủ nhiệm đề tài X?\"_)\n"
         "- ℹ️ **Thông tin GV** (vd: _\"Thông tin thầy Nguyễn Văn A\"_)"
     )
-
-
-# ============================================================
-# ROUTE CHÍNH
-# ============================================================
-
 @chat_api_bp.route("/ask", methods=["POST"])
 def ask():
     """
     POST /api/chat/ask
-    Body: { "question": "..." }
+    Body: {
+        "question": "...",
+        "history": [                          ← Lịch sử hội thoại (tuỳ chọn)
+            {"role": "user",      "content": "..."},
+            {"role": "assistant", "content": "..."},
+            ...
+        ]
+    }
     Response: { "status": "ok", "answer": "...", "intent": "...", "graph": {...} }
     """
     data = request.get_json(silent=True) or {}
     question = (data.get("question") or "").strip()
+    # Lịch sử hội thoại từ frontend (tối đa 10 turn, mỗi turn có role + content)
+    history = data.get("history") or []
+    if not isinstance(history, list):
+        history = []
+    # Giới hạn 10 turn gần nhất để tránh token overflow
+    history = history[-10:]
 
     if not question:
         return jsonify({
@@ -1297,12 +1365,11 @@ def ask():
             "message": "Vui lòng nhập câu hỏi."
         }), 400
 
-    # Tránh câu hỏi quá ngắn hoặc chỉ gồm 1 ký tự (như chữ 'A') để tiết kiệm token/quota
-    clean_q = re.sub(r'[?.,\/#!$%\^&\*;:{}=\-_`~()"\']', '', question).strip()
+    clean_q = re.sub(r'[?.,\/#!$%\^\&\*;:{}=\-_`~()"\'\\]', '', question).strip()
     if len(clean_q) < 2:
         return jsonify({
             "status": "ok",
-            "answer": "Câu hỏi quá ngắn hoặc không hợp lệ. Vui lòng nhập câu hỏi chi tiết hơn để tôi có thể hỗ trợ bạn.",
+            "answer": "Câu hỏi quá ngắn hoặc không hợp lệ. Vui lòng nhập câu hỏi chi tiết hơn.",
             "intent": "unknown",
             "graph": None
         })
@@ -1311,15 +1378,18 @@ def ask():
         intent = "unknown"
         entities = None
 
-        # 1. Nếu Gemini khả dụng, ưu tiên dùng Gemini để phân tích intent & entities trước để đạt độ chính xác cao nhất
+        # ── Bước 1: Gemini phân tích dùng RULES (chat_intents.json) + CONTEXT (history) ──
         if gemini_service.is_available():
-            ai_analysis = gemini_service.analyze_question(question)
+            ai_analysis = gemini_service.analyze_question(question, history=history)
             if ai_analysis and ai_analysis.get("intent") != "unknown":
                 intent = ai_analysis["intent"]
                 entities = ai_analysis.get("entities")
-                print(f"[CHAT AI] Intent detected via Gemini: {intent} ({ai_analysis.get('explanation')})")
+                print(f"[CHAT AI] Intent: {intent} | "
+                      f"Name: {(entities or {}).get('name')} | "
+                      f"Order: {(entities or {}).get('order')} | "
+                      f"({ai_analysis.get('explanation', '')})")
 
-        # 2. Nếu Gemini không khả dụng hoặc không nhận dạng được (intent = unknown), fallback về Rule-based cục bộ
+        # ── Bước 2: Fallback về Rule-based cục bộ nếu Gemini không phân tích được ──
         if intent == "unknown":
             intent = detect_intent(question)
             if intent != "unknown":
@@ -1331,36 +1401,41 @@ def ask():
                     "project_level": extract_project_level(question),
                     "journal": extract_journal(question),
                     "project_name": None,
+                    "order": None,
+                    "limit": None,
                 }
+                print(f"[CHAT LOCAL] Intent: {intent} (fallback rule-based)")
 
         handler_map = {
-            "statistics": handle_statistics,
-            "search_lecturer": handle_search_lecturer,
-            "search_publication": handle_search_publication,
-            "search_project": handle_search_project,
-            "search_by_field": handle_search_by_field,
-            "collaboration": handle_collaboration,
-            "department": handle_department,
-            "top_lecturers": handle_top_lecturers,
-            "top_by_projects": handle_top_by_projects,
-            "project_by_level": handle_project_by_level,
+            "statistics":        handle_statistics,
+            "search_lecturer":   handle_search_lecturer,
+            "search_publication":handle_search_publication,
+            "search_project":    handle_search_project,
+            "search_by_field":   handle_search_by_field,
+            "collaboration":     handle_collaboration,
+            "department":        handle_department,
+            "top_lecturers":     handle_top_lecturers,
+            "top_by_projects":   handle_top_by_projects,
+            "project_by_level":  handle_project_by_level,
             "search_by_journal": handle_search_by_journal,
-            "who_leads": handle_who_leads,
-            "lecturer_info": handle_lecturer_info,
-            "unknown": handle_unknown,
+            "who_leads":         handle_who_leads,
+            "lecturer_info":     handle_lecturer_info,
+            "unknown":           handle_unknown,
         }
 
+        # ── Bước 3: Gọi handler lấy raw data từ Neo4j ────────────────────
         handler = handler_map.get(intent, handle_unknown)
         raw_answer = handler(question, entities=entities)
 
-        # 3. Sử dụng Gemini để viết lại câu trả lời tự nhiên
+        # ── Bước 4: Gemini viết lại câu trả lời với ngữ cảnh hội thoại ──
         answer = raw_answer
         if gemini_service.is_available() and gemini_service.should_rewrite():
-            natural_answer = gemini_service.generate_natural_answer(question, raw_answer)
-            if natural_answer:
-                answer = natural_answer
+            natural = gemini_service.generate_natural_answer(
+                question, raw_answer, history=history
+            )
+            if natural:
+                answer = natural
 
-        # Build mini graph from entities mentioned in raw_answer
         graph = build_graph_for_answer(raw_answer)
 
         return jsonify({
@@ -1369,7 +1444,6 @@ def ask():
             "intent": intent,
             "graph": graph,
         })
-
     except Exception as e:
         import traceback
         print(f"[CHAT ERROR] {e}\n{traceback.format_exc()}")
