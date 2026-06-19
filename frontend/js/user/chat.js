@@ -219,10 +219,14 @@
     showTypingIndicator();
 
     try {
+      const backendHistory = history.map(h => ({
+        role: h.role === "bot" ? "assistant" : "user",
+        content: h.text
+      }));
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text }),
+        body: JSON.stringify({ question: text, history: backendHistory }),
       });
       const data = await res.json();
       const answer = data.answer || "Xin lỗi, tôi không thể trả lời lúc này.";

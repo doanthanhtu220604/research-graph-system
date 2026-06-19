@@ -155,6 +155,13 @@ def detect_intent(question: str) -> str:
 # ENTITY EXTRACTORS
 # ============================================================
 
+def get_entity_val(entities: Optional[dict], key: str, fallback_func, question: str):
+    """Lấy giá trị entity từ kết quả Gemini, nếu không có mới fallback về hàm trích xuất cục bộ."""
+    if entities and key in entities:
+        return entities[key]
+    return fallback_func(question)
+
+
 def extract_name(question: str) -> str:
     """
     Trích xuất tên người từ câu hỏi.
@@ -261,7 +268,9 @@ def extract_name(question: str) -> str:
                         "làm", "ở", "của", "đăng", "viết", "cho", "biết", "là", "năm", "trong", "đã", "có", "những", 
                         "tại", "với", "đề", "tài", "công", "trình", "bài", "báo", "nhiều", "ít", "nhất", "hơn", 
                         "khoa", "ngành", "bộ", "môn", "lớp", "trường", "viện", "top", "giảng", "viên", "thầy", "cô",
-                        "nào", "ai", "gì", "sao", "bao", "mấy", "đếm", "thống", "kê", "số", "lượng", "tổng"
+                        "nào", "ai", "gì", "sao", "bao", "mấy", "đếm", "thống", "kê", "số", "lượng", "tổng",
+                        "và", "hoặc", "nhưng", "mà", "thì", "đó", "này", "kia", "ấy", "đâu", "đang", "sẽ", "được", 
+                        "bị", "từng", "nói", "hỏi", "nghĩ", "tìm", "kiếm", "xem", "về", "đối", "bởi", "vì", "để", "do"
                     ]
                     if clean_lower in stop_words:
                         break
@@ -404,8 +413,8 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
     """Xử lý câu hỏi thống kê."""
     conn = get_neo4j_connection()
     q = question.lower()
-    year = (entities.get("year") if entities else None) or extract_year(question)
-    name = (entities.get("name") if entities else None) or extract_name(question)
+    year = get_entity_val(entities, "year", extract_year, question)
+    name = get_entity_val(entities, "name", extract_name, question)
 
     # ── Thống kê theo người cụ thể ──────────────────────────────────────
     # VD: "Lê Thị Bích Hằng có bao nhiêu công trình?"
@@ -437,47 +446,55 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
             return f"Thống kê của giảng viên **{name}**:\n" + "\n".join(f"- {p}" for p in parts)
         return f"Không tìm thấy giảng viên nào với tên **\"{name}\"** trong hệ thống."
 
-    # ── Thống kê tổng quát theo loại ────────────────────────────────────
-    if "giảng viên" in q or "gv" in q or "giáo viên" in q:
-        r = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
-        count = int(r["count"]) if r else 0
-        return f"Hệ thống hiện có **{count} giảng viên** đang hoạt động nghiên cứu."
+    # ── Kiểm tra xem có phải câu hỏi thống kê tổng hợp/nhiều đối tượng ──────────────────
+    # Ví dụ: "bao nhiêu giảng viên và bao nhiêu đề tài" hoặc chứa các từ khóa tổng quan
+    is_multi_stats = (
+        sum(1 for kw in ["giảng viên", "đề tài", "công trình", "bài báo", "bộ môn", "lĩnh vực"] if kw in q) >= 2
+        or any(kw in q for kw in ["tổng quan", "hệ thống", "thống kê chung", "tất cả", "toàn bộ"])
+    )
 
-    if "bộ môn" in q:
-        r = conn.query_single("MATCH (n:BoMon) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
-        count = int(r["count"]) if r else 0
-        return f"Khoa CNTT có **{count} bộ môn**."
+    if not is_multi_stats:
+        # ── Thống kê tổng quát theo loại ────────────────────────────────────
+        if "giảng viên" in q or "gv" in q or "giáo viên" in q:
+            r = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+            count = int(r["count"]) if r else 0
+            return f"Hệ thống hiện có **{count} giảng viên** đang hoạt động nghiên cứu."
 
-    if "lĩnh vực" in q or "chuyên ngành" in q:
-        r = conn.query_single("MATCH (n:LinhVucNghienCuu) RETURN count(n) AS count")
-        count = int(r["count"]) if r else 0
-        return f"Hệ thống ghi nhận **{count} lĩnh vực nghiên cứu** khác nhau."
+        if "bộ môn" in q:
+            r = conn.query_single("MATCH (n:BoMon) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+            count = int(r["count"]) if r else 0
+            return f"Khoa CNTT có **{count} bộ môn**."
 
-    if "công trình" in q or "bài báo" in q or "xuất bản" in q:
-        if year:
-            r = conn.query_single(
-                "MATCH (n:CongTrinhNghienCuu) WHERE n.nam_xuat_ban = $year AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
-                {"year": int(year)}
-            )
+        if "lĩnh vực" in q or "chuyên ngành" in q:
+            r = conn.query_single("MATCH (n:LinhVucNghienCuu) RETURN count(n) AS count")
             count = int(r["count"]) if r else 0
-            return f"Năm **{year}**, khoa CNTT có **{count} công trình nghiên cứu** được xuất bản."
-        else:
-            r = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
-            count = int(r["count"]) if r else 0
-            return f"Tổng cộng hệ thống có **{count} công trình nghiên cứu** đã xuất bản."
+            return f"Hệ thống ghi nhận **{count} lĩnh vực nghiên cứu** khác nhau."
 
-    if "đề tài" in q or "dự án" in q or "nckh" in q:
-        if year:
-            r = conn.query_single(
-                "MATCH (n:DeTaiNghienCuu) WHERE n.nam = $year AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
-                {"year": int(year)}
-            )
-            count = int(r["count"]) if r else 0
-            return f"Năm **{year}**, khoa có **{count} đề tài nghiên cứu** liên quan."
-        else:
-            r = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
-            count = int(r["count"]) if r else 0
-            return f"Tổng cộng hệ thống có **{count} đề tài nghiên cứu**."
+        if "công trình" in q or "bài báo" in q or "xuất bản" in q:
+            if year:
+                r = conn.query_single(
+                    "MATCH (n:CongTrinhNghienCuu) WHERE n.nam_xuat_ban = $year AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
+                    {"year": int(year)}
+                )
+                count = int(r["count"]) if r else 0
+                return f"Năm **{year}**, khoa CNTT có **{count} công trình nghiên cứu** được xuất bản."
+            else:
+                r = conn.query_single("MATCH (n:CongTrinhNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+                count = int(r["count"]) if r else 0
+                return f"Tổng cộng hệ thống có **{count} công trình nghiên cứu** đã xuất bản."
+
+        if "đề tài" in q or "dự án" in q or "nckh" in q:
+            if year:
+                r = conn.query_single(
+                    "MATCH (n:DeTaiNghienCuu) WHERE n.nam = $year AND coalesce(n.is_deleted, false) = false RETURN count(n) AS count",
+                    {"year": int(year)}
+                )
+                count = int(r["count"]) if r else 0
+                return f"Năm **{year}**, khoa có **{count} đề tài nghiên cứu** liên quan."
+            else:
+                r = conn.query_single("MATCH (n:DeTaiNghienCuu) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
+                count = int(r["count"]) if r else 0
+                return f"Tổng cộng hệ thống có **{count} đề tài nghiên cứu**."
 
     # Thống kê tổng quan
     gv = conn.query_single("MATCH (n:GiangVien) WHERE coalesce(n.is_deleted, false) = false RETURN count(n) AS count")
@@ -498,7 +515,7 @@ def handle_statistics(question: str, entities: Optional[dict] = None):
 def handle_search_lecturer(question: str, entities: Optional[dict] = None):
     """Tìm kiếm giảng viên theo tên hoặc đặc điểm."""
     conn = get_neo4j_connection()
-    name = (entities.get("name") if entities else None) or extract_name(question)
+    name = get_entity_val(entities, "name", extract_name, question)
     q = question.lower()
 
     if name:
@@ -582,8 +599,8 @@ def handle_search_lecturer(question: str, entities: Optional[dict] = None):
 def handle_search_publication(question: str, entities: Optional[dict] = None):
     """Tìm kiếm công trình nghiên cứu."""
     conn = get_neo4j_connection()
-    name = (entities.get("name") if entities else None) or extract_name(question)
-    year = (entities.get("year") if entities else None) or extract_year(question)
+    name = get_entity_val(entities, "name", extract_name, question)
+    year = get_entity_val(entities, "year", extract_year, question)
     q_lower = question.lower()
 
     if name:
@@ -662,8 +679,8 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
 def handle_search_project(question: str, entities: Optional[dict] = None):
     """Tìm kiếm đề tài nghiên cứu."""
     conn = get_neo4j_connection()
-    name = (entities.get("name") if entities else None) or extract_name(question)
-    year = (entities.get("year") if entities else None) or extract_year(question)
+    name = get_entity_val(entities, "name", extract_name, question)
+    year = get_entity_val(entities, "year", extract_year, question)
 
     if name:
         results = conn.query(
@@ -736,8 +753,8 @@ def handle_search_project(question: str, entities: Optional[dict] = None):
 def handle_search_by_field(question: str, include_pubs: bool = True, entities: Optional[dict] = None):
     """Tìm giảng viên và công trình theo lĩnh vực (có thể kết hợp bộ môn)."""
     conn = get_neo4j_connection()
-    field = (entities.get("field") if entities else None) or extract_field(question)
-    dept = (entities.get("department") if entities else None) or extract_department(question)
+    field = get_entity_val(entities, "field", extract_field, question)
+    dept = get_entity_val(entities, "department", extract_department, question)
 
     if not field:
         results = conn.query("""
@@ -779,8 +796,31 @@ def handle_search_by_field(question: str, include_pubs: bool = True, entities: O
 
     field_lower = field.lower().strip()
     search_terms = [field]
-    if field_lower in FIELD_SYNONYMS:
-        search_terms.extend(FIELD_SYNONYMS[field_lower])
+    
+    # Tách từ dấu ngoặc đơn, ví dụ "Trí tuệ nhân tạo (AI)" -> "Trí tuệ nhân tạo", "AI"
+    additional_terms = []
+    for term in search_terms:
+        match_paren = re.search(r'\((.*?)\)', term)
+        if match_paren:
+            abbr = match_paren.group(1).strip()
+            if abbr:
+                additional_terms.append(abbr)
+            main_part = re.sub(r'\(.*?\)', '', term).strip()
+            if main_part:
+                additional_terms.append(main_part)
+                
+    for term in additional_terms:
+        if term not in search_terms:
+            search_terms.append(term)
+            
+    # Thêm synonyms cho các terms
+    syns = []
+    for term in search_terms:
+        t_lower = term.lower().strip()
+        if t_lower in FIELD_SYNONYMS:
+            syns.extend(FIELD_SYNONYMS[t_lower])
+    search_terms.extend(syns)
+    
     search_terms = list(dict.fromkeys(search_terms))
 
     # Truy vấn giảng viên (có filter bộ môn nếu có)
@@ -853,8 +893,8 @@ def handle_search_by_field(question: str, include_pubs: bool = True, entities: O
 def handle_collaboration(question: str, entities: Optional[dict] = None):
     """Tìm mối quan hệ hợp tác giữa các giảng viên (qua cả công trình lẫn đề tài)."""
     conn = get_neo4j_connection()
-    name = (entities.get("name") if entities else None) or extract_name(question)
-    field = (entities.get("field") if entities else None) or extract_field(question)
+    name = get_entity_val(entities, "name", extract_name, question)
+    field = get_entity_val(entities, "field", extract_field, question)
 
     # Tránh trường hợp extract_name lấy nhầm tên lĩnh vực làm tên người
     if name and field and name.lower() in field.lower():
@@ -918,7 +958,7 @@ def handle_collaboration(question: str, entities: Optional[dict] = None):
 def handle_department(question: str, entities: Optional[dict] = None):
     """Xử lý câu hỏi về bộ môn."""
     conn = get_neo4j_connection()
-    dept_name = (entities.get("department") if entities else None) or extract_department(question)
+    dept_name = get_entity_val(entities, "department", extract_department, question)
 
     if dept_name:
         results = conn.query(
@@ -1060,7 +1100,7 @@ def handle_top_by_projects(question: str, entities: Optional[dict] = None):
 def handle_project_by_level(question: str, entities: Optional[dict] = None):
     """Lọc đề tài theo cấp (Bộ, Tỉnh, Trường, ...)."""
     conn = get_neo4j_connection()
-    level = (entities.get("project_level") if entities else None) or extract_project_level(question)
+    level = get_entity_val(entities, "project_level", extract_project_level, question)
 
     if level:
         results = conn.query(
@@ -1104,7 +1144,7 @@ def handle_project_by_level(question: str, entities: Optional[dict] = None):
 def handle_search_by_journal(question: str, entities: Optional[dict] = None):
     """Tìm công trình theo tạp chí/hội thảo."""
     conn = get_neo4j_connection()
-    journal = (entities.get("journal") if entities else None) or extract_journal(question)
+    journal = get_entity_val(entities, "journal", extract_journal, question)
 
     if journal:
         results = conn.query(
@@ -1190,9 +1230,9 @@ def handle_who_leads(question: str, entities: Optional[dict] = None):
         return f"Không tìm thấy chủ nhiệm cho đề tài liên quan đến **\"{project_name}\"**."
 
     # Fallback: tìm theo tên giảng viên
-    name = extract_name(question)
+    name = get_entity_val(entities, "name", extract_name, question)
     if name:
-        return handle_search_project(question)
+        return handle_search_project(question, entities=entities)
 
     # Top chủ nhiệm
     results = conn.query("""
@@ -1210,7 +1250,7 @@ def handle_who_leads(question: str, entities: Optional[dict] = None):
 def handle_lecturer_info(question: str, entities: Optional[dict] = None):
     """Lấy thông tin chi tiết về một giảng viên."""
     conn = get_neo4j_connection()
-    name = (entities.get("name") if entities else None) or extract_name(question)
+    name = get_entity_val(entities, "name", extract_name, question)
 
     if not name:
         return (
