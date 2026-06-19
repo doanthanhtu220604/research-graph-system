@@ -3,16 +3,21 @@ import google.generativeai as genai
 from typing import Optional, Dict, Any
 
 class GeminiService:
-    """Service to interact with Google Gemini API for advanced NLP."""
+    """Service to interact with Google Gemini API for advanced NLP with key rotation."""
     
     def __init__(self):
         use_gemini = os.getenv("USE_GEMINI", "true").lower() in ("true", "1", "yes")
-        self.api_key = os.getenv("GEMINI_API_KEY") if use_gemini else None
+        raw_keys = os.getenv("GEMINI_API_KEY", "") if use_gemini else ""
+        # Hỗ trợ cấu hình nhiều API Key phân tách bởi dấu phẩy
+        self.api_keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
+        self.current_key_index = 0
         self.model: Optional[genai.GenerativeModel] = None
-        if self.api_key:
-            genai.configure(api_key=self.api_key)
-            # Use gemini-3-flash-preview to match environment availability
-            self.model = genai.GenerativeModel('gemini-3-flash-preview')
+        
+        if self.api_keys:
+            genai.configure(api_key=self.api_keys[0])
+            # Sử dụng gemini-3.5-flash làm mặc định để có tốc độ nhanh và độ thông minh cao hơn
+            model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+            self.model = genai.GenerativeModel(model_name)
 
     def is_available(self) -> bool:
         return self.model is not None
@@ -20,6 +25,40 @@ class GeminiService:
     def should_rewrite(self) -> bool:
         """Kiểm tra xem có cho phép viết lại câu trả lời bằng AI hay không."""
         return os.getenv("REWRITE_WITH_GEMINI", "false").lower() in ("true", "1", "yes")
+
+    def rotate_key(self) -> bool:
+        """Xoay vòng key sang key tiếp theo trong cấu hình."""
+        if not self.api_keys or len(self.api_keys) <= 1:
+            return False
+        self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+        next_key = self.api_keys[self.current_key_index]
+        genai.configure(api_key=next_key)
+        
+        # Cấu hình lại model để nhận key mới
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+        self.model = genai.GenerativeModel(model_name)
+        print(f"[Gemini Key Rotation] Successfully switched to key index {self.current_key_index}")
+        return True
+
+    def _generate_content_with_rotation(self, prompt: str) -> Optional[str]:
+        """Gọi Gemini API có xoay vòng key nếu gặp bất kỳ lỗi nào."""
+        if not self.model or not self.api_keys:
+            return None
+
+        max_attempts = len(self.api_keys)
+        for attempt in range(max_attempts):
+            try:
+                response = self.model.generate_content(prompt, request_options={"timeout": 10.0})
+                return response.text.strip()
+            except Exception as e:
+                print(f"[Gemini Exception] Key index {self.current_key_index} failed: {e}")
+                if len(self.api_keys) > 1:
+                    print(f"Rotating key and retrying (attempt {attempt + 1}/{max_attempts})...")
+                    self.rotate_key()
+                    continue
+                else:
+                    break
+        return None
 
     def analyze_question(self, question: str) -> Optional[Dict[str, Any]]:
         """
@@ -76,10 +115,11 @@ class GeminiService:
         Chỉ trả về JSON, không kèm văn bản khác.
         """
 
+        text = self._generate_content_with_rotation(prompt)
+        if not text:
+            return None
+
         try:
-            response = self.model.generate_content(prompt, request_options={"timeout": 3.0})
-            # Extract JSON from response
-            text = response.text.strip()
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0].strip()
             elif "```" in text:
@@ -88,7 +128,7 @@ class GeminiService:
             import json
             return json.loads(text)
         except Exception as e:
-            print(f"[Gemini Error] {e}")
+            print(f"[Gemini Parse JSON Error] {e}. Text: {text}")
             return None
 
     def generate_natural_answer(self, question: str, search_result: str) -> Optional[str]:
@@ -106,7 +146,7 @@ class GeminiService:
         \"\"\"
         {search_result}
         \"\"\"
-
+        
         Nhiệm vụ của bạn:
         1. Dựa trên kết quả tra cứu trên, hãy biên soạn lại thành một câu trả lời bằng tiếng Việt tự nhiên, thân thiện và mạch lạc.
         2. Nếu kết quả tra cứu cho thấy không tìm thấy dữ liệu hoặc lỗi, hãy thông báo lịch sự và gợi ý hướng xử lý thích hợp cho người dùng (ví dụ: gợi ý từ khóa tìm kiếm khác).
@@ -114,12 +154,7 @@ class GeminiService:
         4. CỰC KỲ QUAN TRỌNG: GIỮ NGUYÊN các liên kết Markdown có sẵn trong kết quả tra cứu dạng [Tên hiển thị](javascript:showLecturerDetail('id')), [Tên công trình](javascript:showPublicationDetail('id')), [Tên đề tài](javascript:showProjectDetail('id')) để đảm bảo các tính năng click xem chi tiết trên giao diện web hoạt động bình thường. Không được thay đổi phần URL 'javascript:show...'.
         """
 
-        try:
-            response = self.model.generate_content(prompt, request_options={"timeout": 3.0})
-            return response.text.strip()
-        except Exception as e:
-            print(f"[Gemini Generate Answer Error] {e}")
-            return None
+        return self._generate_content_with_rotation(prompt)
 
     def translate(self, text: str, target_lang: str = "vi") -> Optional[str]:
         """
@@ -142,12 +177,7 @@ class GeminiService:
         '''
         """
 
-        try:
-            response = self.model.generate_content(prompt, request_options={"timeout": 3.0})
-            return response.text.strip()
-        except Exception as e:
-            print(f"[Gemini Translate Error] {e}")
-            return None
+        return self._generate_content_with_rotation(prompt)
 
 # Singleton instance
 gemini_service = GeminiService()

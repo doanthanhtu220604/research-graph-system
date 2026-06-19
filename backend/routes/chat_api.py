@@ -178,36 +178,63 @@ def extract_name(question: str) -> str:
     except Exception:
         pass
 
-    # 2. Database Fuzzy Matching
+    # 2. Database Fuzzy Matching & Suffix Variants
     try:
         conn = get_neo4j_connection()
         results = conn.query("MATCH (gv:GiangVien) WHERE coalesce(gv.is_deleted, false) = false RETURN gv.ho_va_ten AS ten")
         if results:
             names = [r['ten'] for r in results if r.get('ten')]
-            # Ưu tiên các tên dài (tránh trường hợp tên ngắn khớp một phần trong từ khác)
+            # Sắp xếp tên từ dài đến ngắn để ưu tiên khớp cụm dài trước
             names.sort(key=len, reverse=True)
             
             best_match = None
+            best_match_len = 0
+            
+            for ten in names:
+                ten_lower = ten.lower().strip()
+                
+                # Check direct match với word boundary
+                if re.search(r'\b' + re.escape(ten_lower) + r'\b', q_lower):
+                    if len(ten_lower) > best_match_len:
+                        best_match_len = len(ten_lower)
+                        best_match = ten
+                        continue
+                
+                # Check các biến thể rút gọn (3 từ cuối, 2 từ cuối, 1 từ cuối)
+                words = ten_lower.split()
+                variants = []
+                if len(words) >= 3:
+                    variants.append(" ".join(words[-3:]))
+                if len(words) >= 2:
+                    variants.append(" ".join(words[-2:]))
+                if len(words) >= 1:
+                    variants.append(words[-1])
+                
+                for var in variants:
+                    if re.search(r'\b' + re.escape(var) + r'\b', q_lower):
+                        if len(var) > best_match_len:
+                            best_match_len = len(var)
+                            best_match = ten
+                            break
+            
+            if best_match:
+                return best_match
+
+            # Fallback fuzzy matching dùng rapidfuzz
             highest_score = 0
             for ten in names:
                 ten_lower = ten.lower()
-                # Thử tìm trực tiếp chuỗi họ tên con trong câu với ranh giới từ để tránh khớp phụ đề, bộ môn, v.v.
-                if re.search(r'\b' + re.escape(ten_lower) + r'\b', q_lower):
-                    return ten
-                
-                # Chỉ thực hiện fuzzy match nếu chiều dài câu hỏi đủ lớn (>= 4 ký tự)
                 if len(q_lower) >= 4:
                     score = fuzz.partial_ratio(ten_lower, q_lower)
                     if score > 85 and score > highest_score:
                         highest_score = score
                         best_match = ten
-                    
             if best_match:
                 return best_match
     except Exception:
         pass
 
-    # 3. Fallback: Rule-based (Tránh trường hợp DB lỗi)
+    # 3. Fallback: Rule-based (Tránh trường hợp DB lỗi, hỗ trợ tên viết thường)
     triggers = [
         "thầy", "cô", "gv", "giảng viên", "giáo viên",
         "tiến sĩ", "ts.", "ts ", "pgs.", "pgs ", "gs.", "gs ",
@@ -218,17 +245,30 @@ def extract_name(question: str) -> str:
     ]
 
     for trigger in triggers:
-        idx = q_lower.find(trigger)
-        if idx != -1:
+        # Sử dụng pattern tìm từ nguyên dạng (whole word) để tránh khớp sai cụm từ (ví dụ 'cô' khớp trong 'công')
+        pattern = r'(?<![a-zA-ZÀ-ỹ])' + re.escape(trigger) + r'(?![a-zA-ZÀ-ỹ])'
+        match = re.search(pattern, q_lower)
+        if match:
+            idx = match.start()
             after = q[idx + len(trigger):].strip()
             words = after.split()
             name_parts = []
             for w in words:
                 clean = re.sub(r"[^a-zA-ZÀ-ỹ]", "", w)
-                if clean and (clean[0].isupper() or (name_parts and len(clean) > 1)):
-                    name_parts.append(clean)
-                else:
-                    if name_parts:
+                if clean:
+                    clean_lower = clean.lower()
+                    stop_words = [
+                        "làm", "ở", "của", "đăng", "viết", "cho", "biết", "là", "năm", "trong", "đã", "có", "những", 
+                        "tại", "với", "đề", "tài", "công", "trình", "bài", "báo", "nhiều", "ít", "nhất", "hơn", 
+                        "khoa", "ngành", "bộ", "môn", "lớp", "trường", "viện", "top", "giảng", "viên", "thầy", "cô",
+                        "nào", "ai", "gì", "sao", "bao", "mấy", "đếm", "thống", "kê", "số", "lượng", "tổng"
+                    ]
+                    if clean_lower in stop_words:
+                        break
+                    # Cho phép tối đa 3 từ kể cả viết thường để bắt được tên không viết hoa như "bích hằng"
+                    if clean[0].isupper() or len(name_parts) < 3:
+                        name_parts.append(clean)
+                    else:
                         break
             if name_parts:
                 full_extracted = " ".join(name_parts)
@@ -512,11 +552,20 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
     conn = get_neo4j_connection()
     name = (entities.get("name") if entities else None) or extract_name(question)
     year = (entities.get("year") if entities else None) or extract_year(question)
+    q_lower = question.lower()
 
     if name:
+        # Hỗ trợ phân biệt tác giả chính hoặc đồng tác giả/cộng sự
+        if "tác giả chính" in q_lower or "chính" in q_lower or "viết chính" in q_lower or "chủ biên" in q_lower:
+            rel_type = "TAC_GIA_CHINH"
+            msg_role = "làm tác giả chính"
+        else:
+            rel_type = "LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU"
+            msg_role = "tham gia"
+
         results = conn.query(
-            """
-            MATCH (gv:GiangVien)-[:LA_TAC_GIA_CUA|TAC_GIA_CHINH|CONG_SU]->(ct:CongTrinhNghienCuu)
+            f"""
+            MATCH (gv:GiangVien)-[:{rel_type}]->(ct:CongTrinhNghienCuu)
             WHERE toLower(gv.ho_va_ten) CONTAINS toLower($name)
               AND coalesce(gv.is_deleted, false) = false
               AND coalesce(ct.is_deleted, false) = false
@@ -536,10 +585,10 @@ def handle_search_publication(question: str, entities: Optional[dict] = None):
                 titles.append(line)
             suffix = f"\n_...và {count - 5} công trình khác_" if count >= 5 else ""
             return (
-                f"Tìm thấy **{count} công trình** của **{name}**:\n"
+                f"Tìm thấy **{count} công trình** {msg_role} của **{name}**:\n"
                 + "\n".join(f"- {t}" for t in titles) + suffix
             )
-        return f"Không tìm thấy công trình nào của **{name}** trong hệ thống."
+        return f"Không tìm thấy công trình nào {msg_role} của **{name}** trong hệ thống."
 
     if year:
         results = conn.query(
@@ -1259,29 +1308,30 @@ def ask():
         })
 
     try:
-        # 1. Ưu tiên phân tích bằng Rule-based cục bộ trước (rất nhanh, < 10ms)
-        intent = detect_intent(question)
+        intent = "unknown"
         entities = None
 
-        if intent != "unknown":
-            # Trích xuất thực thể bằng các hàm cục bộ
-            entities = {
-                "name": extract_name(question),
-                "year": extract_year(question),
-                "field": extract_field(question),
-                "department": extract_department(question),
-                "project_level": extract_project_level(question),
-                "journal": extract_journal(question),
-                "project_name": None,
-            }
-        else:
-            # 2. Chỉ gọi Gemini phân tích intent khi Rule-based không nhận dạng được
-            if gemini_service.is_available():
-                ai_analysis = gemini_service.analyze_question(question)
-                if ai_analysis and ai_analysis.get("intent") != "unknown":
-                    intent = ai_analysis["intent"]
-                    entities = ai_analysis.get("entities")
-                    print(f"[CHAT AI] Intent detected via Gemini: {intent} ({ai_analysis.get('explanation')})")
+        # 1. Nếu Gemini khả dụng, ưu tiên dùng Gemini để phân tích intent & entities trước để đạt độ chính xác cao nhất
+        if gemini_service.is_available():
+            ai_analysis = gemini_service.analyze_question(question)
+            if ai_analysis and ai_analysis.get("intent") != "unknown":
+                intent = ai_analysis["intent"]
+                entities = ai_analysis.get("entities")
+                print(f"[CHAT AI] Intent detected via Gemini: {intent} ({ai_analysis.get('explanation')})")
+
+        # 2. Nếu Gemini không khả dụng hoặc không nhận dạng được (intent = unknown), fallback về Rule-based cục bộ
+        if intent == "unknown":
+            intent = detect_intent(question)
+            if intent != "unknown":
+                entities = {
+                    "name": extract_name(question),
+                    "year": extract_year(question),
+                    "field": extract_field(question),
+                    "department": extract_department(question),
+                    "project_level": extract_project_level(question),
+                    "journal": extract_journal(question),
+                    "project_name": None,
+                }
 
         handler_map = {
             "statistics": handle_statistics,
